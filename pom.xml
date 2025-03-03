@@ -9,6 +9,7 @@
     <name>Manorrock Assistant - Project</name>
     <modules>
         <module>desktop</module>
+        <module>macos</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
