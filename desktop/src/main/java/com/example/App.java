@@ -11,7 +11,7 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
-        primaryStage.setTitle("JavaFX Application");
+        primaryStage.setTitle("Manorrock Assistant");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
