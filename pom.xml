@@ -8,8 +8,13 @@
     <packaging>pom</packaging>
     <name>Manorrock Assistant - Project</name>
     <modules>
+        <module>cli</module>
         <module>desktop</module>
         <module>macos</module>
+        <module>mobile</module>
+        <module>springboot</module>
+        <module>vscode</module>
+        <module>windows</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

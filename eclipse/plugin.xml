@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <extension
+        point="org.eclipse.ui.views">
+        <view
+            id="com.example.view"
+            name="Example View"
+            class="com.example.PluginView"
+            category="com.example.category">
+        </view>
+    </extension>
+</plugin>

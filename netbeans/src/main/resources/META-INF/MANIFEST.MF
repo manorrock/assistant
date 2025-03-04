@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+OpenIDE-Module: com.manorrock.assistant.netbeans
+OpenIDE-Module-Name: Manorrock Assistant
+OpenIDE-Module-Specification-Version: 1.0

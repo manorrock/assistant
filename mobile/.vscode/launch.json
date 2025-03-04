@@ -1,0 +1,38 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "mobile.Main",
+            "projectName": "mobile-assistant"
+        },
+        {
+            "type": "java",
+            "name": "MobileApplication",
+            "request": "launch",
+            "mainClass": "mobile.MobileApplication",
+            "projectName": "mobile"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "mobile.Main",
+            "projectName": "mobile"
+        },
+        {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "com.mobile.Ap"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.mobile.Main"
+        }
+    ]
+}

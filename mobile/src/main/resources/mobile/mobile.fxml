@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mobile.MobileUIController" spacing="10">
+    <TextArea fx:id="requestTextArea" promptText="Enter your request here..." prefHeight="200"/>
+    <Button fx:id="sendRequestButton" text="Send Request"/>
+    <TextArea fx:id="responseTextArea" promptText="Response will appear here..." prefHeight="200" editable="false"/>
+    <ProgressBar fx:id="progressBar" prefWidth="200"/>
+</VBox>
