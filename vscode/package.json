@@ -1,0 +1,33 @@
+{
+  "name": "com-manorrock-assistant",
+  "displayName": "Manorrock Assistant",
+  "description": "VSCode extension for Manorrock Assistant",
+  "version": "25.3.0",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:assistant.showPanel"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5",
+    "vsce": "^2.8.0",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.75.0"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "assistant.showPanel",
+        "title": "Manorrock Assistant: Show Panel"
+      }
+    ]
+  }
+}

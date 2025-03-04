@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Example Plugin
+Bundle-SymbolicName: com.example.plugin
+Bundle-Version: 1.0.0
+Bundle-Activator: com.example.PluginActivator
+Require-Bundle: org.eclipse.ui;bundle-version="[4.0.0,5.0.0)",
+ org.eclipse.core.runtime;bundle-version="[3.0.0,4.0.0)",
+ org.eclipse.swt;bundle-version="[3.0.0,4.0.0)",
+ org.eclipse.jface;bundle-version="[3.0.0,4.0.0)"
