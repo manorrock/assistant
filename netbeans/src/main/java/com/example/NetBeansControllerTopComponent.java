@@ -30,6 +30,8 @@ import javax.swing.JTextArea;
 import javax.swing.JProgressBar;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.openide.windows.IOProvider;
+import org.openide.windows.InputOutput;
 
 @TopComponent.Description(
         preferredID = "NetBeansControllerTopComponent",
@@ -63,24 +65,25 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     private String ollamaEndpoint = "http://localhost:11434/api/chat";
     private String model = "llama3";
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
+    private InputOutput io;
 
     public NetBeansControllerTopComponent() {
         initComponents();
         setName(Bundle.CTL_NetBeansControllerTopComponent());
         setToolTipText(Bundle.HINT_NetBeansControllerTopComponent());
+        io = IOProvider.getDefault().getIO("Chat Log", false);
     }
 
     private void initComponents() {
         responseArea = new JTextArea();
         requestArea = new JTextArea();
-        logArea = new JTextArea();
+        logArea = null; // Remove logArea initialization
         sendButton = new JButton("Send");
         startOverButton = new JButton("Start Over");
         progressBar = new JProgressBar(0, 100);
 
         // Set initial message
         responseArea.setText("Welcome to Manorrock Assistant");
-        logArea.setText("Chat Log\n---------");
 
         // Show help message on startup
         showHelp();
@@ -102,7 +105,6 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
         // Layout setup (simplified)
         setLayout(new BorderLayout());
         add(new JScrollPane(responseArea), BorderLayout.CENTER);
-        add(new JScrollPane(logArea), BorderLayout.EAST);
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(new JScrollPane(requestArea), BorderLayout.CENTER);
         JPanel buttonPanel = new JPanel();
@@ -138,8 +140,8 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
             // Display the user's message in the response area
             responseArea.append("\n\nYou: " + userMessage);
 
-            // Add timestamped message to the log area
-            logArea.append("\n\n[" + timestamp + " - You]\n" + userMessage);
+            // Add timestamped message to the Output Window
+            io.getOut().println("[" + timestamp + " - You]\n" + userMessage);
 
             // Clear the request area
             requestArea.setText("");
@@ -171,7 +173,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
             String newEndpoint = matcher.group(1);
             ollamaEndpoint = "http://" + newEndpoint + "/api/chat";
             responseArea.append("\n\nSystem: Endpoint changed to " + ollamaEndpoint);
-            logArea.append("\n\n[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + ollamaEndpoint);
+            io.getOut().println("[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + ollamaEndpoint);
         } else {
             responseArea.append("\n\nSystem: Invalid endpoint format. Use /endpoint myhostname:myport");
         }
@@ -183,7 +185,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
         if (matcher.find()) {
             model = matcher.group(1);
             responseArea.append("\n\nSystem: Model changed to " + model);
-            logArea.append("\n\n[" + LocalDateTime.now().format(formatter) + " - System]\nModel changed to " + model);
+            io.getOut().println("[" + LocalDateTime.now().format(formatter) + " - System]\nModel changed to " + model);
         } else {
             responseArea.append("\n\nSystem: Invalid model format. Use /model <name>");
         }
@@ -207,13 +209,12 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
         history.clear();
         sessionId = UUID.randomUUID().toString();
 
-        // Clear the response and log areas
+        // Clear the response area
         responseArea.setText("");
-        logArea.setText("");
 
         // Set initial messages
         responseArea.setText("Welcome to Manorrock Assistant");
-        logArea.setText("Chat Log\n---------");
+        io.getOut().println("Chat Log\n---------");
 
         // Show help message
         showHelp();
@@ -294,7 +295,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
 
                     String response = responseBuilder.toString().trim();
                     javax.swing.SwingUtilities.invokeLater(() -> {
-                        logArea.append("\n\n[" + timestamp + " - Assistant]\n" + response);
+                        io.getOut().println("[" + timestamp + " - Assistant]\n" + response);
                         sendButton.setEnabled(true);
                         progressBar.setIndeterminate(false);
 
@@ -310,22 +311,20 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
                 })
                 .exceptionally(e -> {
                     javax.swing.SwingUtilities.invokeLater(() -> {
+                        io.getOut().println("[" + timestamp + " - Error]\n" + e.getMessage());
                         String errorMessage = "Ollama is unavailable.";
                         responseArea.append("\n\nAssistant: " + errorMessage);
-                        logArea.append("\n\n[" + timestamp + " - Error]\n" + e.getMessage());
                         responseArea.setCaretPosition(responseArea.getDocument().getLength());
-                        logArea.setCaretPosition(logArea.getDocument().getLength());
                         sendButton.setEnabled(true);
                         progressBar.setIndeterminate(false);
                     });
                     return null;
                 });
         } catch (Exception e) {
+            io.getOut().println("[" + timestamp + " - Error]\n" + e.getMessage());
             String errorMessage = "Ollama is unavailable.";
-            logArea.append("\n\n[" + timestamp + " - Error]\n" + e.getMessage());
             responseArea.append("\n\nAssistant: " + errorMessage);
             responseArea.setCaretPosition(responseArea.getDocument().getLength());
-            logArea.setCaretPosition(logArea.getDocument().getLength());
             sendButton.setEnabled(true);
             progressBar.setIndeterminate(false);
         }
