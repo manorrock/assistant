@@ -29,7 +29,10 @@ import java.util.stream.Stream;
 public class CLIController implements Callable<Integer> {
 
     @Option(names = {"-e", "--endpoint"}, description = "Ollama endpoint")
-    private String ollamaEndpoint = "http://localhost:11434/api/chat";
+    private String ollamaEndpoint;
+
+    // Default endpoint
+    private static final String DEFAULT_ENDPOINT = "http://localhost:11434/api/chat";
 
     @Option(names = {"-m", "--model"}, description = "Model to use")
     private String model = "llama3";
@@ -53,6 +56,9 @@ public class CLIController implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         loadState();
+        if (ollamaEndpoint == null) {
+            ollamaEndpoint = DEFAULT_ENDPOINT;
+        }
         if (readFromStdin) {
             message = new String(System.in.readAllBytes()).trim();
         }
@@ -99,6 +105,7 @@ public class CLIController implements Callable<Integer> {
         }
         ollamaEndpoint = newEndpoint + "/api/chat";
         System.out.println("System: Endpoint changed to " + ollamaEndpoint);
+        saveState();
     }
 
     private void changeModel(String command) {
@@ -210,6 +217,12 @@ public class CLIController implements Callable<Integer> {
                 if (Files.exists(sessionIdFile)) {
                     sessionId = Files.readString(sessionIdFile).trim();
                 }
+                Path endpointFile = stateDir.resolve("endpoint.txt");
+                if (Files.exists(endpointFile)) {
+                    ollamaEndpoint = Files.readString(endpointFile).trim();
+                } else {
+                    ollamaEndpoint = DEFAULT_ENDPOINT;
+                }
             } else {
                 Files.createDirectories(stateDir);
             }
@@ -225,6 +238,9 @@ public class CLIController implements Callable<Integer> {
 
             Path sessionIdFile = stateDir.resolve("session_id.txt");
             Files.writeString(sessionIdFile, sessionId);
+
+            Path endpointFile = stateDir.resolve("endpoint.txt");
+            Files.writeString(endpointFile, ollamaEndpoint);
         } catch (IOException e) {
             System.out.println("Error saving state: " + e.getMessage());
         }
