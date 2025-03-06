@@ -10,9 +10,7 @@
     <modules>
         <module>cli</module>
         <module>desktop</module>
-        <module>macos</module>
-        <module>mobile</module>
-        <module>springboot</module>
+        <module>netbeans</module>
         <module>vscode</module>
         <module>windows</module>
     </modules>
