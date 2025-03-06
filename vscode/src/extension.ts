@@ -1,127 +1,183 @@
-import * as vscode from 'vscode';
+import * as vscode from 'vscode'; // Add this import statement
 import { spawn } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('assistant.showPanel', () => {
-    const panel = vscode.window.createWebviewPanel(
-      'assistantPanel',
-      'Assistant',
-      vscode.ViewColumn.One,
-      { enableScripts: true }
-    );
-    panel.webview.html = getWebviewContent();
+  console.log('Activating Manorrock Assistant extension'); // Add logging
+  const provider = new AssistantViewProvider(context);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider('assistantView', provider, {
+      webviewOptions: { retainContextWhenHidden: true }
+    }) // Ensure view ID matches
+  );
+  console.log('Webview provider registered'); // Add logging
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('assistant.show', async () => {
+      await vscode.commands.executeCommand('workbench.view.extension.assistantView');
+      vscode.commands.executeCommand('vscode.moveViews', {
+        viewIds: ['assistantView'],
+        destinationId: 'workbench.view.extension.secondarySideBar',
+        position: 'right'
+      });
+    })
+  );
+
+  vscode.commands.executeCommand('setContext', 'assistantView', true);
+}
+
+class AssistantViewProvider implements vscode.WebviewViewProvider {
+  constructor(private readonly context: vscode.ExtensionContext) {}
+
+  resolveWebviewView(webviewView: vscode.WebviewView) {
+    console.log('Resolving Webview View'); // Add logging
+    webviewView.webview.options = { enableScripts: true };
+    webviewView.webview.html = this.getWebviewContent();
 
     const outputChannel = vscode.window.createOutputChannel('Manorrock Assistant');
-
-    // Get CLI path and endpoint from configuration or use defaults
     const config = vscode.workspace.getConfiguration('assistant');
     let cliPath = config.get<string>('cliPath') || path.join(os.homedir(), '.manorrock', 'assistant', 'cli.jar');
-    const endpoint = config.get<string>('endpoint') || 'http://localhost:11434';
 
-    // Replace ~ with os.homedir() in cliPath
     if (cliPath.startsWith('~') || cliPath.startsWith('%USERPROFILE%')) {
       cliPath = path.join(os.homedir(), cliPath.slice(cliPath.indexOf(path.sep) + 1));
     }
 
-    // Handle messages from the webview
-    panel.webview.onDidReceiveMessage((message: { type: string; text: string }) => {
+    try {
+      outputChannel.appendLine(`Spawning process with CLI path: ${cliPath} for /help request`);
+      const cliProcess = spawn('java', ['-jar', cliPath, '--stdin']);
+      cliProcess.stdin.write(`/help\n`);
+      cliProcess.stdin.end();
+
+      cliProcess.stdout.on('data', (data) => {
+        const output = data.toString();
+        outputChannel.appendLine(`Output received from process: ${output}`);
+        webviewView.webview.postMessage({ type: 'cli-output', text: output });
+      });
+
+      cliProcess.on('close', (code) => {
+        if (code !== 0) {
+          const exitMessage = `CLI process exited with code ${code}`;
+          outputChannel.appendLine(exitMessage);
+          webviewView.webview.postMessage({ type: 'cli-output', text: exitMessage });
+        }
+      });
+
+      cliProcess.on('error', (error) => {
+        const errorMessage = (error as Error).message;
+        outputChannel.appendLine(`Error: ${errorMessage}`);
+        webviewView.webview.postMessage({ type: 'cli-output', text: `Error: ${errorMessage}` });
+      });
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      outputChannel.appendLine(`Exception: ${errorMessage}`);
+      webviewView.webview.postMessage({ type: 'cli-output', text: `Exception: ${errorMessage}` });
+    }
+
+    webviewView.webview.onDidReceiveMessage((message: { type: string; text: string }) => {
       if (message.type === 'sendMessage') {
         try {
-          outputChannel.appendLine(`Spawning process with CLI path: ${cliPath} and endpoint: ${endpoint}`);
+          outputChannel.appendLine(`Spawning process with CLI path: ${cliPath}`);
           outputChannel.appendLine(`Input sent to process: ${message.text}`);
-
-          // Launch CLI process for each request
-          const cliProcess = spawn('java', [
-            '-jar',
-            cliPath,
-            '-e',
-            endpoint,
-            '--stdin'
-          ]);
-
-          // Send the message to the CLI process
+          const cliProcess = spawn('java', ['-jar', cliPath, '--stdin']);
           cliProcess.stdin.write(`${message.text}\n`);
           cliProcess.stdin.end();
 
-          // Handle CLI output
-          let isFirstChunk = true;
           cliProcess.stdout.on('data', (data) => {
             const output = data.toString();
             outputChannel.appendLine(`Output received from process: ${output}`);
-            if (isFirstChunk) {
-              panel.webview.postMessage({ type: 'cli-output', text: `Assistant: ${output}` });
-              isFirstChunk = false;
-            } else {
-              panel.webview.postMessage({ type: 'cli-output', text: output });
-            }
+            webviewView.webview.postMessage({ type: 'cli-output', text: output });
           });
 
-          // Handle CLI process termination
           cliProcess.on('close', (code) => {
             if (code !== 0) {
               const exitMessage = `CLI process exited with code ${code}`;
               outputChannel.appendLine(exitMessage);
-              panel.webview.postMessage({ type: 'cli-output', text: exitMessage });
+              webviewView.webview.postMessage({ type: 'cli-output', text: exitMessage });
             }
           });
 
-          // Handle CLI errors
           cliProcess.on('error', (error) => {
             const errorMessage = (error as Error).message;
             outputChannel.appendLine(`Error: ${errorMessage}`);
-            panel.webview.postMessage({ type: 'cli-output', text: `Error: ${errorMessage}` });
+            webviewView.webview.postMessage({ type: 'cli-output', text: `Error: ${errorMessage}` });
           });
         } catch (error) {
           const errorMessage = (error as Error).message;
           outputChannel.appendLine(`Exception: ${errorMessage}`);
-          panel.webview.postMessage({ type: 'cli-output', text: `Exception: ${errorMessage}` });
+          webviewView.webview.postMessage({ type: 'cli-output', text: `Exception: ${errorMessage}` });
         }
       }
     });
-  });
+  }
 
-  context.subscriptions.push(disposable);
-}
+  private getWebviewContent(): string {
+    const config = vscode.workspace.getConfiguration('assistant');
+    const theme = config.get<string>('theme') || 'default';
+    return `
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { 
+              font-family: var(--vscode-font-family, 'Segoe WPC', 'Segoe UI', sans-serif); 
+              font-size: var(--vscode-font-size, 13px); 
+              margin: 0; 
+              padding: 0; 
+              display: flex; 
+              flex-direction: column; 
+              height: 100vh; 
+              background-color: var(--vscode-editor-background); 
+              color: var(--vscode-editor-foreground);
+            }
+            .container { flex: 1; display: flex; flex-direction: column; }
+            #messages { flex: 1; overflow-y: auto; padding: 10px; }
+            #inputContainer { display: flex; padding: 10px; border-top: 1px solid var(--vscode-editorGroup-border); }
+            #inputBox { flex: 1; margin-right: 10px; }
+            #outputParagraph { white-space: pre-wrap; } /* Ensure text wraps */
+          </style>
+        </head>
+        <body class="theme-${theme}">
+          <h1>Manorrock Assistant</h1>
+          <div class="container">
+            <div id="messages"><p id="outputParagraph"></p></div>
+            <div id="inputContainer">
+              <textarea id="inputBox" rows="3"></textarea> <!-- Changed input to textarea -->
+              <button id="sendBtn">Send</button>
+            </div>
+          </div>
+          <script>
+            const vscode = acquireVsCodeApi();
+            const inputBox = document.getElementById('inputBox');
+            const sendBtn = document.getElementById('sendBtn');
 
-function getWebviewContent(): string {
-  return `
-  <html>
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        body { font-family: 'Times New Roman'; margin: 0; padding: 0; }
-        .container { display: flex; height: 100vh; }
-        .left, .right { flex: 1; display: flex; flex-direction: column; padding: 10px; }
-        textarea { width: 100%; flex: 1; margin-bottom: 10px; }
-        button { margin-right: 10px; }
-        .dropZone { border: 1px solid black; padding: 10px; text-align: center; }
-      </style>
-    </head>
-    <body>
-      <h1>Assistant</h1>
-      <div id="messages"></div>
-      <input id="inputBox" type="text" />
-      <button id="sendBtn">Send</button>
-      <script>
-        const vscode = acquireVsCodeApi();
-        document.getElementById('sendBtn').addEventListener('click', () => {
-          const message = document.getElementById('inputBox').value;
-          vscode.postMessage({ type: 'sendMessage', text: message });
-        });
+            sendBtn.addEventListener('click', () => {
+              const message = inputBox.value;
+              console.log('Sending message:', message); // Add logging
+              vscode.postMessage({ type: 'sendMessage', text: message });
+              inputBox.value = '';
+            });
 
-        window.addEventListener('message', event => {
-          const { type, text } = event.data;
-          if (type === 'cli-output') {
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML += '<p>' + text + '</p>';
-          }
-        });
-      </script>
-    </body>
-  </html>
-  `;
+            inputBox.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendBtn.click();
+              }
+            });
+
+            window.addEventListener('message', event => {
+              const { type, text } = event.data;
+              console.log('Message received:', type, text); // Add logging
+              if (type === 'cli-output') {
+                const outputParagraph = document.getElementById('outputParagraph');
+                outputParagraph.textContent += text;
+              }
+            });
+          </script>
+        </body>
+      </html>
+    `;
+  }
 }
 
 export function deactivate() {}
