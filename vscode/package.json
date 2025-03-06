@@ -1,26 +1,29 @@
 {
   "name": "com-manorrock-assistant",
   "displayName": "Manorrock Assistant",
-  "description": "VSCode extension for Manorrock Assistant",
+  "description": "Your trusted assistant for everything!",
   "version": "25.3.0",
+  "publisher": "manorrock",
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.77.0"
   },
   "main": "./out/extension.js",
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:assistant.showPanel"
+    "onCommand:assistant.showPanel",
+    "onView:assistantView"
   ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "package": "vsce package"
+    "package": "vsce package",
+    "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
     "typescript": "^4.9.5",
     "vsce": "^2.8.0",
     "@types/node": "^18.0.0",
-    "@types/vscode": "^1.75.0"
+    "@types/vscode": "^1.77.0"
   },
   "contributes": {
     "commands": [
@@ -42,8 +45,33 @@
           "type": "string",
           "default": "http://localhost:11434",
           "description": "Endpoint for the CLI"
+        },
+        "assistant.theme": {
+          "type": "string",
+          "default": "default",
+          "description": "Theme for the Assistant WebView"
         }
       }
+    },
+    "viewsContainers": {     
+      "activitybar": [
+        {
+          "id": "assistantViewContainer",
+          "title": "Assistant",
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "assistantViewContainer": [
+        {
+          "type": "webview",
+          "id": "assistantView",
+          "name": "Assistant",
+          "contextualTitle": "Assistant",
+          "icon": "resources/icon.png"
+        }
+      ]
     }
   }
 }

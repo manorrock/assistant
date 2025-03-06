@@ -111,6 +111,7 @@ public class CLIController implements Callable<Integer> {
     private void changeModel(String command) {
         model = command.substring(7).trim();
         System.out.println("System: Model changed to " + model);
+        saveState();
     }
 
     private void showHelp() {
@@ -223,6 +224,12 @@ public class CLIController implements Callable<Integer> {
                 } else {
                     ollamaEndpoint = DEFAULT_ENDPOINT;
                 }
+                Path modelFile = stateDir.resolve("model.txt");
+                if (Files.exists(modelFile)) {
+                    model = Files.readString(modelFile).trim();
+                } else {
+                    model = "llama3";
+                }
             } else {
                 Files.createDirectories(stateDir);
             }
@@ -241,6 +248,9 @@ public class CLIController implements Callable<Integer> {
 
             Path endpointFile = stateDir.resolve("endpoint.txt");
             Files.writeString(endpointFile, ollamaEndpoint);
+
+            Path modelFile = stateDir.resolve("model.txt");
+            Files.writeString(modelFile, model);
         } catch (IOException e) {
             System.out.println("Error saving state: " + e.getMessage());
         }
