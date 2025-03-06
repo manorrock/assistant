@@ -17,7 +17,7 @@
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
-            <version>4.6.1</version>
+            <version>4.7.6</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -25,6 +25,16 @@
             <version>20210307</version>
         </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>info.picocli</groupId>
+                <artifactId>picocli-codegen</artifactId>
+                <version>4.7.6</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
@@ -35,6 +45,13 @@
                 <configuration>
                     <source>11</source>
                     <target>11</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>info.picocli</groupId>
+                            <artifactId>picocli-codegen</artifactId>
+                            <version>4.7.6</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -59,4 +76,51 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>graalvm</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>0.10.5</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <configuration>
+                                    <mainClass>com.example.CLIController</mainClass>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                    <imageName>${project.artifactId}</imageName>
+                                    <buildArgs>
+                                        <buildArg>--enable-url-protocols=http,https</buildArg>
+                                        <buildArg>--report-unsupported-elements-at-runtime</buildArg>
+                                        <buildArg>--initialize-at-build-time=org.json,info.picocli</buildArg>
+                                        <buildArg>-o</buildArg>
+                                        <buildArg>${project.build.directory}/${project.artifactId}</buildArg>
+                                        <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                        <buildArg>-march=native</buildArg>
+                                        <buildArg>--link-at-build-time=org.json,info.picocli</buildArg>
+                                    </buildArgs>
+                                    <debug>true</debug>
+                                    <verbose>true</verbose>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>org.graalvm.buildtools</groupId>
+                    <artifactId>graalvm-reachability-metadata</artifactId>
+                    <version>0.10.5</version>
+                    <classifier>repository</classifier>
+                    <type>zip</type>
+                </dependency>                
+            </dependencies>
+        </profile>
+    </profiles>
 </project>
