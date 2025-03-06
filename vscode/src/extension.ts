@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
+import * as os from 'os';
+import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand('assistant.showPanel', () => {
@@ -11,26 +13,71 @@ export function activate(context: vscode.ExtensionContext) {
     );
     panel.webview.html = getWebviewContent();
 
-    // Launch CLI process
-    // const cliProcess = spawn('java', [
-    //   '-cp',
-    //   'path/to/your/classpath',
-    //   'com.example.CLIController',
-    // ]);
+    const outputChannel = vscode.window.createOutputChannel('Manorrock Assistant');
 
-    // Handle CLI output
-    // cliProcess.stdout.on('data', (data) => {
-    //   panel.webview.postMessage({ type: 'cli-output', text: data.toString() });
-    // });
+    // Get CLI path and endpoint from configuration or use defaults
+    const config = vscode.workspace.getConfiguration('assistant');
+    let cliPath = config.get<string>('cliPath') || path.join(os.homedir(), '.manorrock', 'assistant', 'cli.jar');
+    const endpoint = config.get<string>('endpoint') || 'http://localhost:11434';
+
+    // Replace ~ with os.homedir() in cliPath
+    if (cliPath.startsWith('~') || cliPath.startsWith('%USERPROFILE%')) {
+      cliPath = path.join(os.homedir(), cliPath.slice(cliPath.indexOf(path.sep) + 1));
+    }
 
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage((message: { type: string; text: string }) => {
       if (message.type === 'sendMessage') {
-        // cliProcess.stdin.write(`${message.text}\n`);
-        // Simulate response
-        setTimeout(() => {
-          panel.webview.postMessage({ type: 'cli-output', text: 'Simulated response: ' + message.text });
-        }, 500);
+        try {
+          outputChannel.appendLine(`Spawning process with CLI path: ${cliPath} and endpoint: ${endpoint}`);
+          outputChannel.appendLine(`Input sent to process: ${message.text}`);
+
+          // Launch CLI process for each request
+          const cliProcess = spawn('java', [
+            '-jar',
+            cliPath,
+            '-e',
+            endpoint,
+            '--stdin'
+          ]);
+
+          // Send the message to the CLI process
+          cliProcess.stdin.write(`${message.text}\n`);
+          cliProcess.stdin.end();
+
+          // Handle CLI output
+          let isFirstChunk = true;
+          cliProcess.stdout.on('data', (data) => {
+            const output = data.toString();
+            outputChannel.appendLine(`Output received from process: ${output}`);
+            if (isFirstChunk) {
+              panel.webview.postMessage({ type: 'cli-output', text: `Assistant: ${output}` });
+              isFirstChunk = false;
+            } else {
+              panel.webview.postMessage({ type: 'cli-output', text: output });
+            }
+          });
+
+          // Handle CLI process termination
+          cliProcess.on('close', (code) => {
+            if (code !== 0) {
+              const exitMessage = `CLI process exited with code ${code}`;
+              outputChannel.appendLine(exitMessage);
+              panel.webview.postMessage({ type: 'cli-output', text: exitMessage });
+            }
+          });
+
+          // Handle CLI errors
+          cliProcess.on('error', (error) => {
+            const errorMessage = (error as Error).message;
+            outputChannel.appendLine(`Error: ${errorMessage}`);
+            panel.webview.postMessage({ type: 'cli-output', text: `Error: ${errorMessage}` });
+          });
+        } catch (error) {
+          const errorMessage = (error as Error).message;
+          outputChannel.appendLine(`Exception: ${errorMessage}`);
+          panel.webview.postMessage({ type: 'cli-output', text: `Exception: ${errorMessage}` });
+        }
       }
     });
   });

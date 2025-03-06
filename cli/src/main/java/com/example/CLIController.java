@@ -34,6 +34,9 @@ public class CLIController implements Callable<Integer> {
     @Option(names = {"-m", "--model"}, description = "Model to use")
     private String model = "llama3";
 
+    @Option(names = {"--stdin"}, description = "Read message from standard input")
+    private boolean readFromStdin = false;
+
     @Parameters(paramLabel = "MESSAGE", description = "Message to send", arity = "0..1")
     private String message;
 
@@ -50,6 +53,9 @@ public class CLIController implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         loadState();
+        if (readFromStdin) {
+            message = new String(System.in.readAllBytes()).trim();
+        }
         if (message != null) {
             handleSendAction(message);
         } else {
@@ -141,6 +147,7 @@ public class CLIController implements Callable<Integer> {
 
             HttpResponse<Stream<String>> response = client.send(request, HttpResponse.BodyHandlers.ofLines());
             StringBuilder responseBuilder = new StringBuilder();
+            final boolean[] isFirstLine = {true};
             response.body().forEach(line -> {
                 JSONObject jsonObject = new JSONObject(line);
                 if (jsonObject.has("session_id")) {
@@ -153,18 +160,27 @@ public class CLIController implements Callable<Integer> {
                         if ("assistant".equals(msg.getString("role"))) {
                             String content = msg.getString("content");
                             responseBuilder.append(content);
-                            System.out.println("Assistant: " + content);
+                            if (isFirstLine[0]) {
+                                System.out.print("Assistant: " + content);
+                                isFirstLine[0] = false;
+                            } else {
+                                System.out.print(content);
+                            }
                         }
                     }
                 } else {
                     String content = jsonObject.getJSONObject("message").getString("content");
                     responseBuilder.append(content);
-                    System.out.println("Assistant: " + content);
+                    if (isFirstLine[0]) {
+                        System.out.print("Assistant: " + content);
+                        isFirstLine[0] = false;
+                    } else {
+                        System.out.print(content);
+                    }
                 }
             });
 
             String responseText = responseBuilder.toString().trim();
-            System.out.println("[" + timestamp + " - Assistant]\n" + responseText);
 
             JSONObject responseObject = new JSONObject();
             responseObject.put("role", "assistant");

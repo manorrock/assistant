@@ -28,6 +28,22 @@
         "command": "assistant.showPanel",
         "title": "Manorrock Assistant: Show Panel"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Manorrock Assistant Configuration",
+      "properties": {
+        "assistant.cliPath": {
+          "type": "string",
+          "default": "~/.manorrock/assistant/cli.jar",
+          "description": "Path to the CLI jar file"
+        },
+        "assistant.endpoint": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Endpoint for the CLI"
+        }
+      }
+    }
   }
 }
