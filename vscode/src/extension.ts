@@ -74,8 +74,20 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
       webviewView.webview.postMessage({ type: 'cli-output', text: `Exception: ${errorMessage}` });
     }
 
-    webviewView.webview.onDidReceiveMessage((message: { type: string; text: string }) => {
+    webviewView.webview.onDidReceiveMessage(async (message: { type: string; text: string }) => {
       if (message.type === 'sendMessage') {
+        if (message.text.startsWith('/explain')) {
+          const editor = vscode.window.activeTextEditor;
+          if (editor) {
+            const selection = editor.selection;
+            const text = selection.isEmpty ? editor.document.getText() : editor.document.getText(selection);
+            const prompt = `Please explain the content below the line\n-----------------------------------------\n${text}`;
+            message.text = prompt;
+          } else {
+            vscode.window.showInformationMessage('Please select a snippet or open a file.');
+            return;
+          }
+        }
         try {
           outputChannel.appendLine(`Spawning process with CLI path: ${cliPath}`);
           outputChannel.appendLine(`Input sent to process: ${message.text}`);
