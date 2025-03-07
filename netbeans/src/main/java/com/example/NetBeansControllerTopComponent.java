@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -32,6 +34,9 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
+import org.openide.cookies.EditorCookie;
+import org.openide.loaders.DataObject;
+import org.openide.util.Lookup;
 
 @TopComponent.Description(
         preferredID = "NetBeansControllerTopComponent",
@@ -52,7 +57,7 @@ import org.openide.windows.InputOutput;
     "CTL_NetBeansControllerTopComponent=Manorrock Assistant Window",
     "HINT_NetBeansControllerTopComponent=This is a Manorrock Assistant window"
 })
-public final class NetBeansControllerTopComponent extends TopComponent implements ActionListener {
+public final class NetBeansControllerTopComponent extends TopComponent implements ActionListener, FocusListener {
 
     private JTextArea responseArea;
     private JTextArea requestArea;
@@ -66,16 +71,27 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     private String model = "llama3";
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private InputOutput io;
+    private TopComponent lastFocusedEditor;
 
     public NetBeansControllerTopComponent() {
         initComponents();
         setName(Bundle.CTL_NetBeansControllerTopComponent());
         setToolTipText(Bundle.HINT_NetBeansControllerTopComponent());
         io = IOProvider.getDefault().getIO("Chat Log", false);
+        TopComponent.getRegistry().addPropertyChangeListener(evt -> {
+            if (TopComponent.Registry.PROP_ACTIVATED.equals(evt.getPropertyName())) {
+                TopComponent activated = TopComponent.getRegistry().getActivated();
+                if (activated != null && activated.getLookup().lookup(EditorCookie.class) != null) {
+                    lastFocusedEditor = activated;
+                }
+            }
+        });
     }
 
     private void initComponents() {
         responseArea = new JTextArea();
+        responseArea.setLineWrap(true);
+        responseArea.setWrapStyleWord(true);
         requestArea = new JTextArea();
         logArea = null; // Remove logArea initialization
         sendButton = new JButton("Send");
@@ -160,10 +176,64 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
             showHelp();
         } else if (command.equals("/clear")) {
             clearResponseArea();
+        } else if (command.equals("/explain")) {
+            explainSelection();
         } else {
             responseArea.append("\n\nSystem: Unknown command. Type /help for a list of commands.");
         }
         requestArea.setText("");
+    }
+
+    private void explainSelection() {
+        // Get the last editor window that had focus
+        EditorCookie editorCookie = getLastFocusedEditorCookie();
+        if (editorCookie != null) {
+            try {
+                String selectedText = editorCookie.getOpenedPanes()[0].getSelectedText();
+                if (selectedText == null || selectedText.isEmpty()) {
+                    selectedText = editorCookie.getDocument().getText(0, editorCookie.getDocument().getLength());
+                }
+                String prompt = "Please explain the content below the line\n-----------------------------------------\n" + selectedText;
+                responseArea.append("\n\nYou: " + prompt); // Echo the request to the response area
+                processMessage(prompt);
+            } catch (javax.swing.text.BadLocationException e) {
+                responseArea.append("\n\nSystem: Error retrieving text from the editor.");
+            }
+        } else {
+            responseArea.append("\n\nSystem: No active editor window found.");
+        }
+    }
+
+    private EditorCookie getShowingEditorCookie() {
+        TopComponent showingTC = TopComponent.getRegistry().getActivated();
+        if (showingTC != null) {
+            DataObject dataObject = showingTC.getLookup().lookup(DataObject.class);
+            if (dataObject != null) {
+                return dataObject.getLookup().lookup(EditorCookie.class);
+            }
+        }
+        return null;
+    }
+
+    private EditorCookie getLastActiveEditorCookie() {
+        TopComponent activeTC = TopComponent.getRegistry().getActivated();
+        if (activeTC != null) {
+            DataObject dataObject = activeTC.getLookup().lookup(DataObject.class);
+            if (dataObject != null) {
+                return dataObject.getLookup().lookup(EditorCookie.class);
+            }
+        }
+        return null;
+    }
+
+    private EditorCookie getLastFocusedEditorCookie() {
+        if (lastFocusedEditor != null) {
+            DataObject dataObject = lastFocusedEditor.getLookup().lookup(DataObject.class);
+            if (dataObject != null) {
+                return dataObject.getLookup().lookup(EditorCookie.class);
+            }
+        }
+        return null;
     }
 
     private void changeEndpoint(String command) {
@@ -196,7 +266,8 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
                              "/endpoint myhostname:myport - Change the Ollama endpoint\n" +
                              "/model <name> - Change the model used\n" +
                              "/help - Show this help message\n" +
-                             "/clear - Clear the response window";
+                             "/clear - Clear the response window\n" +
+                             "/explain - Explain the selected text";
         responseArea.append(helpMessage);
     }
 
@@ -328,5 +399,20 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
             sendButton.setEnabled(true);
             progressBar.setIndeterminate(false);
         }
+    }
+
+    @Override
+    public void focusGained(FocusEvent e) {
+        if (e.getComponent() instanceof TopComponent) {
+            TopComponent tc = (TopComponent) e.getComponent();
+            if (tc.getLookup().lookup(EditorCookie.class) != null) {
+                lastFocusedEditor = tc;
+            }
+        }
+    }
+
+    @Override
+    public void focusLost(FocusEvent e) {
+        // No action needed
     }
 }
