@@ -22,15 +22,16 @@
 4. **VSCode extension**
    - An extension for Visual Studio Code to integrate Manorrock Assistant functionalities.
 
+5. **IntelliJ plugin**
+   - A plugin for the IntelliJ IDEA IDE to integrate Manorrock Assistant functionalities.
+
+6. **Eclipse plugin**
+   - A plugin for the Eclipse IDE to integrate Manorrock Assistant functionalities.
+
+
 ## Under Consideration or Under Development
 
 These implementations are either under consideration or currently in development. If they are under development, be aware they are not ready for use.
-
-1. **IntelliJ plugin**
-   - A plugin for the IntelliJ IDEA IDE to integrate Manorrock Assistant functionalities.
-
-2. **Eclipse plugin**
-   - A plugin for the Eclipse IDE to integrate Manorrock Assistant functionalities.
 
 3. **Mobile application**
    - A mobile application version as the basis for the iPhone and Android versions.
