@@ -1,5 +1,45 @@
 # Manorrock Assistant
 
+Note this project was almost 100% developed using AI as proof of concept to determine how far AI assistated development has come.
+
+If you want to try it out, you can do so, but you will have to build it yourself.
+
+Contributions are welcome, but be aware this is neither funded nor supported by any organization.
+
+## Overview
+
+Manorrock Assistant exposes Large Language Models in a chat like interface in a variety of different ways, e.g. as a console application, a desktop application, or as an IDE extension or plugin. More implementations are under consideration or under development.
+
+## Command Description
+
+| Command | Description |
+|---------|-------------|
+| `/endpoint <host:port>` | Changes the Ollama API endpoint (e.g., `/endpoint localhost:11434`) |
+| `/model <name>` | Changes the LLM model used (e.g., `/model llama3`) |
+| `/help` | Displays available commands |
+| `/clear` | Clears the response window |
+| `/explain` | Explains selected code or text (IDE plugins only) |
+| `/startover` | Clears conversation history and starts a new session |
+
+## Command Support Matrix
+
+This matrix shows which commands are supported by each implementation of the Manorrock Assistant.
+
+| Command | CLI | Desktop | Eclipse | NetBeans | IntelliJ | VSCode | Mobile |
+|---------|-----|---------|---------|----------|----------|--------|--------|
+| `/endpoint <host:port>` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅* | ✅ |
+| `/model <name>` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/clear` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `/explain` | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `/startover` or equivalent | ❌ | ✅** | ✅** | ✅** | ✅** | ❌ | ❌ |
+
+**Notes:**
+- ✅ Fully supported
+- ❌ Not supported
+- ✅* VSCode extension handles endpoint through Configuration settings rather than command
+- ✅** Desktop, Eclipse, NetBeans, and IntelliJ implementations have a "Start Over" button rather than a command
+
 ## Implementations
 
 1. **Java based CLI**
