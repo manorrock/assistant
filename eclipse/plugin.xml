@@ -1,12 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
 <plugin>
-    <extension
-        point="org.eclipse.ui.views">
-        <view
-            id="com.example.view"
-            name="Example View"
-            class="com.example.PluginView"
-            category="com.example.category">
-        </view>
-    </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            class="com.manorrock.assistant.eclipse.views.AssistantView"
+            id="com.manorrock.assistant.eclipse.views.AssistantView"
+            name="Manorrock Assistant"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="*">
+         <view
+               id="com.manorrock.assistant.eclipse.views.AssistantView"
+               relationship="stack"
+               relative="org.eclipse.ui.console.ConsoleView"
+               visible="true">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:window?after=showView">
+         <command
+               commandId="org.eclipse.ui.views.showView"
+               label="Show Assistant View"
+               style="push">
+            <parameter
+                  name="org.eclipse.ui.views.showView.viewId"
+                  value="com.manorrock.assistant.eclipse.views.AssistantView">
+            </parameter>
+         </command>
+      </menuContribution>
+   </extension>
 </plugin>
