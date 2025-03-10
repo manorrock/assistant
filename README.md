@@ -23,6 +23,8 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 | `/llmTemperature <number>` | Sets the model's temperature parameter (default: 0.0, range: 0.0-1.0) |
 | `/llmVendor <name>` | Changes the LLM vendor (default: OLLAMA, options: OLLAMA, OPENAI, or AZURE_OPENAI) |
 | `/model <name>` | Legacy command for changing model (default: llama3) |
+| `/startover` | Resets the conversation and starts over |
+| `/reset` | Resets the application state |
 
 ## Command Support Matrix
 
@@ -32,14 +34,15 @@ This matrix shows which commands are supported by each implementation of the Man
 |---------|-----|---------|---------|----------|----------|--------|--------|
 | `/clear` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 | `/llmEndpoint <host:port>` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅* | ✅ |
-| `/explain` | ❌ | ✅** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `/explain` | ✅ | ✅** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/llmApiKey <key>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmModel <name>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmTemperature <number>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmVendor <name>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/model <name>` | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `/startover` or equivalent | ❌ | ✅*** | ✅*** | ✅*** | ✅*** | ❌ | ❌ |
+| `/startover` | ❌ | ✅*** | ✅*** | ✅*** | ✅*** | ❌ | ❌ |
+| `/reset` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 **Notes:**
 - ✅ Fully supported
@@ -47,6 +50,7 @@ This matrix shows which commands are supported by each implementation of the Man
 - ✅* VSCode extension handles endpoint through Configuration settings rather than command
 - ✅** Desktop implementation uses clipboard content instead of editor selection
 - ✅*** Desktop, Eclipse, NetBeans, and IntelliJ implementations have a "Start Over" button rather than a command
+- In CLI, `/explain` explains the provided text argument.
 
 ## Implementations
 
@@ -84,7 +88,7 @@ These implementations are either under consideration or currently in development
 3. **Mobile application**
    - A mobile application version as the basis for the iPhone and Android versions.
 
-4. **iPhone applicatio**
+4. **iPhone application**
    - A mobile application version for iPhone devices.
 
 5. **Spring Boot REST application**
