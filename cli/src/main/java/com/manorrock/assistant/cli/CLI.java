@@ -1,5 +1,6 @@
-package com.example;
+package com.manorrock.assistant.cli;
 
+import com.manorrock.assistant.shared.LlmConfiguration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import picocli.CommandLine;
@@ -24,15 +25,12 @@ import java.util.stream.Stream;
 
 @Command(name = "assistant-cli", mixinStandardHelpOptions = true, version = "1.0",
         description = "CLI version of the Manorrock Assistant")
-public class CLIController implements Callable<Integer> {
+public class CLI implements Callable<Integer> {
 
-    private String llmEndpoint;
-
-    // Default endpoint
-    private static final String DEFAULT_ENDPOINT = "http://localhost:11434/api/chat";
+    private LlmConfiguration config;
 
     @Option(names = {"-m", "--model"}, description = "Model to use")
-    private String model = "llama3";
+    private String modelOption = null;
 
     @Option(names = {"--stdin"}, description = "Read message from standard input")
     private boolean readFromStdin = false;
@@ -46,16 +44,28 @@ public class CLIController implements Callable<Integer> {
     private Path stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "cli-state");
 
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new CLIController()).execute(args);
+        int exitCode = new CommandLine(new CLI()).execute(args);
         System.exit(exitCode);
     }
 
     @Override
     public Integer call() throws Exception {
         loadState();
-        if (llmEndpoint == null) {
-            llmEndpoint = DEFAULT_ENDPOINT;
+        if (config == null) {
+            config = LlmConfiguration.defaultConfig();
         }
+        
+        // Override model if provided in command line
+        if (modelOption != null) {
+            config = new LlmConfiguration(
+                config.endpoint(), 
+                modelOption, 
+                config.vendor(),
+                config.apiKey(),
+                config.temperature()
+            );
+        }
+        
         if (readFromStdin) {
             message = new String(System.in.readAllBytes()).trim();
         }
@@ -85,6 +95,12 @@ public class CLIController implements Callable<Integer> {
             changeEndpoint(command);
         } else if (command.startsWith("/model ")) {
             changeModel(command);
+        } else if (command.startsWith("/vendor ")) {
+            changeVendor(command);
+        } else if (command.startsWith("/apiKey ")) {
+            changeApiKey(command);
+        } else if (command.startsWith("/temperature ")) {
+            changeTemperature(command);
         } else if (command.equals("/help")) {
             showHelp();
         } else if (command.equals("/clear")) {
@@ -165,22 +181,85 @@ public class CLIController implements Callable<Integer> {
         if (!newEndpoint.startsWith("http://") && !newEndpoint.startsWith("https://")) {
             newEndpoint = "http://" + newEndpoint;
         }
-        llmEndpoint = newEndpoint + "/api/chat";
-        System.out.println("System: Endpoint changed to " + llmEndpoint);
+        newEndpoint = newEndpoint + "/api/chat";
+        config = new LlmConfiguration(
+            newEndpoint, 
+            config.model(), 
+            config.vendor(),
+            config.apiKey(),
+            config.temperature()
+        );
+        System.out.println("System: Endpoint changed to " + newEndpoint);
         saveState();
     }
 
     private void changeModel(String command) {
         String newModel = command.substring(7).trim();
-        model = newModel;
-        System.out.println("System: Model changed to " + model);
+        config = new LlmConfiguration(
+            config.endpoint(), 
+            newModel, 
+            config.vendor(),
+            config.apiKey(),
+            config.temperature()
+        );
+        System.out.println("System: Model changed to " + newModel);
         saveState();
+    }
+    
+    private void changeVendor(String command) {
+        String newVendor = command.substring(8).trim().toUpperCase();
+        config = new LlmConfiguration(
+            config.endpoint(), 
+            config.model(), 
+            newVendor,
+            config.apiKey(),
+            config.temperature()
+        );
+        System.out.println("System: Vendor changed to " + newVendor);
+        saveState();
+    }
+    
+    private void changeApiKey(String command) {
+        String newApiKey = command.substring(8).trim();
+        config = new LlmConfiguration(
+            config.endpoint(), 
+            config.model(), 
+            config.vendor(),
+            newApiKey,
+            config.temperature()
+        );
+        System.out.println("System: API key updated");
+        saveState();
+    }
+    
+    private void changeTemperature(String command) {
+        try {
+            double newTemperature = Double.parseDouble(command.substring(12).trim());
+            if (newTemperature < 0.0 || newTemperature > 1.0) {
+                System.out.println("System: Temperature must be between 0.0 and 1.0");
+                return;
+            }
+            config = new LlmConfiguration(
+                config.endpoint(), 
+                config.model(), 
+                config.vendor(),
+                config.apiKey(),
+                newTemperature
+            );
+            System.out.println("System: Temperature set to " + newTemperature);
+            saveState();
+        } catch (NumberFormatException e) {
+            System.out.println("System: Invalid temperature format. Use /temperature <number>");
+        }
     }
 
     private void showHelp() {
         String helpMessage = "\n\nSystem: Available commands:\n" +
-                             "/llmEndpoint myhostname:myport - Change the Ollama endpoint\n" +
+                             "/llmEndpoint myhostname:myport - Change the endpoint\n" +
                              "/model <name> - Change the model used\n" +
+                             "/vendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n" +
+                             "/apiKey <key> - Set API key for OpenAI or Azure\n" +
+                             "/temperature <value> - Set temperature (0.0-1.0)\n" +
                              "/help - Show this help message\n" +
                              "/clear - Clear the response window\n" +
                              "/explain [file_path] - Explain text from clipboard or specified file";
@@ -205,14 +284,14 @@ public class CLIController implements Callable<Integer> {
             }
 
             JSONObject jsonInput = new JSONObject();
-            jsonInput.put("model", model);
+            jsonInput.put("model", config.model());
             jsonInput.put("messages", new JSONArray(history));
             jsonInput.put("stream", true);
             jsonInput.put("session_id", sessionId);
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(llmEndpoint))
+                    .uri(URI.create(config.endpoint()))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
                     .build();
@@ -262,7 +341,7 @@ public class CLIController implements Callable<Integer> {
                 history.removeFirst();
             }
         } catch (Exception e) {
-            System.out.println("Assistant: Ollama is unavailable.");
+            System.out.println("Assistant: LLM service is unavailable.");
             System.out.println("[" + timestamp + " - Error]\n" + e.getMessage());
         }
     }
@@ -270,6 +349,19 @@ public class CLIController implements Callable<Integer> {
     private void loadState() {
         try {
             if (Files.exists(stateDir)) {
+                Path configFile = stateDir.resolve("config.json");
+                if (Files.exists(configFile)) {
+                    String content = Files.readString(configFile);
+                    JSONObject configJson = new JSONObject(content);
+                    config = new LlmConfiguration(
+                        configJson.getString("endpoint"),
+                        configJson.getString("model"),
+                        configJson.getString("vendor"),
+                        configJson.getString("apiKey"),
+                        configJson.getDouble("temperature")
+                    );
+                }
+                
                 Path historyFile = stateDir.resolve("history.json");
                 if (Files.exists(historyFile)) {
                     String content = Files.readString(historyFile);
@@ -278,21 +370,10 @@ public class CLIController implements Callable<Integer> {
                         history.add(jsonArray.getJSONObject(i));
                     }
                 }
+                
                 Path sessionIdFile = stateDir.resolve("session_id.txt");
                 if (Files.exists(sessionIdFile)) {
                     sessionId = Files.readString(sessionIdFile).trim();
-                }
-                Path endpointFile = stateDir.resolve("endpoint.txt");
-                if (Files.exists(endpointFile)) {
-                    llmEndpoint = Files.readString(endpointFile).trim();
-                } else {
-                    llmEndpoint = DEFAULT_ENDPOINT;
-                }
-                Path modelFile = stateDir.resolve("model.txt");
-                if (Files.exists(modelFile)) {
-                    model = Files.readString(modelFile).trim();
-                } else {
-                    model = "llama3";
                 }
             } else {
                 Files.createDirectories(stateDir);
@@ -304,17 +385,20 @@ public class CLIController implements Callable<Integer> {
 
     private void saveState() {
         try {
+            Path configFile = stateDir.resolve("config.json");
+            JSONObject configJson = new JSONObject();
+            configJson.put("endpoint", config.endpoint());
+            configJson.put("model", config.model());
+            configJson.put("vendor", config.vendor());
+            configJson.put("apiKey", config.apiKey());
+            configJson.put("temperature", config.temperature());
+            Files.writeString(configFile, configJson.toString());
+
             Path historyFile = stateDir.resolve("history.json");
             Files.writeString(historyFile, new JSONArray(history).toString());
 
             Path sessionIdFile = stateDir.resolve("session_id.txt");
             Files.writeString(sessionIdFile, sessionId);
-
-            Path endpointFile = stateDir.resolve("endpoint.txt");
-            Files.writeString(endpointFile, llmEndpoint);
-
-            Path modelFile = stateDir.resolve("model.txt");
-            Files.writeString(modelFile, model);
         } catch (IOException e) {
             System.out.println("Error saving state: " + e.getMessage());
         }
