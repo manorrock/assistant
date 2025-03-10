@@ -13,7 +13,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -21,7 +20,6 @@ import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,7 +34,6 @@ import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
 import org.openide.cookies.EditorCookie;
 import org.openide.loaders.DataObject;
-import org.openide.util.Lookup;
 
 @TopComponent.Description(
         preferredID = "NetBeansControllerTopComponent",
@@ -61,7 +58,6 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
 
     private JTextArea responseArea;
     private JTextArea requestArea;
-    private JTextArea logArea;
     private JButton sendButton;
     private JButton startOverButton;
     private JProgressBar progressBar;
@@ -93,7 +89,6 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
         responseArea.setLineWrap(true);
         responseArea.setWrapStyleWord(true);
         requestArea = new JTextArea();
-        logArea = null; // Remove logArea initialization
         sendButton = new JButton("Send");
         startOverButton = new JButton("Start Over");
         progressBar = new JProgressBar(0, 100);
@@ -202,28 +197,6 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
         } else {
             responseArea.append("\n\nSystem: No active editor window found.");
         }
-    }
-
-    private EditorCookie getShowingEditorCookie() {
-        TopComponent showingTC = TopComponent.getRegistry().getActivated();
-        if (showingTC != null) {
-            DataObject dataObject = showingTC.getLookup().lookup(DataObject.class);
-            if (dataObject != null) {
-                return dataObject.getLookup().lookup(EditorCookie.class);
-            }
-        }
-        return null;
-    }
-
-    private EditorCookie getLastActiveEditorCookie() {
-        TopComponent activeTC = TopComponent.getRegistry().getActivated();
-        if (activeTC != null) {
-            DataObject dataObject = activeTC.getLookup().lookup(DataObject.class);
-            if (dataObject != null) {
-                return dataObject.getLookup().lookup(EditorCookie.class);
-            }
-        }
-        return null;
     }
 
     private EditorCookie getLastFocusedEditorCookie() {

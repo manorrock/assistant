@@ -19,6 +19,8 @@
      - `/help`
      - `/clear`
      - `/explain`
+     - `/startover`
+     - `/reset`
 
 ## Bucket 2: Core Components Standardization
 

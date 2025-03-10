@@ -7,7 +7,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -19,7 +18,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
@@ -28,8 +26,7 @@ import java.util.stream.Stream;
         description = "CLI version of the Manorrock Assistant")
 public class CLIController implements Callable<Integer> {
 
-    @Option(names = {"-e", "--endpoint"}, description = "Ollama endpoint")
-    private String ollamaEndpoint;
+    private String llmEndpoint;
 
     // Default endpoint
     private static final String DEFAULT_ENDPOINT = "http://localhost:11434/api/chat";
@@ -56,8 +53,8 @@ public class CLIController implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         loadState();
-        if (ollamaEndpoint == null) {
-            ollamaEndpoint = DEFAULT_ENDPOINT;
+        if (llmEndpoint == null) {
+            llmEndpoint = DEFAULT_ENDPOINT;
         }
         if (readFromStdin) {
             message = new String(System.in.readAllBytes()).trim();
@@ -78,7 +75,6 @@ public class CLIController implements Callable<Integer> {
                 return;
             }
 
-            String timestamp = LocalDateTime.now().format(formatter);
             System.out.println("You: " + userMessage);
             processMessage(userMessage);
         }
@@ -93,9 +89,75 @@ public class CLIController implements Callable<Integer> {
             showHelp();
         } else if (command.equals("/clear")) {
             clearResponseArea();
+        } else if (command.startsWith("/explain")) {
+            explainFromClipboardOrFile(command);
         } else {
             System.out.println("System: Unknown command. Type /help for a list of commands.");
         }
+    }
+
+    private void explainFromClipboardOrFile(String command) {
+        String textToExplain = null;
+        
+        // Parse optional file path if provided
+        String filePath = null;
+        if (command.length() > 9) { // "/explain " + something
+            filePath = command.substring(9).trim();
+        }
+        
+        if (filePath != null && !filePath.isEmpty()) {
+            // Read from file
+            try {
+                textToExplain = Files.readString(Paths.get(filePath));
+                System.out.println("System: Explaining content from file: " + filePath);
+            } catch (IOException e) {
+                System.out.println("System: Error reading file: " + e.getMessage());
+                return;
+            }
+        } else {
+            // Read from clipboard
+            try {
+                textToExplain = getClipboardContent();
+                System.out.println("System: Explaining content from clipboard");
+            } catch (Exception e) {
+                System.out.println("System: Failed to access clipboard: " + e.getMessage());
+                System.out.println("System: Usage: /explain [file_path] - Explains text from clipboard or specified file");
+                return;
+            }
+        }
+        
+        if (textToExplain != null && !textToExplain.trim().isEmpty()) {
+            String promptPrefix = "Please explain the following text in a clear and concise manner:\n\n";
+            processMessage(promptPrefix + textToExplain);
+        } else {
+            System.out.println("System: No content found to explain.");
+        }
+    }
+
+    private String getClipboardContent() throws Exception {
+        // For Mac/Linux, we can use the 'pbpaste' or 'xclip' commands
+        String os = System.getProperty("os.name").toLowerCase();
+        ProcessBuilder pb;
+        
+        if (os.contains("mac")) {
+            pb = new ProcessBuilder("pbpaste");
+        } else if (os.contains("nix") || os.contains("nux")) {
+            pb = new ProcessBuilder("xclip", "-selection", "clipboard", "-o");
+        } else if (os.contains("win")) {
+            pb = new ProcessBuilder("powershell.exe", "-command", "Get-Clipboard");
+        } else {
+            throw new UnsupportedOperationException("Clipboard access not supported on this OS");
+        }
+        
+        Process process = pb.start();
+        String content = new String(process.getInputStream().readAllBytes());
+        int exitCode = process.waitFor();
+        
+        if (exitCode != 0) {
+            throw new IOException("Failed to get clipboard content, exit code: " + exitCode);
+        }
+        
+        return content;
     }
 
     private void changeEndpoint(String command) {
@@ -103,8 +165,8 @@ public class CLIController implements Callable<Integer> {
         if (!newEndpoint.startsWith("http://") && !newEndpoint.startsWith("https://")) {
             newEndpoint = "http://" + newEndpoint;
         }
-        ollamaEndpoint = newEndpoint + "/api/chat";
-        System.out.println("System: Endpoint changed to " + ollamaEndpoint);
+        llmEndpoint = newEndpoint + "/api/chat";
+        System.out.println("System: Endpoint changed to " + llmEndpoint);
         saveState();
     }
 
@@ -121,7 +183,7 @@ public class CLIController implements Callable<Integer> {
                              "/model <name> - Change the model used\n" +
                              "/help - Show this help message\n" +
                              "/clear - Clear the response window\n" +
-                             "/explain - Explain the selected text";
+                             "/explain [file_path] - Explain text from clipboard or specified file";
         System.out.println(helpMessage);
     }
 
@@ -150,7 +212,7 @@ public class CLIController implements Callable<Integer> {
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(ollamaEndpoint))
+                    .uri(URI.create(llmEndpoint))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
                     .build();
@@ -222,9 +284,9 @@ public class CLIController implements Callable<Integer> {
                 }
                 Path endpointFile = stateDir.resolve("endpoint.txt");
                 if (Files.exists(endpointFile)) {
-                    ollamaEndpoint = Files.readString(endpointFile).trim();
+                    llmEndpoint = Files.readString(endpointFile).trim();
                 } else {
-                    ollamaEndpoint = DEFAULT_ENDPOINT;
+                    llmEndpoint = DEFAULT_ENDPOINT;
                 }
                 Path modelFile = stateDir.resolve("model.txt");
                 if (Files.exists(modelFile)) {
@@ -249,7 +311,7 @@ public class CLIController implements Callable<Integer> {
             Files.writeString(sessionIdFile, sessionId);
 
             Path endpointFile = stateDir.resolve("endpoint.txt");
-            Files.writeString(endpointFile, ollamaEndpoint);
+            Files.writeString(endpointFile, llmEndpoint);
 
             Path modelFile = stateDir.resolve("model.txt");
             Files.writeString(modelFile, model);
