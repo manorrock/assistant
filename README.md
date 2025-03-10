@@ -15,11 +15,10 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 | Command | Description |
 |---------|-------------|
 | `/clear` | Clears the response window |
-| `/endpoint <host:port>` | Legacy command for changing endpoint (default: localhost:11434) |
+| `/llmEndpoint <host:port>` | Changes the LLM API endpoint (default: localhost:11434) |
 | `/explain` | Explains text from clipboard (Desktop) or selected text (IDE plugins) |
 | `/help` | Displays available commands |
 | `/llmApiKey <key>` | Sets the API key for OpenAI or Azure OpenAI (default: empty) |
-| `/llmEndpoint <host:port>` | Changes the LLM API endpoint (default: localhost:11434) |
 | `/llmModel <name>` | Changes the LLM model used (default: llama3) |
 | `/llmTemperature <number>` | Sets the model's temperature parameter (default: 0.0, range: 0.0-1.0) |
 | `/llmVendor <name>` | Changes the LLM vendor (default: OLLAMA, options: OLLAMA, OPENAI, or AZURE_OPENAI) |
@@ -32,11 +31,10 @@ This matrix shows which commands are supported by each implementation of the Man
 | Command | CLI | Desktop | Eclipse | NetBeans | IntelliJ | VSCode | Mobile |
 |---------|-----|---------|---------|----------|----------|--------|--------|
 | `/clear` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `/endpoint <host:port>` | ✅ | ❌ | ✅ | ✅ | ✅ | ✅* | ✅ |
+| `/llmEndpoint <host:port>` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅* | ✅ |
 | `/explain` | ❌ | ✅** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/llmApiKey <key>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/llmEndpoint <host:port>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmModel <name>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmTemperature <number>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmVendor <name>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |

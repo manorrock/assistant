@@ -85,7 +85,7 @@ public class CLIController implements Callable<Integer> {
     }
 
     private void handleCommand(String command) {
-        if (command.startsWith("/endpoint ")) {
+        if (command.startsWith("/llmEndpoint ")) {
             changeEndpoint(command);
         } else if (command.startsWith("/model ")) {
             changeModel(command);
@@ -99,7 +99,7 @@ public class CLIController implements Callable<Integer> {
     }
 
     private void changeEndpoint(String command) {
-        String newEndpoint = command.substring(10).trim();
+        String newEndpoint = command.substring(12).trim();
         if (!newEndpoint.startsWith("http://") && !newEndpoint.startsWith("https://")) {
             newEndpoint = "http://" + newEndpoint;
         }
@@ -109,17 +109,19 @@ public class CLIController implements Callable<Integer> {
     }
 
     private void changeModel(String command) {
-        model = command.substring(7).trim();
+        String newModel = command.substring(7).trim();
+        model = newModel;
         System.out.println("System: Model changed to " + model);
         saveState();
     }
 
     private void showHelp() {
-        String helpMessage = "System: Available commands:\n" +
-                "/endpoint myhostname:myport - Change the Ollama endpoint\n" +
-                "/model <name> - Change the model used\n" +
-                "/help - Show this help message\n" +
-                "/clear - Clear the response window";
+        String helpMessage = "\n\nSystem: Available commands:\n" +
+                             "/llmEndpoint myhostname:myport - Change the Ollama endpoint\n" +
+                             "/model <name> - Change the model used\n" +
+                             "/help - Show this help message\n" +
+                             "/clear - Clear the response window\n" +
+                             "/explain - Explain the selected text";
         System.out.println(helpMessage);
     }
 

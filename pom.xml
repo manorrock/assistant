@@ -8,6 +8,7 @@
     <packaging>pom</packaging>
     <name>Manorrock Assistant - Project</name>
     <modules>
+        <module>shared</module>
         <module>cli</module>
         <module>desktop</module>
         <module>netbeans</module>

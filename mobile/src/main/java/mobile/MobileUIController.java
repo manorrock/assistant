@@ -90,7 +90,7 @@ public class MobileUIController {
     }
 
     private void handleCommand(String command) {
-        if (command.startsWith("/endpoint ")) {
+        if (command.startsWith("/llmEndpoint ")) {
             changeEndpoint(command);
         } else if (command.startsWith("/model ")) {
             changeModel(command);
@@ -105,14 +105,14 @@ public class MobileUIController {
     }
 
     private void changeEndpoint(String command) {
-        Pattern pattern = Pattern.compile("/endpoint\\s+(\\S+)");
+        Pattern pattern = Pattern.compile("/llmEndpoint\\s+(\\S+)");
         Matcher matcher = pattern.matcher(command);
         if (matcher.find()) {
             String newEndpoint = matcher.group(1);
             ollamaEndpoint = "http://" + newEndpoint + "/api/chat";
             responseTextArea.appendText("\n\nSystem: Endpoint changed to " + ollamaEndpoint);
         } else {
-            responseTextArea.appendText("\n\nSystem: Invalid endpoint format. Use /endpoint myhostname:myport");
+            responseTextArea.appendText("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport");
         }
     }
 
@@ -129,7 +129,7 @@ public class MobileUIController {
 
     private void showHelp() {
         String helpMessage = "\n\nSystem: Available commands:\n" +
-                             "/endpoint myhostname:myport - Change the Ollama endpoint\n" +
+                             "/llmEndpoint myhostname:myport - Change the Ollama endpoint\n" +
                              "/model <name> - Change the model used\n" +
                              "/help - Show this help message\n" +
                              "/clear - Clear the response window";

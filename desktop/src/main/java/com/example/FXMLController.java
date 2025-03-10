@@ -25,6 +25,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import com.example.shared.LlmConfiguration;
 
 /**
  * Controller class for the JavaFX-based LLM chat interface.
@@ -154,7 +155,7 @@ public class FXMLController {
                                        config.apiKey(), config.temperature());
             responseArea.appendText("\n\nSystem: Endpoint changed to " + newEndpoint);
         } else {
-            responseArea.appendText("\n\nSystem: Invalid endpoint format. Use /endpoint myhostname:myport");
+            responseArea.appendText("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport");
         }
     }
 
