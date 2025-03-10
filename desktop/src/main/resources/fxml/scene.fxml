@@ -6,37 +6,23 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" 
             xmlns:fx="http://javafx.com/fxml/1" 
             fx:controller="com.example.FXMLController">
    <center>
-      <SplitPane dividerPositions="0.7">
-         <VBox spacing="10">
-            <padding>
-               <Insets top="10" right="10" bottom="10" left="10"/>
-            </padding>
-            <TextArea fx:id="responseArea" editable="false" wrapText="true" style="-fx-font-family: 'Times New Roman'; -fx-font-size: 12pt;" VBox.vgrow="ALWAYS"/>
-            <TextArea fx:id="requestArea" wrapText="true" prefHeight="100" promptText="Type your message here..."/>
-            <HBox spacing="10">
-                <Button fx:id="sendButton" text="Send" onAction="#handleSendAction" maxWidth="Infinity"/>
-                <Button fx:id="startOverButton" text="Start Over" onAction="#handleStartOverAction" maxWidth="Infinity"/>
-            </HBox>
-         </VBox>
-         <VBox spacing="10">
-            <padding>
-               <Insets top="10" right="10" bottom="10" left="10"/>
-            </padding>
-            <TextArea fx:id="logArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS"/>
-            <StackPane fx:id="dropZone" style="-fx-border-color: black; -fx-padding: 10; -fx-alignment: center;" prefHeight="25">
-               <Label text="Drop files here" />
-            </StackPane>
-         </VBox>
-      </SplitPane>
+      <VBox spacing="10">
+         <padding>
+            <Insets top="10" right="10" bottom="10" left="10"/>
+         </padding>
+         <TextArea fx:id="responseArea" editable="false" wrapText="true" style="-fx-font-family: 'Times New Roman'; -fx-font-size: 12pt;" VBox.vgrow="ALWAYS"/>
+         <TextArea fx:id="requestArea" wrapText="true" prefHeight="100" promptText="Type your message here..."/>
+         <HBox spacing="10">
+             <Button fx:id="sendButton" text="Send" onAction="#handleSendAction" maxWidth="Infinity"/>
+             <Button fx:id="startOverButton" text="Start Over" onAction="#handleStartOverAction" maxWidth="Infinity"/>
+         </HBox>
+      </VBox>
    </center>
    <bottom>
       <ProgressBar fx:id="progressBar" prefWidth="1000" />
