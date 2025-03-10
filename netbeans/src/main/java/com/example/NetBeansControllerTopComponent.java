@@ -168,7 +168,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     }
 
     private void handleCommand(String command) {
-        if (command.startsWith("/endpoint ")) {
+        if (command.startsWith("/llmEndpoint ")) {
             changeEndpoint(command);
         } else if (command.startsWith("/model ")) {
             changeModel(command);
@@ -237,7 +237,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     }
 
     private void changeEndpoint(String command) {
-        Pattern pattern = Pattern.compile("/endpoint\\s+(\\S+)");
+        Pattern pattern = Pattern.compile("/llmEndpoint\\s+(\\S+)");
         Matcher matcher = pattern.matcher(command);
         if (matcher.find()) {
             String newEndpoint = matcher.group(1);
@@ -245,7 +245,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
             responseArea.append("\n\nSystem: Endpoint changed to " + ollamaEndpoint);
             io.getOut().println("[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + ollamaEndpoint);
         } else {
-            responseArea.append("\n\nSystem: Invalid endpoint format. Use /endpoint myhostname:myport");
+            responseArea.append("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport");
         }
     }
 
@@ -263,7 +263,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
 
     private void showHelp() {
         String helpMessage = "\n\nSystem: Available commands:\n" +
-                             "/endpoint myhostname:myport - Change the Ollama endpoint\n" +
+                             "/llmEndpoint myhostname:myport - Change the Ollama endpoint\n" +
                              "/model <name> - Change the model used\n" +
                              "/help - Show this help message\n" +
                              "/clear - Clear the response window\n" +

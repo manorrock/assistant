@@ -120,7 +120,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
 
     private fun handleCommand(command: String) {
         when {
-            command.startsWith("/endpoint ") -> changeEndpoint(command)
+            command.startsWith("/llmEndpoint ") -> changeEndpoint(command)
             command.startsWith("/model ") -> changeModel(command)
             command == "/help" -> showHelp()
             command == "/clear" -> clearResponseArea()
@@ -130,14 +130,14 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
     }
 
     private fun changeEndpoint(command: String) {
-        val pattern = java.util.regex.Pattern.compile("/endpoint\\s+(\\S+)")
+        val pattern = java.util.regex.Pattern.compile("/llmEndpoint\\s+(\\S+)")
         val matcher = pattern.matcher(command)
         if (matcher.find()) {
             val newEndpoint = matcher.group(1)
             ollamaEndpoint = "http://$newEndpoint/api/chat"
             responseArea.append("\n\nSystem: Endpoint changed to $ollamaEndpoint")
         } else {
-            responseArea.append("\n\nSystem: Invalid endpoint format. Use /endpoint myhostname:myport")
+            responseArea.append("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport")
         }
     }
 
