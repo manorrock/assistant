@@ -1,6 +1,16 @@
 package com.manorrock.assistant.cli;
 
 import com.manorrock.assistant.shared.LlmConfiguration;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.azure.AzureOpenAiStreamingChatModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
+import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import picocli.CommandLine;
@@ -10,18 +20,16 @@ import picocli.CommandLine.Parameters;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
 
 @Command(name = "assistant-cli", mixinStandardHelpOptions = true, version = "1.0",
         description = "CLI version of the Manorrock Assistant")
@@ -39,9 +47,10 @@ public class CLI implements Callable<Integer> {
     private String message;
 
     private String sessionId = UUID.randomUUID().toString();
-    private LinkedList<JSONObject> history = new LinkedList<>();
+    private LinkedList<ChatMessage> history = new LinkedList<>();
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private Path stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "cli-state");
+    private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new CLI()).execute(args);
@@ -270,78 +279,117 @@ public class CLI implements Callable<Integer> {
         System.out.println("System: Response area cleared.");
     }
 
+    /**
+     * Creates a streaming chat language model based on current configuration.
+     * Configures model-specific settings for:
+     * - OLLAMA: Uses baseUrl, model name, timeout, temperature
+     * - OPENAI: Uses API key, model name, timeout, temperature
+     * - AZURE_OPENAI: Uses endpoint, API key, deployment name, timeout, temperature
+     *
+     * @return Configured StreamingChatLanguageModel instance
+     * @throws IllegalArgumentException if vendor is unknown
+     */
+    private StreamingChatLanguageModel createLanguageModel() {
+        String vendor = config.vendor();
+        return switch (vendor.toUpperCase()) {
+            case "OLLAMA" -> OllamaStreamingChatModel.builder()
+                .baseUrl(config.endpoint().substring(0, config.endpoint().lastIndexOf("/api/chat")))
+                .modelName(config.model())
+                .timeout(TIMEOUT)
+                .temperature(config.temperature())
+                .build();
+            case "OPENAI" -> OpenAiStreamingChatModel.builder()
+                .apiKey(config.apiKey())
+                .modelName(config.model())
+                .timeout(TIMEOUT)
+                .temperature(config.temperature())
+                .build();
+            case "AZURE_OPENAI" -> AzureOpenAiStreamingChatModel.builder()
+                .endpoint(config.endpoint())
+                .apiKey(config.apiKey())
+                .deploymentName(config.model())
+                .timeout(TIMEOUT)
+                .temperature(config.temperature())
+                .build();
+            default -> throw new IllegalArgumentException("Unknown vendor: " + vendor);
+        };
+    }
+
     private void processMessage(String message) {
         String timestamp = LocalDateTime.now().format(formatter);
 
         try {
-            JSONObject messageObject = new JSONObject();
-            messageObject.put("role", "user");
-            messageObject.put("content", message);
-
-            history.add(messageObject);
+            UserMessage userMessage = UserMessage.from(message);
+            history.add(userMessage);
             if (history.size() > 50) {
                 history.removeFirst();
             }
 
-            JSONObject jsonInput = new JSONObject();
-            jsonInput.put("model", config.model());
-            jsonInput.put("messages", new JSONArray(history));
-            jsonInput.put("stream", true);
-            jsonInput.put("session_id", sessionId);
+            StreamingChatLanguageModel langChainModel = createLanguageModel();
 
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(config.endpoint()))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
-                    .build();
-
-            HttpResponse<Stream<String>> response = client.send(request, HttpResponse.BodyHandlers.ofLines());
             StringBuilder responseBuilder = new StringBuilder();
             final boolean[] isFirstLine = {true};
-            response.body().forEach(line -> {
-                JSONObject jsonObject = new JSONObject(line);
-                if (jsonObject.has("session_id")) {
-                    sessionId = jsonObject.getString("session_id");
-                }
-                if (jsonObject.has("messages")) {
-                    JSONArray messages = jsonObject.getJSONArray("messages");
-                    for (int i = 0; i < messages.length(); i++) {
-                        JSONObject msg = messages.getJSONObject(i);
-                        if ("assistant".equals(msg.getString("role"))) {
-                            String content = msg.getString("content");
-                            responseBuilder.append(content);
-                            if (isFirstLine[0]) {
-                                System.out.print("Assistant: " + content);
-                                isFirstLine[0] = false;
-                            } else {
-                                System.out.print(content);
-                            }
-                        }
-                    }
-                } else {
-                    String content = jsonObject.getJSONObject("message").getString("content");
-                    responseBuilder.append(content);
+            
+            // Create a latch to wait for response completion
+            final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+
+            ArrayList<ChatMessage> messages = new ArrayList<>(history);
+            
+            langChainModel.chat(messages, new StreamingChatResponseHandler() {
+                @Override
+                public void onPartialResponse(String token) {
+                    responseBuilder.append(token);
                     if (isFirstLine[0]) {
-                        System.out.print("Assistant: " + content);
+                        System.out.print("Assistant: " + token);
                         isFirstLine[0] = false;
                     } else {
-                        System.out.print(content);
+                        System.out.print(token);
                     }
                 }
+
+                @Override
+                public void onCompleteResponse(ChatResponse response) {
+                    String fullResponse = responseBuilder.toString().trim();
+                    if (fullResponse.isEmpty()) {
+                        System.out.println(); // Just print a newline if response was empty
+                    } else if (!isFirstLine[0]) {
+                        System.out.println(); // Add a final newline after streaming
+                    }
+
+                    // Add the assistant's response to the history
+                    history.add(AiMessage.from(fullResponse));
+                    if (history.size() > 50) {
+                        history.removeFirst();
+                    }
+                    
+                    // Signal that processing is complete
+                    latch.countDown();
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    System.out.println("Assistant: Error: " + error.getMessage());
+                    // Signal that processing is complete even if there was an error
+                    latch.countDown();
+                }
             });
-
-            String responseText = responseBuilder.toString().trim();
-
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("role", "assistant");
-            responseObject.put("content", responseText);
-            history.add(responseObject);
-            if (history.size() > 50) {
-                history.removeFirst();
+            
+            // Wait for the streaming response to complete
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                System.out.println("Assistant: Processing was interrupted");
+                Thread.currentThread().interrupt();
             }
+            
         } catch (Exception e) {
-            System.out.println("Assistant: LLM service is unavailable.");
+            String errorMessage;
+            if (e.getCause() instanceof java.util.concurrent.TimeoutException) {
+                errorMessage = "Request timed out after " + TIMEOUT.getSeconds() + " seconds";
+            } else {
+                errorMessage = "Error: " + e.getMessage();
+            }
+            System.out.println("Assistant: " + errorMessage);
             System.out.println("[" + timestamp + " - Error]\n" + e.getMessage());
         }
     }
@@ -362,12 +410,21 @@ public class CLI implements Callable<Integer> {
                     );
                 }
                 
+                // History saved in JSON format needs to be converted to ChatMessage objects
                 Path historyFile = stateDir.resolve("history.json");
                 if (Files.exists(historyFile)) {
                     String content = Files.readString(historyFile);
                     JSONArray jsonArray = new JSONArray(content);
                     for (int i = 0; i < jsonArray.length(); i++) {
-                        history.add(jsonArray.getJSONObject(i));
+                        JSONObject msgObj = jsonArray.getJSONObject(i);
+                        String role = msgObj.getString("role");
+                        String msgContent = msgObj.getString("content");
+                        
+                        if ("user".equals(role)) {
+                            history.add(UserMessage.from(msgContent));
+                        } else if ("assistant".equals(role)) {
+                            history.add(AiMessage.from(msgContent));
+                        } // Ignore system messages for simplicity
                     }
                 }
                 
@@ -394,8 +451,24 @@ public class CLI implements Callable<Integer> {
             configJson.put("temperature", config.temperature());
             Files.writeString(configFile, configJson.toString());
 
+            // Convert ChatMessage objects to JSON format for saving
             Path historyFile = stateDir.resolve("history.json");
-            Files.writeString(historyFile, new JSONArray(history).toString());
+            JSONArray historyArray = new JSONArray();
+            for (ChatMessage msg : history) {
+                JSONObject msgObj = new JSONObject();
+                if (msg instanceof UserMessage) {
+                    msgObj.put("role", "user");
+                    msgObj.put("content", ((UserMessage) msg).text());
+                } else if (msg instanceof AiMessage) {
+                    msgObj.put("role", "assistant");
+                    msgObj.put("content", ((AiMessage) msg).text());
+                } else if (msg instanceof SystemMessage) {
+                    msgObj.put("role", "system");
+                    msgObj.put("content", ((SystemMessage) msg).text());
+                }
+                historyArray.put(msgObj);
+            }
+            Files.writeString(historyFile, historyArray.toString());
 
             Path sessionIdFile = stateDir.resolve("session_id.txt");
             Files.writeString(sessionIdFile, sessionId);
