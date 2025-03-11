@@ -37,9 +37,6 @@ public class CLI implements Callable<Integer> {
 
     private LlmConfiguration config;
 
-    @Option(names = {"-m", "--model"}, description = "Model to use")
-    private String modelOption = null;
-
     @Option(names = {"--stdin"}, description = "Read message from standard input")
     private boolean readFromStdin = false;
 
@@ -62,17 +59,6 @@ public class CLI implements Callable<Integer> {
         loadState();
         if (config == null) {
             config = LlmConfiguration.defaultConfig();
-        }
-        
-        // Override model if provided in command line
-        if (modelOption != null) {
-            config = new LlmConfiguration(
-                config.endpoint(), 
-                modelOption, 
-                config.vendor(),
-                config.apiKey(),
-                config.temperature()
-            );
         }
         
         if (readFromStdin) {
@@ -102,11 +88,11 @@ public class CLI implements Callable<Integer> {
     private void handleCommand(String command) {
         if (command.startsWith("/llmEndpoint ")) {
             changeEndpoint(command);
-        } else if (command.startsWith("/model ")) {
+        } else if (command.startsWith("/llmModel ")) {
             changeModel(command);
         } else if (command.startsWith("/vendor ")) {
             changeVendor(command);
-        } else if (command.startsWith("/apiKey ")) {
+        } else if (command.startsWith("/llmApiKey ")) {
             changeApiKey(command);
         } else if (command.startsWith("/temperature ")) {
             changeTemperature(command);
@@ -203,7 +189,7 @@ public class CLI implements Callable<Integer> {
     }
 
     private void changeModel(String command) {
-        String newModel = command.substring(7).trim();
+        String newModel = command.substring(10).trim();
         config = new LlmConfiguration(
             config.endpoint(), 
             newModel, 
@@ -229,7 +215,7 @@ public class CLI implements Callable<Integer> {
     }
     
     private void changeApiKey(String command) {
-        String newApiKey = command.substring(8).trim();
+        String newApiKey = command.substring(11).trim();
         config = new LlmConfiguration(
             config.endpoint(), 
             config.model(), 
@@ -265,9 +251,9 @@ public class CLI implements Callable<Integer> {
     private void showHelp() {
         String helpMessage = "\n\nSystem: Available commands:\n" +
                              "/llmEndpoint myhostname:myport - Change the endpoint\n" +
-                             "/model <name> - Change the model used\n" +
+                             "/llmModel <name> - Change the model used\n" +
                              "/vendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n" +
-                             "/apiKey <key> - Set API key for OpenAI or Azure\n" +
+                             "/llmApiKey <key> - Set API key for OpenAI or Azure\n" +
                              "/temperature <value> - Set temperature (0.0-1.0)\n" +
                              "/help - Show this help message\n" +
                              "/clear - Clear the response window\n" +

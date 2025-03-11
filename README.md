@@ -33,24 +33,26 @@ This matrix shows which commands are supported by each implementation of the Man
 | Command | CLI | Desktop | Eclipse | NetBeans | IntelliJ | VSCode | Mobile |
 |---------|-----|---------|---------|----------|----------|--------|--------|
 | `/clear` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `/llmEndpoint <host:port>` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅* | ✅ |
-| `/explain` | ✅ | ✅** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `/llmEndpoint <host:port>` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅<sup>1</sup> | ✅ |
+| `/explain` | ✅<sup>4</sup> | ✅<sup>2</sup> | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/llmApiKey <key>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/llmApiKey <key>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmModel <name>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmTemperature <number>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmVendor <name>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/model <name>` | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `/startover` | ❌ | ✅*** | ✅*** | ✅*** | ✅*** | ❌ | ❌ |
+| `/startover` | ❌ | ✅<sup>3</sup> | ✅<sup>3</sup> | ✅<sup>3</sup> | ✅<sup>3</sup> | ❌ | ❌ |
 | `/reset` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-**Notes:**
+**Legend:**
 - ✅ Fully supported
 - ❌ Not supported
-- ✅* VSCode extension handles endpoint through Configuration settings rather than command
-- ✅** Desktop implementation uses clipboard content instead of editor selection
-- ✅*** Desktop, Eclipse, NetBeans, and IntelliJ implementations have a "Start Over" button rather than a command
-- In CLI, `/explain` explains the provided text argument.
+
+**Notes:**
+1. VSCode extension handles endpoint through Configuration settings rather than command
+2. Desktop implementation uses clipboard content instead of editor selection
+3. Desktop, Eclipse, NetBeans, and IntelliJ implementations have a "Start Over" button rather than a command
+4. In CLI, `/explain` explains the provided text argument.
 
 ## Implementations
 
