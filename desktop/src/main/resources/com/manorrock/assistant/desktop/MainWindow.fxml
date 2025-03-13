@@ -10,7 +10,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17" 
             xmlns:fx="http://javafx.com/fxml/1" 
-            fx:controller="com.example.FXMLController">
+            fx:controller="com.manorrock.assistant.desktop.MainWindowController">
    <center>
       <VBox spacing="10">
          <padding>
