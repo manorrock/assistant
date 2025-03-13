@@ -1,4 +1,4 @@
-package com.example;
+package com.manorrock.assistant.desktop;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -29,7 +29,7 @@ import com.example.shared.LlmConfiguration;
  * Controller class for the JavaFX-based LLM chat interface.
  * Handles user interactions, command processing, and LLM communication.
  */
-public class FXMLController {
+public class MainWindowController {
 
     @FXML
     private TextArea responseArea;
@@ -51,13 +51,6 @@ public class FXMLController {
     
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
     
-    /**
-     * Initializes the controller with default settings and UI event handlers.
-     * - Sets welcome message in response area
-     * - Initializes progress bar to 0
-     * - Shows help message
-     * - Sets up Enter key handler for request area (Enter sends, Shift+Enter adds newline)
-     */
     @FXML
     public void initialize() {
         responseArea.setText("Welcome to Manorrock Assistant");
@@ -71,49 +64,23 @@ public class FXMLController {
             }
         });
     }
-    
-    /**
-     * Handles the Send button action and Enter key press.
-     * - If message starts with '/', processes as command
-     * - Otherwise sends message to LLM for processing
-     * - Clears request area after processing
-     */
+
     @FXML
     private void handleSendAction() {
         String userMessage = requestArea.getText().trim();
         
         if (!userMessage.isEmpty()) {
-            // Check if the message is a command
             if (userMessage.startsWith("/")) {
                 handleCommand(userMessage);
                 return;
             }
             
-            // Display the user's message in the response area
             responseArea.appendText("\n\nYou: " + userMessage);
-            
-            // Clear the request area
             requestArea.clear();
-            
-            // Process the message and display a response
             processMessage(userMessage);
         }
     }
 
-    /**
-     * Routes commands to their appropriate handlers.
-     * Supported commands:
-     * - /llmEndpoint: Change API endpoint
-     * - /llmModel: Change LLM model
-     * - /llmVendor: Change LLM vendor
-     * - /llmApiKey: Set API key
-     * - /llmTemperature: Set temperature
-     * - /help: Show help
-     * - /clear: Clear response area
-     * - /explain: Explain clipboard content
-     *
-     * @param command The command string to process
-     */
     private void handleCommand(String command) {
         if (command.startsWith("/llmEndpoint ")) {
             changeEndpoint(command);
@@ -137,13 +104,6 @@ public class FXMLController {
         requestArea.clear();
     }
 
-    /**
-     * Changes the LLM endpoint.
-     * Format: /llmEndpoint hostname:port
-     * Constructs full URL with http:// prefix and /api/chat suffix.
-     *
-     * @param command The endpoint change command
-     */
     private void changeEndpoint(String command) {
         Pattern pattern = Pattern.compile("/llmEndpoint\\s+(\\S+)");
         Matcher matcher = pattern.matcher(command);
@@ -157,12 +117,6 @@ public class FXMLController {
         }
     }
 
-    /**
-     * Changes the LLM model.
-     * Format: /llmModel modelname
-     *
-     * @param command The model change command
-     */
     private void changeModel(String command) {
         Pattern pattern = Pattern.compile("/llmModel\\s+(\\S+)");
         Matcher matcher = pattern.matcher(command);
@@ -176,13 +130,6 @@ public class FXMLController {
         }
     }
 
-    /**
-     * Changes the LLM vendor.
-     * Format: /llmVendor vendorname
-     * Converts vendor name to uppercase.
-     *
-     * @param command The vendor change command
-     */
     private void changeVendor(String command) {
         Pattern pattern = Pattern.compile("/llmVendor\\s*(\\S*)");
         Matcher matcher = pattern.matcher(command);
@@ -200,12 +147,6 @@ public class FXMLController {
         }
     }
 
-    /**
-     * Sets the API key for OpenAI or Azure OpenAI.
-     * Format: /llmApiKey keyvalue
-     *
-     * @param command The API key change command
-     */
     private void changeApiKey(String command) {
         Pattern pattern = Pattern.compile("/llmApiKey\\s+(\\S+)");
         Matcher matcher = pattern.matcher(command);
@@ -217,13 +158,6 @@ public class FXMLController {
         }
     }
 
-    /**
-     * Sets the temperature parameter for the LLM.
-     * Format: /llmTemperature value
-     * Value must be between 0.0 and 1.0.
-     *
-     * @param command The temperature change command
-     */
     private void changeTemperature(String command) {
         Pattern pattern = Pattern.compile("/llmTemperature\\s+(\\d*\\.?\\d+)");
         Matcher matcher = pattern.matcher(command);
@@ -243,10 +177,6 @@ public class FXMLController {
         }
     }
 
-    /**
-     * Shows help message listing all available commands
-     * and their descriptions.
-     */
     private void showHelp() {
         String helpMessage = "\n\nSystem: Available commands:\n" +
                            "/clear - Clear the response window\n" +
@@ -260,20 +190,10 @@ public class FXMLController {
         responseArea.appendText(helpMessage);
     }
 
-    /**
-     * Clears all text from the response area.
-     */
     private void clearResponseArea() {
         responseArea.clear();
     }
 
-    /**
-     * Handles Start Over button action.
-     * - Clears conversation history
-     * - Generates new session ID
-     * - Clears response area
-     * - Shows welcome message and help
-     */
     @FXML
     private void handleStartOverAction() {
         history.clear();
@@ -282,16 +202,6 @@ public class FXMLController {
         showHelp();
     }
     
-    /**
-     * Creates a streaming chat language model based on current configuration.
-     * Configures model-specific settings for:
-     * - OLLAMA: Uses baseUrl, model name, timeout, temperature
-     * - OPENAI: Uses API key, model name, timeout, temperature
-     * - AZURE_OPENAI: Uses endpoint, API key, deployment name, timeout, temperature
-     *
-     * @return Configured StreamingChatLanguageModel instance
-     * @throws IllegalArgumentException if vendor is unknown
-     */
     private StreamingChatLanguageModel createLanguageModel() {
         String vendor = config.vendor();
         return switch (vendor.toUpperCase()) {
@@ -318,17 +228,6 @@ public class FXMLController {
         };
     }
 
-    /**
-     * Processes a message through the LLM.
-     * - Adds message to history
-     * - Disables send button during processing
-     * - Shows progress indicator
-     * - Streams response tokens to UI
-     * - Handles errors and timeouts
-     * - Re-enables UI after completion
-     *
-     * @param message The message to process
-     */
     private void processMessage(String message) {
         try {
             UserMessage userMessage = UserMessage.from(message);
@@ -346,12 +245,8 @@ public class FXMLController {
             final boolean[] isFirstLine = {true};
 
             ArrayList<ChatMessage> messages = new ArrayList<>(history);
-            
+
             langChainModel.chat(messages, new StreamingChatResponseHandler() {
-                /**
-                 * Handles each token of the streaming response.
-                 * Updates UI with new content and maintains formatting.
-                 */
                 @Override
                 public void onPartialResponse(String token) {
                     responseBuilder.append(token);
@@ -366,10 +261,6 @@ public class FXMLController {
                     });
                 }
 
-                /**
-                 * Handles completion of the response.
-                 * Re-enables UI controls and updates conversation history.
-                 */
                 @Override
                 public void onCompleteResponse(ChatResponse response) {
                     String fullResponse = responseBuilder.toString().trim();
@@ -410,17 +301,10 @@ public class FXMLController {
         }
     }
 
-    /**
-     * Explains text from clipboard.
-     * - Gets content from system clipboard
-     * - If content exists, creates explanation prompt
-     * - Sends prompt to LLM for processing
-     * - Shows error if clipboard is empty
-     */
     private void explainSelection() {
         Clipboard clipboard = Clipboard.getSystemClipboard();
         String clipboardContent = clipboard.getString();
-        
+
         if (clipboardContent != null && !clipboardContent.isEmpty()) {
             String prompt = "Please explain the content below the line\n-----------------------------------------\n" + clipboardContent;
             responseArea.appendText("\n\nYou: " + prompt);

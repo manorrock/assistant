@@ -1,4 +1,4 @@
-package com.example;
+package com.manorrock.assistant.desktop;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -6,11 +6,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class App extends Application {
+public class DesktopApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/scene.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/com/manorrock/assistant/desktop/MainWindow.fxml"));
         primaryStage.setTitle("Manorrock Assistant");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
