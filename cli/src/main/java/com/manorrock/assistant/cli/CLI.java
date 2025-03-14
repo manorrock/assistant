@@ -19,7 +19,6 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -94,8 +93,8 @@ public class CLI implements Callable<Integer> {
             changeVendor(command);
         } else if (command.startsWith("/llmApiKey ")) {
             changeApiKey(command);
-        } else if (command.startsWith("/temperature ")) {
-            changeTemperature(command);
+        } else if (command.startsWith("/llmTemperature ")) {
+            changeModelTemperature(command);
         } else if (command.equals("/help")) {
             showHelp();
         } else if (command.equals("/clear")) {
@@ -227,9 +226,9 @@ public class CLI implements Callable<Integer> {
         saveState();
     }
     
-    private void changeTemperature(String command) {
+    private void changeModelTemperature(String command) {
         try {
-            double newTemperature = Double.parseDouble(command.substring(12).trim());
+            double newTemperature = Double.parseDouble(command.substring(15).trim());
             if (newTemperature < 0.0 || newTemperature > 1.0) {
                 System.out.println("System: Temperature must be between 0.0 and 1.0");
                 return;
@@ -244,7 +243,7 @@ public class CLI implements Callable<Integer> {
             System.out.println("System: Temperature set to " + newTemperature);
             saveState();
         } catch (NumberFormatException e) {
-            System.out.println("System: Invalid temperature format. Use /temperature <number>");
+            System.out.println("System: Invalid temperature format. Use /llmTemperature <number>");
         }
     }
 
@@ -254,7 +253,7 @@ public class CLI implements Callable<Integer> {
                              "/llmModel <name> - Change the model used\n" +
                              "/llmVendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n" +
                              "/llmApiKey <key> - Set API key for OpenAI or Azure\n" +
-                             "/temperature <value> - Set temperature (0.0-1.0)\n" +
+                             "/llmTemperature <value> - Set temperature (0.0-1.0)\n" +
                              "/help - Show this help message\n" +
                              "/clear - Clear the response window\n" +
                              "/explain [file_path] - Explain text from clipboard or specified file";
