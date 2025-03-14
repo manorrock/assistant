@@ -90,7 +90,7 @@ public class CLI implements Callable<Integer> {
             changeEndpoint(command);
         } else if (command.startsWith("/llmModel ")) {
             changeModel(command);
-        } else if (command.startsWith("/vendor ")) {
+        } else if (command.startsWith("/llmVendor ")) {
             changeVendor(command);
         } else if (command.startsWith("/llmApiKey ")) {
             changeApiKey(command);
@@ -202,7 +202,7 @@ public class CLI implements Callable<Integer> {
     }
     
     private void changeVendor(String command) {
-        String newVendor = command.substring(8).trim().toUpperCase();
+        String newVendor = command.substring(11).trim().toUpperCase();
         config = new LlmConfiguration(
             config.endpoint(), 
             config.model(), 
@@ -252,7 +252,7 @@ public class CLI implements Callable<Integer> {
         String helpMessage = "\n\nSystem: Available commands:\n" +
                              "/llmEndpoint myhostname:myport - Change the endpoint\n" +
                              "/llmModel <name> - Change the model used\n" +
-                             "/vendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n" +
+                             "/llmVendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n" +
                              "/llmApiKey <key> - Set API key for OpenAI or Azure\n" +
                              "/temperature <value> - Set temperature (0.0-1.0)\n" +
                              "/help - Show this help message\n" +
