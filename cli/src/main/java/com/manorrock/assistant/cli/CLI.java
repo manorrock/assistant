@@ -26,7 +26,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -38,6 +40,9 @@ public class CLI implements Callable<Integer> {
 
     @Option(names = {"--stdin"}, description = "Read message from standard input")
     private boolean readFromStdin = false;
+
+    @Option(names = {"-i", "--interactive"}, description = "Start in interactive mode")
+    private boolean interactive = false;
 
     @Parameters(paramLabel = "MESSAGE", description = "Message to send", arity = "0..1")
     private String message;
@@ -60,12 +65,14 @@ public class CLI implements Callable<Integer> {
             config = LlmConfiguration.defaultConfig();
         }
         
-        if (readFromStdin) {
+        if (interactive) {
+            startInteractiveMode();
+        } else if (readFromStdin) {
             message = new String(System.in.readAllBytes()).trim();
         }
         if (message != null) {
             handleSendAction(message);
-        } else {
+        } else if (!interactive) {
             showHelp();
         }
         saveState();
@@ -376,6 +383,50 @@ public class CLI implements Callable<Integer> {
             }
             System.out.println("Assistant: " + errorMessage);
             System.out.println("[" + timestamp + " - Error]\n" + e.getMessage());
+        }
+    }
+
+    private void startInteractiveMode() {
+        System.out.println("Entering interactive mode. Type /exit to quit, or /help for commands.");
+        System.out.println("Use \\ at end of line for multi-line input.");
+        
+        StringBuilder messageBuilder = new StringBuilder();
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
+        
+        while (true) {
+            System.out.print(messageBuilder.length() == 0 ? "\nYou: " : "... ");
+            
+            String line = scanner.nextLine();
+            String trimmedLine = line.trim();
+            
+            // Check for exit command
+            if (trimmedLine.equals("/exit")) {
+                System.out.println("Exiting interactive mode.");
+                break;
+            }
+            
+            // Handle commands when not in the middle of a message
+            if (trimmedLine.startsWith("/") && messageBuilder.length() == 0) {
+                handleCommand(trimmedLine);
+                continue;
+            }
+            
+            // Handle line continuation
+            if (line.endsWith("\\") || trimmedLine.endsWith("\\")) {
+                // Remove the backslash and add the line with a newline
+                messageBuilder.append(line.substring(0, line.lastIndexOf('\\')).stripTrailing()).append("\n");
+                continue;
+            }
+            
+            // Add the line to the message
+            messageBuilder.append(line);
+            
+            // Process the complete message
+            String fullMessage = messageBuilder.toString().trim();
+            if (!fullMessage.isEmpty()) {
+                handleSendAction(fullMessage);
+            }
+            messageBuilder.setLength(0);
         }
     }
 
