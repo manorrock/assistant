@@ -23,7 +23,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import com.example.shared.LlmConfiguration;
+import com.manorrock.assistant.shared.LlmConfiguration;
 
 /**
  * Controller class for the JavaFX-based LLM chat interface.
@@ -47,12 +47,13 @@ public class MainWindowController {
     private ProgressBar progressBar;
 
     private LinkedList<ChatMessage> history = new LinkedList<>();
-    private LlmConfiguration config = LlmConfiguration.defaultConfig();
+    private LlmConfiguration config;
     
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
     
     @FXML
     public void initialize() {
+        config = LlmConfiguration.defaultConfig();
         responseArea.setText("Welcome to Manorrock Assistant");
         progressBar.setProgress(0);
         showHelp();
