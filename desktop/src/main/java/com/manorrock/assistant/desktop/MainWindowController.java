@@ -13,6 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.time.Duration;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.IOException;
 
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
@@ -99,10 +102,60 @@ public class MainWindowController {
       clearResponseArea();
     } else if (command.equals("/explain")) {
       explainSelection();
+    } else if (command.startsWith("/source ")) {
+      handleSourceCommand(command);
     } else {
       responseArea.appendText("\n\nSystem: Unknown command. Type /help for a list of commands.");
     }
     requestArea.clear();
+  }
+
+  private void handleSourceCommand(String command) {
+    String filePath = command.substring(8).trim();
+    try {
+      String content = Files.readString(Paths.get(filePath));
+      StringBuilder messageBuilder = new StringBuilder();
+
+      // Process the file line by line
+      for (String line : content.split("\n")) {
+        String trimmedLine = line.trim();
+
+        // Handle line continuation
+        if (line.endsWith("\\") || trimmedLine.endsWith("\\")) {
+          messageBuilder.append(line, 0, line.lastIndexOf('\\')).append("\n");
+          continue;
+        }
+
+        // Add the line to the current message
+        messageBuilder.append(line);
+
+        // Process the complete message
+        String fullMessage = messageBuilder.toString().trim();
+        if (!fullMessage.isEmpty()) {
+          if (fullMessage.startsWith("/") && !fullMessage.startsWith("/exit")) {
+            handleCommand(fullMessage);
+          } else {
+            responseArea.appendText("\n\nYou: " + fullMessage);
+            processMessage(fullMessage);
+          }
+        }
+        messageBuilder.setLength(0);
+      }
+
+      // Handle any remaining content
+      String remaining = messageBuilder.toString().trim();
+      if (!remaining.isEmpty()) {
+        if (remaining.startsWith("/") && !remaining.startsWith("/exit")) {
+          handleCommand(remaining);
+        } else {
+          responseArea.appendText("\n\nYou: " + remaining);
+          processMessage(remaining);
+        }
+      }
+
+    } catch (IOException e) {
+      responseArea.appendText("\n\nSystem: Error reading source file: " + e.getMessage());
+    }
   }
 
   private void changeEndpoint(String command) {
@@ -181,7 +234,8 @@ public class MainWindowController {
         + "/explain - Explain the selected text\n" + "/help - Show this help message\n"
         + "/llmApiKey <apikey> - Set API key for OpenAI or Azure\n"
         + "/llmEndpoint myhostname:myport - Change the endpoint\n" + "/llmModel <name> - Change the model used\n"
-        + "/llmTemperature <number> - Set temperature (0.0-1.0)\n" + "/llmVendor <name> - Change vendor";
+        + "/llmTemperature <number> - Set temperature (0.0-1.0)\n" + "/llmVendor <name> - Change vendor\n"
+        + "/source <file_path> - Execute commands from a file";
     responseArea.appendText(helpMessage);
   }
 

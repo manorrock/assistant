@@ -19,7 +19,7 @@
      - [x] `/source` - Implemented in CLI
      - [x] `/llmEndpoint` - Implemented across most platforms
      - [ ] Standardize missing commands across platforms:
-       - [ ] Port `/source` command to Desktop application
+       - [x] Port `/source` command to Desktop application
        - [ ] Port `/source` command to VSCode plugin
        - [ ] Port `/source` command to IntelliJ plugin
        - [ ] Port `/source` command to Eclipse plugin

@@ -54,7 +54,7 @@ This matrix shows which commands are supported by each implementation of the Man
 | `/model <name>` | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
 | `/startover` | ❌ | ✅<sup>3</sup> | ✅<sup>3</sup> | ✅<sup>3</sup> | ✅<sup>3</sup> | ❌ | ❌ |
 | `/reset` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/source <file_path>` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/source <file_path>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 **Legend:**
 - ✅ Fully supported
