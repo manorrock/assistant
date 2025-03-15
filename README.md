@@ -102,28 +102,32 @@ This matrix shows which commands are supported by each implementation of the Man
 
 ## Under Consideration or Under Development
 
-These implementations are either under consideration or currently in development. If they are under development, be aware they are not ready for use.
+These implementations are either under consideration or currently in development:
 
-3. **Mobile application**
+1. **Mobile application**
    - A mobile application version as the basis for the iPhone and Android versions.
+   - Currently in development
+   - Base functionality implemented with some command limitations
 
-4. **iPhone application**
+2. **iPhone application**
    - A mobile application version for iPhone devices.
+   - Based on core mobile application
+   - Currently in development
 
-5. **Spring Boot REST application**
+3. **Spring Boot REST application**
    - A Spring Boot based RESTful web service version.
 
-6. **Android application**
+4. **Android application**
    - A mobile application version for Android devices.
 
-7. **Quarkus application**
+5. **Quarkus application**
    - A Quarkus based version for improved performance and reduced memory footprint.
 
-8. **Slack bot**
+6. **Slack bot**
    - A Slack bot version for integration with Slack.
 
-9. **Microsoft Teams bot**
+7. **Microsoft Teams bot**
    - A Microsoft Teams bot version for integration with Microsoft Teams.
 
-10. **Discord bot**
+8. **Discord bot**
     - A Discord bot version for integration with Discord.
