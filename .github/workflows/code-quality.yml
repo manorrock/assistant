@@ -2,9 +2,9 @@ name: Code Quality Checks
 
 on:
   push:
-    branches: [ main ]
+    branches: [ current ]
   pull_request:
-    branches: [ main ]
+    branches: [ current ]
   workflow_dispatch:
 
 jobs:
