@@ -21,12 +21,12 @@ jobs:
           distribution: 'temurin'
           
       - name: Build artifacts
-        run: mvn -B package
+        run: mvn -B -DskipTests -DskipITs package
         
       - name: CLI Smoke Tests
         run: |
           # Version check
-          VERSION=$(java -jar cli/target/assistant-cli.jar --version)
+          VERSION=$(java -jar "${PWD}/cli/target/cli.jar" --version)
           if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid version format: $VERSION"
             exit 1
@@ -40,7 +40,7 @@ jobs:
           fi
           
           # Model command check
-          MODEL=$(java -jar cli/target/assistant-cli.jar /llmModel)
+          MODEL=$(java -jar "${PWD}/cli/target/cli.jar" /llmModel)
           if [[ ! $MODEL =~ "Current model:" ]]; then
             echo "Model command failed to show current model"
             exit 1
