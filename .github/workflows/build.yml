@@ -21,14 +21,17 @@ jobs:
       run: mvn -B verify
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32  # v4
+      uses: actions/upload-artifact@v4
       with:
         name: test-results
         path: '**/target/surefire-reports'
         if-no-files-found: ignore
+        retention-days: 5
+        compression-level: 9
+        overwrite: true
     - name: Upload Artifacts
       if: success()
-      uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32  # v4
+      uses: actions/upload-artifact@v4
       with:
         name: distribution
         path: |
@@ -39,3 +42,7 @@ jobs:
           intellij/target/*.jar
           eclipse/target/*.jar
         if-no-files-found: error
+        retention-days: 30
+        compression-level: 6
+        overwrite: true
+        include-hidden-files: false
