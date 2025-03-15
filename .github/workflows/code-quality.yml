@@ -27,7 +27,7 @@ jobs:
         distribution: 'temurin'
     
     - name: Run SpotBugs and Checkstyle
-      run: mvn clean verify spotbugs:spotbugs -Dspotbugs.outputFormat=xml,html,sarif checkstyle:checkstyle
+      run: mvn clean verify com.github.spotbugs:spotbugs-maven-plugin:spotbugs -Dspotbugs.outputFormat=xml,html,sarif checkstyle:checkstyle
     
     - name: Debug output
       run: |
