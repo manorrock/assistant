@@ -28,16 +28,15 @@ jobs:
         cache: maven
     
     - name: Run SpotBugs and Checkstyle
-      run: mvn clean verify spotbugs:spotbugs checkstyle:checkstyle
-      
-    - name: Create SARIF directory
-      run: mkdir -p sarif-output
-      
-    - name: Find and copy SARIF files
+      run: mvn clean verify spotbugs:spotbugs -Dspotbugs.outputFormat=xml,html,sarif checkstyle:checkstyle
+    
+    - name: Debug output
       run: |
-        find . -name "*.sarif" -type f -exec cp {} ./sarif-output/ \;
-        ls -la ./sarif-output/
-
+        echo "Listing target directories..."
+        find . -name "target" -type d | xargs ls -la
+        echo "Searching for SARIF files..."
+        find . -name "*.sarif" -type f
+    
     - name: Upload SpotBugs Results
       uses: actions/upload-artifact@v4
       if: always()
@@ -55,10 +54,26 @@ jobs:
         name: checkstyle-results
         path: '**/target/checkstyle-result.xml'
         retention-days: 7
+    
+    # Only run SARIF upload if files are found
+    - name: Check for SARIF files
+      id: check-sarif
+      run: |
+        if find . -name "*.sarif" -type f | grep -q .; then
+          echo "sarif_files_found=true" >> $GITHUB_OUTPUT
+          mkdir -p sarif-output
+          find . -name "*.sarif" -type f -exec cp {} ./sarif-output/ \;
+        else
+          echo "sarif_files_found=false" >> $GITHUB_OUTPUT
+          echo "No SARIF files found"
+          mkdir -p sarif-output
+          echo '{"version":"2.1.0","runs":[]}' > ./sarif-output/empty.sarif
+        fi
+        ls -la ./sarif-output/
         
     - name: Publish Code Quality Results
       uses: github/codeql-action/upload-sarif@v3
-      if: always()
+      if: steps.check-sarif.outputs.sarif_files_found == 'true'
       with:
         sarif_file: ./sarif-output
         category: spotbugs
