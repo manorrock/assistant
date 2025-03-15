@@ -8,6 +8,7 @@
    - Create repository structure
    - Set up CI/CD pipeline
      - [x] Implement GitHub Actions workflow for Maven builds
+     - [ ] Implement release workflow for automated versioning and artifact management
      - Add automated version management
      - Setup dependency vulnerability scanning
      - Configure code quality checks (SonarQube/SpotBugs)
