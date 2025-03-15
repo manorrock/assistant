@@ -33,7 +33,7 @@ jobs:
           fi
           
           # Help command check
-          HELP=$(java -jar cli/target/cli.jar /help)
+          HELP=$(java -jar cli/target/assistant-cli.jar /help)
           if [[ ! $HELP =~ "Available commands:" ]]; then
             echo "Help text missing expected content"
             exit 1
