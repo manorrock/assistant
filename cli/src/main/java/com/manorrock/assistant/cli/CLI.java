@@ -108,11 +108,61 @@ public class CLI implements Callable<Integer> {
             clearResponseArea();
         } else if (command.startsWith("/explain")) {
             explainFromClipboardOrFile(command);
+        } else if (command.startsWith("/source ")) {
+            handleSourceCommand(command);
         } else {
             System.out.println("System: Unknown command. Type /help for a list of commands.");
         }
     }
 
+    private void handleSourceCommand(String command) {
+        String filePath = command.substring(8).trim();
+        Path path = Paths.get(filePath);
+        
+        try {
+            String content = Files.readString(path);
+            StringBuilder messageBuilder = new StringBuilder();
+            
+            // Process the file line by line
+            for (String line : content.split("\n")) {
+                String trimmedLine = line.trim();
+                
+                // Handle line continuation
+                if (line.endsWith("\\") || trimmedLine.endsWith("\\")) {
+                    messageBuilder.append(line, 0, line.lastIndexOf('\\')).append("\n");
+                    continue;
+                }
+                
+                // Add the line to the current message
+                messageBuilder.append(line);
+                
+                // Process the complete message
+                String fullMessage = messageBuilder.toString().trim();
+                if (!fullMessage.isEmpty()) {
+                    if (fullMessage.startsWith("/") && !fullMessage.startsWith("/exit")) {
+                        handleCommand(fullMessage);
+                    } else {
+                        handleSendAction(fullMessage);
+                    }
+                }
+                messageBuilder.setLength(0);
+            }
+            
+            // Handle any remaining content
+            String remaining = messageBuilder.toString().trim();
+            if (!remaining.isEmpty()) {
+                if (remaining.startsWith("/") && !remaining.startsWith("/exit")) {
+                    handleCommand(remaining);
+                } else {
+                    handleSendAction(remaining);
+                }
+            }
+            
+        } catch (IOException e) {
+            System.out.println("System: Error reading source file: " + e.getMessage());
+        }
+    }
+    
     private void explainFromClipboardOrFile(String command) {
         String textToExplain = null;
         
@@ -263,6 +313,7 @@ public class CLI implements Callable<Integer> {
                              "/llmTemperature <value> - Set temperature (0.0-1.0)\n" +
                              "/help - Show this help message\n" +
                              "/clear - Clear the response window\n" +
+                             "/source <file_path> - Execute commands from a file\n" +
                              "/explain [file_path] - Explain text from clipboard or specified file";
         System.out.println(helpMessage);
     }
