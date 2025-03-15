@@ -15,6 +15,7 @@ jobs:
       packages: read
       checks: write
       pull-requests: write
+      security-events: write  # Add permission for SARIF upload
 
     steps:
     - uses: actions/checkout@v3
@@ -28,6 +29,14 @@ jobs:
     
     - name: Run SpotBugs and Checkstyle
       run: mvn clean verify spotbugs:spotbugs checkstyle:checkstyle
+      
+    - name: Create SARIF directory
+      run: mkdir -p sarif-output
+      
+    - name: Find and copy SARIF files
+      run: |
+        find . -name "*.sarif" -type f -exec cp {} ./sarif-output/ \;
+        ls -la ./sarif-output/
 
     - name: Upload SpotBugs Results
       uses: actions/upload-artifact@v4
@@ -48,13 +57,15 @@ jobs:
         retention-days: 7
         
     - name: Publish Code Quality Results
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
-        sarif_file: "**/target/spotbugs.sarif"
+        sarif_file: ./sarif-output
+        category: spotbugs
         
     - name: Annotate Code Quality Issues
       if: always()
       uses: jwgmeligmeyling/checkstyle-github-action@master
       with:
         path: '**/checkstyle-result.xml'
+        token: ${{ github.token }}
