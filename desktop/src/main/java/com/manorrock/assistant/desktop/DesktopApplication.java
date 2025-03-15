@@ -8,15 +8,15 @@ import javafx.stage.Stage;
 
 public class DesktopApplication extends Application {
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/com/manorrock/assistant/desktop/MainWindow.fxml"));
-        primaryStage.setTitle("Manorrock Assistant");
-        primaryStage.setScene(new Scene(root));
-        primaryStage.show();
-    }
+  @Override
+  public void start(Stage primaryStage) throws Exception {
+    Parent root = FXMLLoader.load(getClass().getResource("/com/manorrock/assistant/desktop/MainWindow.fxml"));
+    primaryStage.setTitle("Manorrock Assistant");
+    primaryStage.setScene(new Scene(root));
+    primaryStage.show();
+  }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+  public static void main(String[] args) {
+    launch(args);
+  }
 }
