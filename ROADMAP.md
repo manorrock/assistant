@@ -5,33 +5,39 @@
 ## Bucket 0: Initial Setup
 
 1. Project Initialization
-   - Create repository structure
-   - Set up CI/CD pipeline
+   - [x] Create repository structure
+   - [ ] Set up CI/CD pipeline
      - [x] Implement GitHub Actions workflow for Maven builds
      - [ ] Implement release workflow for automated versioning and artifact management
-     - Add automated version management
+     - [x] Add automated version management
      - [x] Setup dependency vulnerability scanning
-     - Configure code quality checks (SonarQube/SpotBugs)
-     - Add automated changelog generation
+     - [ ] Configure code quality checks (SonarQube/SpotBugs)
+     - [ ] Add automated changelog generation
      - [x] Configure automated dependency updates
-     - Implement deployment smoke tests
-     - Add performance regression testing
-   - Establish coding standards and guidelines
+     - [ ] Implement deployment smoke tests
+     - [ ] Add performance regression testing
+   - [ ] Establish coding standards and guidelines
+   - [x] Create comprehensive README documentation
+   - [ ] Implement unified command structure
 
 ## Bucket 1: Command Standardization
 
 1. Standardize Command Structure
-   - Align on command prefix strategy (e.g., `/llm` prefix vs direct commands)
-   - Implement consistent command set across all platforms:
-     - `/llmModel` (replacing `/model`)
-     - `/llmVendor`
-     - `/llmApiKey`
-     - `/llmTemperature`
-     - `/help`
-     - `/clear`
-     - `/explain`
-     - `/startover`
-     - `/reset`
+   - [x] Align on command prefix strategy (e.g., `/llm` prefix vs direct commands)
+   - [ ] Implement consistent command set across all platforms:
+     - [x] `/llmModel` (replacing `/model`) - Implemented in CLI and Desktop
+     - [x] `/llmVendor` - Implemented in CLI and Desktop
+     - [x] `/llmApiKey` - Implemented in CLI and Desktop
+     - [x] `/llmTemperature` - Implemented in CLI and Desktop
+     - [x] `/help` - Implemented across all platforms
+     - [x] `/clear` - Implemented across most platforms
+     - [x] `/explain` - Implemented across most platforms
+     - [x] `/startover` - Implemented in Desktop and IDE plugins (as button)
+     - [x] `/reset` - Implemented across all platforms
+     - [x] `/source` - Implemented in CLI
+     - [x] `/llmEndpoint` - Implemented across most platforms
+   - [ ] Standardize command behavior across all platforms
+   - [ ] Unify command response formatting
 
 ## Bucket 2: Core Components Standardization
 
@@ -225,12 +231,20 @@
 
 ## Completed
 
-- [x] Standardize commands between CLI and Desktop applications
+- [x] Partially standardize commands between CLI and Desktop applications
   - [x] Update CLI to use `/llmApiKey` instead of `/apiKey` to match Desktop
   - [x] Add `/llmModel`, `/llmTemperature`, and `/llmVendor` commands to CLI
   - [x] Add `/source` command for executing commands from a file
+  - [x] Add `/llmEndpoint` command for changing LLM API endpoint
 - [x] Enhance CLI capabilities
   - [x] Add interactive mode support
   - [x] Add stdin mode support
   - [x] Implement state persistence
   - [x] Integrate LangChain4j for LLM interactions
+- [x] Create consistent UI for desktop application
+- [x] Implement IDE plugins for multiple platforms
+  - [x] NetBeans plugin
+  - [x] VSCode extension
+  - [x] IntelliJ plugin
+  - [x] Eclipse plugin
+- [x] Document command support matrix across implementations
