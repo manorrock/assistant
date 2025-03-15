@@ -25,6 +25,7 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 | `/model <name>` | Legacy command for changing model (default: llama3) |
 | `/startover` | Resets the conversation and starts over |
 | `/reset` | Resets the application state |
+| `/source <file_path>` | Executes commands from a file |
 
 ## Command Support Matrix
 
@@ -37,12 +38,13 @@ This matrix shows which commands are supported by each implementation of the Man
 | `/explain` | ✅<sup>4</sup> | ✅<sup>2</sup> | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/llmApiKey <key>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/llmModel <name>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/llmTemperature <number>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/llmVendor <name>` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/llmModel <name>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/llmTemperature <number>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/llmVendor <name>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/model <name>` | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
 | `/startover` | ❌ | ✅<sup>3</sup> | ✅<sup>3</sup> | ✅<sup>3</sup> | ✅<sup>3</sup> | ❌ | ❌ |
 | `/reset` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/source <file_path>` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 **Legend:**
 - ✅ Fully supported
@@ -58,6 +60,11 @@ This matrix shows which commands are supported by each implementation of the Man
 
 1. **Java based CLI**
    - A command line interface (CLI) version of the application.
+   - **Features:**
+     - Interactive mode (`-i` or `--interactive`)
+     - Standard input mode (`--stdin`)
+     - State persistence
+     - LangChain4j integration
    - **Uber JAR**
      - A standalone JAR file that can be executed from the command line.
    - **GraalVM native executable**

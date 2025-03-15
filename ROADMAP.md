@@ -7,6 +7,19 @@
 1. Project Initialization
    - Create repository structure
    - Set up CI/CD pipeline
+     - Implement GitHub Actions workflow for Maven builds
+     - Add automated version management
+     - Setup dependency vulnerability scanning
+     - Configure code quality checks (SonarQube/SpotBugs)
+     - Add automated changelog generation
+     - Setup release automation
+       - JAR publishing
+       - Native binary creation
+       - IDE plugin publishing
+       - Desktop installer generation
+     - Configure automated dependency updates
+     - Implement deployment smoke tests
+     - Add performance regression testing
    - Establish coding standards and guidelines
 
 ## Bucket 1: Command Standardization
@@ -218,3 +231,10 @@
 
 - [x] Standardize commands between CLI and Desktop applications
   - [x] Update CLI to use `/llmApiKey` instead of `/apiKey` to match Desktop
+  - [x] Add `/llmModel`, `/llmTemperature`, and `/llmVendor` commands to CLI
+  - [x] Add `/source` command for executing commands from a file
+- [x] Enhance CLI capabilities
+  - [x] Add interactive mode support
+  - [x] Add stdin mode support
+  - [x] Implement state persistence
+  - [x] Integrate LangChain4j for LLM interactions
