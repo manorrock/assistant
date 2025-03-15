@@ -39,10 +39,9 @@ jobs:
             exit 1
           fi
           
-          # Model command check
-          MODEL=$(java -jar "${PWD}/cli/target/cli.jar" /llmModel)
-          if [[ ! $MODEL =~ "Current model:" ]]; then
-            echo "Model command failed to show current model"
+          # Model command check - set model to gpt4
+          if ! java -jar "${PWD}/cli/target/cli.jar" /llmModel gpt4; then
+            echo "Failed to set model to gpt4"
             exit 1
           fi
           
