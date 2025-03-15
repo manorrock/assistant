@@ -12,9 +12,9 @@
      - [x] Add automated version management
      - [x] Setup dependency vulnerability scanning
      - [x] Configure code quality checks (SpotBugs/Checkstyle via GitHub Actions)
-     - [ ] Add automated changelog generation
+     - [x] Add automated changelog generation
      - [x] Configure automated dependency updates
-     - [ ] Implement deployment smoke tests
+     - [x] Implement deployment smoke tests
      - [ ] Add performance regression testing
    - [ ] Establish coding standards and guidelines
    - [x] Create comprehensive README documentation
