@@ -72,12 +72,14 @@ jobs:
             echo ""
             echo "| Module | Instructions | Branches |"
             echo "|--------|--------------|----------|"
-            find . -name "jacoco.csv" -exec awk -F, '
-              NR>1 {
-                gsub(/^.*\/|\.csv$/,"",$1)
-                printf "| %s | %.1f%% | %.1f%% |\n", $1, $3*100, $4*100
-              }
-            ' {} \;
+            find . -name "jacoco.xml" -exec xmlstarlet sel -t \
+              -m "//package" \
+              -v "concat('| ', ../../@name, ' | ', \
+                  format-number(counter[@type='INSTRUCTION']/@covered div counter[@type='INSTRUCTION']/@covered+counter[@type='INSTRUCTION']/@missed * 100,'#.#'), \
+                  '% | ', \
+                  format-number(counter[@type='BRANCH']/@covered div counter[@type='BRANCH']/@covered+counter[@type='BRANCH']/@missed * 100,'#.#'), \
+                  '% |')" \
+              -n {} \;
           } > coverage.md
       - name: Comment PR
         uses: peter-evans/create-or-update-comment@v4
