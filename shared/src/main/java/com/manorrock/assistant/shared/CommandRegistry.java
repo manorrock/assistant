@@ -44,7 +44,7 @@ public class CommandRegistry {
     if (command == null) {
       throw new IllegalArgumentException("Command cannot be null");
     }
-    commands.put(name.toLowerCase(), command);
+    commands.put(name, command);
   }
 
   /**
@@ -55,7 +55,7 @@ public class CommandRegistry {
    * @return The command implementation, or null if not found
    */
   public Command getCommand(String name) {
-    return name != null ? commands.get(name.toLowerCase()) : null;
+    return name != null ? commands.get(name) : null;
   }
 
   /**
@@ -80,7 +80,7 @@ public class CommandRegistry {
    * @return true if the command exists, false otherwise
    */
   public boolean hasCommand(String name) {
-    return name != null && commands.containsKey(name.toLowerCase());
+    return name != null && commands.containsKey(name);
   }
 
   /**
@@ -100,6 +100,6 @@ public class CommandRegistry {
    * @return The removed command, or null if not found
    */
   public Command unregisterCommand(String name) {
-    return name != null ? commands.remove(name.toLowerCase()) : null;
+    return name != null ? commands.remove(name) : null;
   }
 }

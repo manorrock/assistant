@@ -14,48 +14,53 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
+import java.awt.GraphicsEnvironment;
+import com.manorrock.assistant.shared.Command;
+import com.manorrock.assistant.shared.CommandRegistry;
 
 public class NetBeansControllerTopComponentTest {
 
+  private static boolean isHeadless;
   private static final int UI_DELAY = 1000; // 1 second delay for human visibility
-
   private NetBeansControllerTopComponent component;
-  private JFrame frame; // Add frame field
+  private JFrame frame;
 
   @BeforeClass
   public static void setUpClass() {
-    // Initialize AWT toolkit
-    java.awt.Toolkit.getDefaultToolkit();
-    try {
-      javax.swing.SwingUtilities.invokeAndWait(() -> {
-      });
-    } catch (Exception e) {
-      e.printStackTrace();
+    // Only set netbeans test environment property
+    System.setProperty("netbeans.running.environment", "junit-test");
+    isHeadless = GraphicsEnvironment.isHeadless();
+    if (!isHeadless) {
+      java.awt.Toolkit.getDefaultToolkit();
+      try {
+        javax.swing.SwingUtilities.invokeAndWait(() -> {
+        });
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
   @Before
   public void setUp() {
+    if (isHeadless) {
+      component = new NetBeansControllerTopComponent();
+      return;
+    }
+
     try {
       javax.swing.SwingUtilities.invokeAndWait(() -> {
         component = new NetBeansControllerTopComponent();
-
-        // Create and setup frame
         frame = new JFrame("Manorrock Assistant Test");
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setSize(800, 600);
-
-        // Add component to frame
         frame.add(component);
-
-        // Center on screen
         frame.setLocationRelativeTo(null);
-
         frame.setVisible(true);
         frame.toFront();
         frame.requestFocus();
       });
-      Thread.sleep(UI_DELAY); // Let human see initial state
+      Thread.sleep(UI_DELAY);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -63,7 +68,7 @@ public class NetBeansControllerTopComponentTest {
 
   @After
   public void tearDown() {
-    if (frame != null) {
+    if (!isHeadless && frame != null) {
       frame.dispose();
       frame = null;
     }
@@ -72,20 +77,18 @@ public class NetBeansControllerTopComponentTest {
 
   @Test
   public void testComponentInitialization() throws InterruptedException {
-    // Verify component was initialized
     assertNotNull("Component should not be null", component);
 
-    // Print component hierarchy for debugging
+    if (isHeadless) {
+      assertTrue("Component should be instance of TopComponent", component instanceof TopComponent);
+      return;
+    }
+
     System.out.println("Component hierarchy:");
     printComponentHierarchy(component, "");
 
-    // Find the text areas and buttons
     JTextArea responseArea = findComponent(component, JTextArea.class, 0);
-    System.out.println("Found response area: " + (responseArea != null));
-
     JTextArea requestArea = findComponent(component, JTextArea.class, 1);
-    System.out.println("Found request area: " + (requestArea != null));
-
     JButton sendButton = findComponent(component, JButton.class, 0);
     JButton startOverButton = findComponent(component, JButton.class, 1);
 
@@ -94,33 +97,39 @@ public class NetBeansControllerTopComponentTest {
     assertNotNull("Send button should exist", sendButton);
     assertNotNull("Start over button should exist", startOverButton);
 
-    // Verify initial state
     assertTrue("Response area should contain welcome message",
         responseArea.getText().contains("Welcome to Manorrock Assistant"));
     assertEquals("Request area should be empty", "", requestArea.getText());
     assertEquals("Send button should be labeled correctly", "Send", sendButton.getText());
     assertEquals("Start Over button should be labeled correctly", "Start Over", startOverButton.getText());
 
-    Thread.sleep(UI_DELAY * 2); // Pause to let human see the component
+    Thread.sleep(UI_DELAY * 2);
   }
 
   @Test
   public void testHelpCommand() throws InterruptedException {
+    if (isHeadless) {
+      Command helpCommand = CommandRegistry.getInstance().getCommand("help");
+      assertNotNull("Help command should be available", helpCommand);
+      String helpText = helpCommand.executeToString("");
+      assertTrue("Help text should contain command information", helpText.contains("Available commands:"));
+      return;
+    }
+
     JTextArea requestArea = findComponent(component, JTextArea.class, 1);
     JTextArea responseArea = findComponent(component, JTextArea.class, 0);
     JButton sendButton = findComponent(component, JButton.class, 0);
 
-    // Slow down the test for visibility
     Thread.sleep(UI_DELAY);
     requestArea.setText("/help");
     Thread.sleep(UI_DELAY);
     sendButton.doClick();
-    Thread.sleep(UI_DELAY * 2); // Longer pause to read the help text
+    Thread.sleep(UI_DELAY * 2);
 
     assertTrue("Response should contain help message", responseArea.getText().contains("Available commands:"));
     assertTrue("Help should list llmEndpoint command", responseArea.getText().contains("/llmEndpoint"));
 
-    Thread.sleep(UI_DELAY * 2); // Final pause to see results
+    Thread.sleep(UI_DELAY * 2);
   }
 
   private <T extends Component> T findComponent(TopComponent parent, Class<T> type, int index) {
@@ -137,11 +146,8 @@ public class NetBeansControllerTopComponentTest {
 
   private <T extends Component> T findComponentRecursive(Container container, Class<T> type, Counter counter) {
     for (Component c : container.getComponents()) {
-      System.out.println("Found component: " + c.getClass().getName());
-
       if (type.isInstance(c)) {
         if (counter.value == 0) {
-          System.out.println("Found matching component: " + c.getClass().getName());
           return type.cast(c);
         }
         counter.value--;
