@@ -101,7 +101,7 @@ This matrix shows which commands are supported by each implementation of the Man
 
 ## Test Coverage
 
-The project uses JaCoCo for test coverage reporting. Coverage reports are generated during the test phase and uploaded to Codecov during CI builds. The shared module has a minimum instruction coverage requirement of 15%.
+The project uses JaCoCo for test coverage reporting. Coverage reports are generated during the test phase and posted as comments on pull requests. The shared module has a minimum instruction coverage requirement of 15%.
 
 To generate coverage reports locally:
 ```bash

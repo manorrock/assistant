@@ -162,7 +162,7 @@
    - Add troubleshooting guides
 
 2. Testing
-   - [x] Add unit test coverage (JaCoCo configuration and Codecov integration)
+   - [x] Add unit test coverage (JaCoCo configuration and PR reporting)
    - [ ] Implement common test framework
    - [ ] Create integration tests
    - [ ] Add performance benchmarks

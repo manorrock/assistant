@@ -51,6 +51,7 @@ jobs:
   coverage:
     needs: build
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -61,10 +62,15 @@ jobs:
           cache: 'maven'
       - name: Generate Coverage Report
         run: mvn test jacoco:report
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Create Coverage Report Comment
+        run: |
+          echo "### Coverage Report" > coverage.md
+          echo "\`\`\`" >> coverage.md
+          find . -name "jacoco.csv" -exec cat {} \; | awk -F, 'NR>1 {print $1,$2,$3}' >> coverage.md
+          echo "\`\`\`" >> coverage.md
+      - name: Comment PR
+        uses: machine-learning-apps/pr-comment@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: ./*/target/site/jacoco/jacoco.xml
-          name: codecov-umbrella
-          fail_ci_if_error: true
-          verbose: true
+          path: coverage.md
