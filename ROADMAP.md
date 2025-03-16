@@ -6,6 +6,10 @@
 
 1. Standardize Command Structure
    - [x] Align on command prefix strategy (e.g., `/llm` prefix vs direct commands)
+   - [x] Update CLI to use `/llmApiKey` instead of `/apiKey` to match Desktop
+   - [x] Add `/llmModel`, `/llmTemperature`, and `/llmVendor` commands to CLI
+   - [x] Add `/source` command for executing commands from a file
+   - [x] Add `/llmEndpoint` command for changing LLM API endpoint
    - [ ] Implement consistent command set across all platforms:
      - [x] `/llmModel` (replacing `/model`) - Implemented in CLI and Desktop
      - [x] `/llmVendor` - Implemented in CLI and Desktop
@@ -104,6 +108,7 @@
 ## Bucket 2: Core Components Standardization
 
 1. Unified UI Components
+   - [x] Create consistent UI for desktop application
    - Create shared component specifications
    - Standardize UI layout and behavior
    - Implement consistent styling
@@ -141,23 +146,34 @@
    - Implement state recovery
    - Add state backup/restore
 
-## Bucket 4: Documentation and Testing
+## Bucket 4: CLI Enhancement
+   - [x] Add interactive mode support
+   - [x] Add stdin mode support
+   - [x] Implement state persistence
+   - [x] Integrate LangChain4j for LLM interactions
+
+## Bucket 5: Documentation and Testing
 
 1. Documentation
+   - [x] Document command support matrix across implementations
    - Create common documentation templates
    - Add comprehensive usage guides
    - Document configuration options
    - Add troubleshooting guides
 
 2. Testing
-   - Implement common test framework
-   - Add unit test coverage
-   - Create integration tests
-   - Add performance benchmarks
+   - [x] Add unit test coverage (JaCoCo configuration and Codecov integration)
+   - [ ] Implement common test framework
+   - [ ] Create integration tests
+   - [ ] Add performance benchmarks
 
-## Bucket 5: IDE Integration
+## Bucket 6: IDE Integration
 
 1. Core IDE Extension Support
+   - [x] Create NetBeans plugin
+   - [x] Create VSCode extension
+   - [x] Create IntelliJ plugin
+   - [x] Create Eclipse plugin
    - Create common extension architecture for IDEs
    - Implement consistent UI across different IDEs
    - Standardize extension configuration
@@ -181,7 +197,7 @@
    - Create shared configuration profiles
    - Implement synchronized settings across environments
 
-## Bucket 6: Coding Standards Compliance
+## Bucket 7: Coding Standards Compliance
 
 1. Java Code Style
    - [ ] Enforce Google Java Style Guide across all modules
@@ -224,7 +240,7 @@
    - [ ] Create dependency update policy
    - [ ] Add license compatibility checks
 
-## Bucket 7: Performance Testing Framework
+## Bucket 8: Performance Testing Framework
 
 1. Core Testing Infrastructure
    - [ ] Set up JMH (Java Microbenchmark Harness) framework
@@ -390,23 +406,3 @@
    - Hardware-software co-design optimization
    - Digital twin integration for real-world simulations
    - Zero-trust security framework implementation
-
-## Completed
-
-- [x] Partially standardize commands between CLI and Desktop applications
-  - [x] Update CLI to use `/llmApiKey` instead of `/apiKey` to match Desktop
-  - [x] Add `/llmModel`, `/llmTemperature`, and `/llmVendor` commands to CLI
-  - [x] Add `/source` command for executing commands from a file
-  - [x] Add `/llmEndpoint` command for changing LLM API endpoint
-- [x] Enhance CLI capabilities
-  - [x] Add interactive mode support
-  - [x] Add stdin mode support
-  - [x] Implement state persistence
-  - [x] Integrate LangChain4j for LLM interactions
-- [x] Create consistent UI for desktop application
-- [x] Implement IDE plugins for multiple platforms
-  - [x] NetBeans plugin
-  - [x] VSCode extension
-  - [x] IntelliJ plugin
-  - [x] Eclipse plugin
-- [x] Document command support matrix across implementations
