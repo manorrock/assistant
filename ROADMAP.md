@@ -20,7 +20,7 @@
      - [x] `/llmEndpoint` - Implemented across most platforms
      - [ ] Standardize missing commands across platforms:
        - [x] Port `/source` command to Desktop application
-       - [ ] Port `/source` command to VSCode plugin
+       - [x] Port `/source` command to VSCode plugin
        - [ ] Port `/source` command to IntelliJ plugin
        - [ ] Port `/source` command to Eclipse plugin
        - [ ] Port `/source` command to NetBeans plugin
