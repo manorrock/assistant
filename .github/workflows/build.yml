@@ -67,20 +67,25 @@ jobs:
       - name: Create Coverage Report Comment
         id: coverage-report
         run: |
+          sudo apt-get install -y xmlstarlet
           {
             echo "### 📊 Coverage Report"
             echo ""
             echo "| Module | Instructions | Branches |"
             echo "|--------|--------------|----------|"
-            find . -name "jacoco.xml" -exec xmlstarlet sel -t \
-              -m "//package" \
-              -v "concat('| ', ../../@name, ' | ', \
-                  format-number(counter[@type='INSTRUCTION']/@covered div counter[@type='INSTRUCTION']/@covered+counter[@type='INSTRUCTION']/@missed * 100,'#.#'), \
-                  '% | ', \
-                  format-number(counter[@type='BRANCH']/@covered div counter[@type='BRANCH']/@covered+counter[@type='BRANCH']/@missed * 100,'#.#'), \
-                  '% |')" \
-              -n {} \;
+            for xml in $(find . -name "jacoco.xml"); do
+              echo "Processing $xml..." >&2
+              xmlstarlet sel -t \
+                -m "/report/counter[@type='INSTRUCTION']" \
+                -v "concat('| ', ../@name, ' | ', \
+                    format-number(@covered div (@covered + @missed) * 100, '#.#'), \
+                    '% | ', \
+                    format-number(../counter[@type='BRANCH']/@covered div (../counter[@type='BRANCH']/@covered + ../counter[@type='BRANCH']/@missed) * 100, '#.#'), \
+                    '% |')" \
+                -n "$xml" || echo "Failed to process $xml" >&2
+            done
           } > coverage.md
+          cat coverage.md >&2
       - name: Comment PR
         uses: peter-evans/create-or-update-comment@v4
         with:
