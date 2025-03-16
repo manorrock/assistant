@@ -37,9 +37,22 @@ const vscode = __importStar(require("vscode")); // Add this import statement
 const child_process_1 = require("child_process");
 const os = __importStar(require("os"));
 const path = __importStar(require("path"));
+function getJavaPath() {
+    const javaHome = vscode.workspace.getConfiguration('java').get('home')
+        || process.env.JAVA_HOME;
+    return javaHome ? path.join(javaHome, 'bin', 'java') : 'java';
+}
 function activate(context) {
     console.log('Activating Manorrock Assistant extension'); // Add logging
     const provider = new AssistantViewProvider(context);
+    // Set up initial endpoint configuration
+    updateLLMEndpoint();
+    // Listen for configuration changes
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('com.manorrock.assistant.llmEndpoint')) {
+            updateLLMEndpoint();
+        }
+    }));
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('assistantView', provider, {
         webviewOptions: { retainContextWhenHidden: true }
     }) // Ensure view ID matches
@@ -56,6 +69,29 @@ function activate(context) {
     vscode.commands.executeCommand('setContext', 'assistantView', true);
 }
 exports.activate = activate;
+function updateLLMEndpoint() {
+    const config = vscode.workspace.getConfiguration();
+    const endpoint = config.get('com.manorrock.assistant.llmEndpoint');
+    // If no endpoint is set, silently return and use default
+    if (!endpoint) {
+        return;
+    }
+    let cliPath = config.get('assistant.cliPath') || path.join(os.homedir(), '.manorrock', 'assistant', 'cli.jar');
+    if (cliPath.startsWith('~') || cliPath.startsWith('%USERPROFILE%')) {
+        cliPath = path.join(os.homedir(), cliPath.slice(cliPath.indexOf(path.sep) + 1));
+    }
+    try {
+        const cliProcess = (0, child_process_1.spawn)(getJavaPath(), ['-jar', cliPath, '--stdin']);
+        cliProcess.stdin.write(`/llmEndpoint ${endpoint}\n`);
+        cliProcess.stdin.end();
+        cliProcess.on('error', (error) => {
+            vscode.window.showErrorMessage(`Failed to set LLM endpoint: ${error.message}`);
+        });
+    }
+    catch (error) {
+        vscode.window.showErrorMessage(`Failed to launch CLI process: ${error.message}`);
+    }
+}
 class AssistantViewProvider {
     constructor(context) {
         this.context = context;
@@ -72,7 +108,7 @@ class AssistantViewProvider {
         }
         try {
             outputChannel.appendLine(`Spawning process with CLI path: ${cliPath} for /help request`);
-            const cliProcess = (0, child_process_1.spawn)('java', ['-jar', cliPath, '--stdin']);
+            const cliProcess = (0, child_process_1.spawn)(getJavaPath(), ['-jar', cliPath, '--stdin']);
             cliProcess.stdin.write(`/help\n`);
             cliProcess.stdin.end();
             cliProcess.stdout.on('data', (data) => {
@@ -100,6 +136,11 @@ class AssistantViewProvider {
         }
         webviewView.webview.onDidReceiveMessage((message) => __awaiter(this, void 0, void 0, function* () {
             if (message.type === 'sendMessage') {
+                if (message.text.startsWith('/source ')) {
+                    const filePath = message.text.substring(8).trim();
+                    const fileContent = yield vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
+                    message.text = fileContent.toString();
+                }
                 if (message.text.startsWith('/explain')) {
                     const editor = vscode.window.activeTextEditor;
                     if (editor) {
@@ -116,7 +157,7 @@ class AssistantViewProvider {
                 try {
                     outputChannel.appendLine(`Spawning process with CLI path: ${cliPath}`);
                     outputChannel.appendLine(`Input sent to process: ${message.text}`);
-                    const cliProcess = (0, child_process_1.spawn)('java', ['-jar', cliPath, '--stdin']);
+                    const cliProcess = (0, child_process_1.spawn)(getJavaPath(), ['-jar', cliPath, '--stdin']);
                     cliProcess.stdin.write(`${message.text}\n`);
                     cliProcess.stdin.end();
                     cliProcess.stdout.on('data', (data) => {
