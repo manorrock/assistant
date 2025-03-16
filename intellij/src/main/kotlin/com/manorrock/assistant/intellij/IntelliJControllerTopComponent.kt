@@ -27,6 +27,10 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import com.manorrock.assistant.shared.Command
+import com.manorrock.assistant.shared.CommandRegistry
+import com.manorrock.assistant.shared.LlmConfiguration
+import com.manorrock.assistant.shared.LlmModelCommand
 
 class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
 
@@ -38,7 +42,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
     private var sessionId: String = UUID.randomUUID().toString()
     private val history: LinkedList<JSONObject> = LinkedList()
     private var ollamaEndpoint: String = "http://localhost:11434/api/chat"
-    private var model: String = "llama3"
+    private val llmConfig: LlmConfiguration = LlmConfiguration.defaultConfig()
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -85,6 +89,8 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         val content = contentFactory.createContent(panel, "", false)
         toolWindow.contentManager.addContent(content)
+
+        CommandRegistry.getInstance().registerCommand("llmModel", LlmModelCommand(llmConfig))
     }
 
     override fun actionPerformed(e: ActionEvent) {
@@ -119,9 +125,21 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
     }
 
     private fun handleCommand(command: String) {
+        // First try the new command system
+        val commandName = command.substring(1).split("\\s+".toRegex())[0]
+        val arguments = if (command.contains(" ")) command.substring(command.indexOf(' ')).trim() else ""
+
+        val cmd = CommandRegistry.getInstance().getCommand(commandName)
+        if (cmd != null) {
+            val result = cmd.executeToString(arguments)
+            responseArea.append("\n\nSystem: $result")
+            requestArea.text = ""
+            return
+        }
+
+        // Fall back to legacy commands
         when {
             command.startsWith("/llmEndpoint ") -> changeEndpoint(command)
-            command.startsWith("/model ") -> changeModel(command)
             command == "/help" -> showHelp()
             command == "/clear" -> clearResponseArea()
             else -> responseArea.append("\n\nSystem: Unknown command. Type /help for a list of commands.")
@@ -198,7 +216,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
             }
 
             val jsonInput = JSONObject().apply {
-                put("model", model)
+                put("model", llmConfig.model())
                 put("messages", JSONArray(history))
                 put("stream", true)
                 put("session_id", sessionId)
