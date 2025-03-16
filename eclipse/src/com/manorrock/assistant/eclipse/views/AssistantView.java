@@ -42,6 +42,12 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.manorrock.assistant.shared.Command;
+import com.manorrock.assistant.shared.CommandRegistry;
+import com.manorrock.assistant.shared.LlmConfiguration;
+import com.manorrock.assistant.shared.LlmModelCommand;
+
 import org.json.JSONException;
 
 public class AssistantView extends ViewPart implements ISelectionListener {
@@ -57,13 +63,15 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     private String sessionId = UUID.randomUUID().toString();
     private LinkedList<JSONObject> history = new LinkedList<>();
     private String ollamaEndpoint = "http://localhost:11434/api/chat";
-    private String model = "llama3";
+    private LlmConfiguration llmConfig;
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private MessageConsole console;
     private MessageConsoleStream consoleStream;
     
     @Override
     public void createPartControl(Composite parent) {
+        llmConfig = LlmConfiguration.defaultConfig();
+        CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(llmConfig));
         // Create console for logging
         console = findConsole("Manorrock Assistant Log");
         consoleStream = console.newMessageStream();
@@ -191,10 +199,20 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     }
     
     private void handleCommand(String command) {
+        // First try the new command system
+        String commandName = command.substring(1).split("\\s+")[0];
+        String arguments = command.contains(" ") ? command.substring(command.indexOf(' ')).trim() : "";
+
+        Command cmd = CommandRegistry.getInstance().getCommand(commandName);
+        if (cmd != null) {
+            String result = cmd.executeToString(arguments);
+            responseArea.append("\n\nSystem: " + result);
+            requestArea.setText("");
+            return;
+        }
+
         if (command.startsWith("/llmEndpoint ")) {
             changeEndpoint(command);
-        } else if (command.startsWith("/model ")) {
-            changeModel(command);
         } else if (command.equals("/help")) {
             showHelp();
         } else if (command.equals("/clear")) {
@@ -254,22 +272,10 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         }
     }
     
-    private void changeModel(String command) {
-        Pattern pattern = Pattern.compile("/model\\s+(\\S+)");
-        Matcher matcher = pattern.matcher(command);
-        if (matcher.find()) {
-            model = matcher.group(1);
-            responseArea.append("\n\nSystem: Model changed to " + model);
-            consoleStream.println("[" + LocalDateTime.now().format(formatter) + " - System]\nModel changed to " + model);
-        } else {
-            responseArea.append("\n\nSystem: Invalid model format. Use /model <name>");
-        }
-    }
-    
     private void showHelp() {
         String helpMessage = "\n\nSystem: Available commands:\n" +
                             "/llmEndpoint myhostname:myport - Change the Ollama endpoint\n" +
-                            "/model <name> - Change the model used\n" +
+                            "/llmModel <name> - Change the model used\n" +
                             "/help - Show this help message\n" +
                             "/clear - Clear the response window\n" +
                             "/explain - Explain the selected text";
@@ -311,7 +317,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
             }
             
             JSONObject jsonInput = new JSONObject();
-            jsonInput.put("model", model);
+            jsonInput.put("model", llmConfig.model());
             jsonInput.put("messages", new JSONArray(history));
             jsonInput.put("stream", true);
             jsonInput.put("session_id", sessionId);
