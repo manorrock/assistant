@@ -8,10 +8,11 @@
     <packaging>pom</packaging>
     <name>Manorrock Assistant - Project</name>
     <modules>
-        <module>shared</module>
         <module>cli</module>
         <module>desktop</module>
+        <module>eclipse</module>
         <module>netbeans</module>
+        <module>shared</module>
         <module>vscode</module>
         <module>windows</module>
     </modules>
