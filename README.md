@@ -99,6 +99,16 @@ This matrix shows which commands are supported by each implementation of the Man
 6. **Eclipse plugin**
    - A plugin for the Eclipse IDE to integrate Manorrock Assistant functionalities.
 
+## Test Coverage
+
+The project uses JaCoCo for test coverage reporting. Coverage reports are generated during the test phase and posted as comments on pull requests. The shared module has a minimum instruction coverage requirement of 15%.
+
+To generate coverage reports locally:
+```bash
+mvn test jacoco:report
+```
+
+Reports can be found in `target/site/jacoco` of each module.
 
 ## Under Consideration or Under Development
 
