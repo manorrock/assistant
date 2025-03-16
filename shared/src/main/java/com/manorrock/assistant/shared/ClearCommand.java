@@ -1,0 +1,26 @@
+package com.manorrock.assistant.shared;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * Command implementation that clears the response area.
+ */
+public class ClearCommand implements Command {
+
+  @Override
+  public String executeToString(String input) {
+    return "Response area cleared.";
+  }
+
+  @Override
+  public InputStream executeToStream(String input) {
+    return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
+  }
+
+  @Override
+  public String getDescription() {
+    return "Clear the response window";
+  }
+}

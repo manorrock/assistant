@@ -42,7 +42,7 @@
        - [ ] Add `/llmApiKey` to VSCode plugin
        - [ ] Add `/llmApiKey` to IntelliJ plugin
        - [ ] Add `/llmModel` to Eclipse plugin
-       - [ ] Add `/llmModel` to NetBeans plugin
+       - [x] Add `/llmModel` to NetBeans plugin
        - [ ] Add `/llmModel` to VSCode plugin
        - [ ] Add `/llmModel` to IntelliJ plugin
        - [ ] Add `/llmTemperature` to Eclipse plugin

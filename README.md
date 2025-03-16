@@ -48,7 +48,7 @@ This matrix shows which commands are supported by each implementation of the Man
 | `/explain` | ✅<sup>4</sup> | ✅<sup>2</sup> | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/llmApiKey <key>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/llmModel <name>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/llmModel <name>` | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `/llmTemperature <number>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmVendor <name>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/model <name>` | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |

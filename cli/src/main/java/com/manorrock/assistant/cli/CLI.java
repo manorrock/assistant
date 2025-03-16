@@ -1,6 +1,9 @@
 package com.manorrock.assistant.cli;
 
+import com.manorrock.assistant.shared.Command;
+import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.LlmConfiguration;
+import com.manorrock.assistant.shared.LlmModelCommand;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -14,11 +17,8 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import picocli.CommandLine;
-import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -28,14 +28,12 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-@Command(name = "assistant-cli", mixinStandardHelpOptions = true, versionProvider = CLI.PropertiesVersionProvider.class, description = "CLI version of the Manorrock Assistant")
+@picocli.CommandLine.Command(name = "assistant-cli", mixinStandardHelpOptions = true, versionProvider = CLI.PropertiesVersionProvider.class, description = "CLI version of the Manorrock Assistant")
 public class CLI implements Callable<Integer> {
 
   private LlmConfiguration config;
@@ -55,6 +53,9 @@ public class CLI implements Callable<Integer> {
   private Path stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "cli-state");
   private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
+  public CLI() {
+  }
+
   public static void main(String[] args) {
     int exitCode = new CommandLine(new CLI()).execute(args);
     System.exit(exitCode);
@@ -66,6 +67,7 @@ public class CLI implements Callable<Integer> {
     if (config == null) {
       config = LlmConfiguration.defaultConfig();
     }
+    CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(config));
 
     if (interactive) {
       startInteractiveMode();
@@ -93,11 +95,19 @@ public class CLI implements Callable<Integer> {
     }
   }
 
-  private void handleCommand(String command) {
+  protected void handleCommand(String command) {
     if (command.startsWith("/llmEndpoint ")) {
       changeEndpoint(command);
-    } else if (command.startsWith("/llmModel ")) {
-      changeModel(command);
+    } else if (command.startsWith("/llmModel")) {
+      String cmdLine = command.substring(9); // remove '/llmModel'
+      LlmModelCommand modelCommand = CommandRegistry.getInstance().getCommand("llmModel", LlmModelCommand.class);
+      if (modelCommand != null) {
+        String result = modelCommand.executeToString(cmdLine);
+        System.out.println("System: " + result);
+        saveState();
+      } else {
+        System.out.println("System: LLM model command not available");
+      }
     } else if (command.startsWith("/llmVendor ")) {
       changeVendor(command);
     } else if (command.startsWith("/llmApiKey ")) {
@@ -106,14 +116,30 @@ public class CLI implements Callable<Integer> {
       changeModelTemperature(command);
     } else if (command.equals("/help")) {
       showHelp();
-    } else if (command.equals("/clear")) {
-      clearResponseArea();
     } else if (command.startsWith("/explain")) {
       explainFromClipboardOrFile(command);
     } else if (command.startsWith("/source ")) {
       handleSourceCommand(command);
     } else {
-      System.out.println("System: Unknown command. Type /help for a list of commands.");
+      String cmdLine = command.substring(1); // remove the leading '/'
+      int spaceIndex = cmdLine.indexOf(' ');
+
+      String cmdName;
+      String cmdArgs;
+      if (spaceIndex > 0) {
+        cmdName = cmdLine.substring(0, spaceIndex);
+        cmdArgs = cmdLine.substring(spaceIndex + 1).trim();
+      } else {
+        cmdName = cmdLine;
+        cmdArgs = "";
+      }
+
+      Command cmd = CommandRegistry.getInstance().getCommand(cmdName);
+      if (cmd != null) {
+        System.out.println("System: " + cmd.executeToString(cmdArgs));
+      } else {
+        System.out.println("System: Unknown command. Type /help for a list of commands.");
+      }
     }
   }
 
@@ -278,18 +304,19 @@ public class CLI implements Callable<Integer> {
   }
 
   private void showHelp() {
-    String helpMessage = "\n\nSystem: Available commands:\n" + "/llmEndpoint myhostname:myport - Change the endpoint\n"
+    String cliHelp = "\n\nCLI-specific commands:\n" + "/llmEndpoint myhostname:myport - Change the endpoint\n"
         + "/llmModel <name> - Change the model used\n"
         + "/llmVendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n"
         + "/llmApiKey <key> - Set API key for OpenAI or Azure\n"
-        + "/llmTemperature <value> - Set temperature (0.0-1.0)\n" + "/help - Show this help message\n"
-        + "/clear - Clear the response window\n" + "/source <file_path> - Execute commands from a file\n"
-        + "/explain [file_path] - Explain text from clipboard or specified file";
-    System.out.println(helpMessage);
-  }
+        + "/llmTemperature <value> - Set temperature (0.0-1.0)\n"
+        + "/source <file_path> - Execute commands from a file\n"
+        + "/explain [file_path] - Explain text from clipboard or specified file\n" + "/exit - Exit interactive mode";
+    System.out.println(cliHelp);
 
-  private void clearResponseArea() {
-    System.out.println("System: Response area cleared.");
+    Command helpCommand = CommandRegistry.getInstance().getCommand("help");
+    if (helpCommand != null) {
+      System.out.println("\n" + helpCommand.executeToString(""));
+    }
   }
 
   /**
