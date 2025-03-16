@@ -52,6 +52,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -63,14 +65,23 @@ jobs:
       - name: Generate Coverage Report
         run: mvn test jacoco:report
       - name: Create Coverage Report Comment
+        id: coverage-report
         run: |
-          echo "### Coverage Report" > coverage.md
-          echo "\`\`\`" >> coverage.md
-          find . -name "jacoco.csv" -exec cat {} \; | awk -F, 'NR>1 {print $1,$2,$3}' >> coverage.md
-          echo "\`\`\`" >> coverage.md
+          {
+            echo "### 📊 Coverage Report"
+            echo ""
+            echo "| Module | Instructions | Branches |"
+            echo "|--------|--------------|----------|"
+            find . -name "jacoco.csv" -exec awk -F, '
+              NR>1 {
+                gsub(/^.*\/|\.csv$/,"",$1)
+                printf "| %s | %.1f%% | %.1f%% |\n", $1, $3*100, $4*100
+              }
+            ' {} \;
+          } > coverage.md
       - name: Comment PR
-        uses: machine-learning-apps/pr-comment@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: peter-evans/create-or-update-comment@v4
         with:
-          path: coverage.md
+          issue-number: ${{ github.event.pull_request.number }}
+          body-file: coverage.md
+          edit-mode: replace
