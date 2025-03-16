@@ -9,10 +9,14 @@ version = "1.0-SNAPSHOT"
 
 repositories {
   mavenCentral()
+  mavenLocal()
 }
+
+val projectVersion = gradle.extra["projectVersion"] as String
 
 dependencies {
     implementation("org.json:json:20231013")
+    implementation("com.manorrock.assistant:shared:${projectVersion}")
     // ...other dependencies...
 }
 
@@ -48,5 +52,20 @@ tasks {
 
   publishPlugin {
     token.set(System.getenv("PUBLISH_TOKEN"))
+  }
+
+  // Add task to build shared module if needed
+  register("buildSharedModule") {
+    doLast {
+        exec {
+            workingDir = file("../")
+            commandLine("mvn", "-am", "-pl", "shared", "install")
+        }
+    }
+  }
+
+  // Make compile task depend on shared module
+  named("compileJava") {
+    dependsOn("buildSharedModule")
   }
 }
