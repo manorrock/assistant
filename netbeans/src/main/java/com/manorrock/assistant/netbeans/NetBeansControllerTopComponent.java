@@ -38,6 +38,7 @@ import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
+import com.manorrock.assistant.shared.SourceCommand;
 
 @TopComponent.Description(preferredID = "NetBeansControllerTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
@@ -66,6 +67,8 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
   public NetBeansControllerTopComponent() {
     llmConfig = LlmConfiguration.defaultConfig();
     CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(llmConfig));
+    CommandRegistry.getInstance().registerCommand("source",
+        new SourceCommand(this::messageHandler, this::handleCommand));
     initComponents();
     setName(Bundle.CTL_NetBeansControllerTopComponent());
     setToolTipText(Bundle.HINT_NetBeansControllerTopComponent());
@@ -365,6 +368,11 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
       sendButton.setEnabled(true);
       progressBar.setIndeterminate(false);
     }
+  }
+
+  private void messageHandler(String message) {
+    responseArea.append("\n\nYou: " + message);
+    processMessage(message);
   }
 
   @Override

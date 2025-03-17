@@ -4,6 +4,7 @@ import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
+import com.manorrock.assistant.shared.SourceCommand;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -68,6 +69,8 @@ public class CLI implements Callable<Integer> {
       config = LlmConfiguration.defaultConfig();
     }
     CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(config));
+    CommandRegistry.getInstance().registerCommand("source",
+        new SourceCommand(this::handleSendAction, this::handleCommand));
 
     if (interactive) {
       startInteractiveMode();
@@ -118,8 +121,6 @@ public class CLI implements Callable<Integer> {
       showHelp();
     } else if (command.startsWith("/explain")) {
       explainFromClipboardOrFile(command);
-    } else if (command.startsWith("/source ")) {
-      handleSourceCommand(command);
     } else {
       String cmdLine = command.substring(1); // remove the leading '/'
       int spaceIndex = cmdLine.indexOf(' ');
@@ -140,54 +141,6 @@ public class CLI implements Callable<Integer> {
       } else {
         System.out.println("System: Unknown command. Type /help for a list of commands.");
       }
-    }
-  }
-
-  private void handleSourceCommand(String command) {
-    String filePath = command.substring(8).trim();
-    Path path = Paths.get(filePath);
-
-    try {
-      String content = Files.readString(path);
-      StringBuilder messageBuilder = new StringBuilder();
-
-      // Process the file line by line
-      for (String line : content.split("\n")) {
-        String trimmedLine = line.trim();
-
-        // Handle line continuation
-        if (line.endsWith("\\") || trimmedLine.endsWith("\\")) {
-          messageBuilder.append(line, 0, line.lastIndexOf('\\')).append("\n");
-          continue;
-        }
-
-        // Add the line to the current message
-        messageBuilder.append(line);
-
-        // Process the complete message
-        String fullMessage = messageBuilder.toString().trim();
-        if (!fullMessage.isEmpty()) {
-          if (fullMessage.startsWith("/") && !fullMessage.startsWith("/exit")) {
-            handleCommand(fullMessage);
-          } else {
-            handleSendAction(fullMessage);
-          }
-        }
-        messageBuilder.setLength(0);
-      }
-
-      // Handle any remaining content
-      String remaining = messageBuilder.toString().trim();
-      if (!remaining.isEmpty()) {
-        if (remaining.startsWith("/") && !remaining.startsWith("/exit")) {
-          handleCommand(remaining);
-        } else {
-          handleSendAction(remaining);
-        }
-      }
-
-    } catch (IOException e) {
-      System.out.println("System: Error reading source file: " + e.getMessage());
     }
   }
 
