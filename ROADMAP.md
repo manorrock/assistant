@@ -5,26 +5,8 @@
 ## Bucket 1: Command Standardization
 
 1. Standardize Command Structure
-   - [x] Align on command prefix strategy (e.g., `/llm` prefix vs direct commands)
-   - [x] Update CLI to use `/llmApiKey` instead of `/apiKey` to match Desktop
-   - [x] Add `/llmModel`, `/llmTemperature`, and `/llmVendor` commands to CLI
-   - [x] Add `/source` command for executing commands from a file
-   - [x] Add `/llmEndpoint` command for changing LLM API endpoint
    - [ ] Implement consistent command set across all platforms:
-     - [x] `/llmModel` (replacing `/model`) - Implemented in CLI and Desktop
-     - [x] `/llmVendor` - Implemented in CLI and Desktop
-     - [x] `/llmApiKey` - Implemented in CLI and Desktop
-     - [x] `/llmTemperature` - Implemented in CLI and Desktop
-     - [x] `/help` - Implemented across all platforms
-     - [x] `/clear` - Implemented across most platforms
-     - [x] `/explain` - Implemented across most platforms
-     - [x] `/startover` - Implemented in Desktop and IDE plugins (as button)
-     - [x] `/reset` - Implemented across all platforms
-     - [x] `/source` - Implemented in CLI
-     - [x] `/llmEndpoint` - Implemented across most platforms
      - [ ] Standardize missing commands across platforms:
-       - [x] Port `/source` command to Desktop application
-       - [x] Port `/source` command to VSCode plugin
        - [ ] Port `/source` command to IntelliJ plugin
        - [ ] Port `/source` command to Eclipse plugin
        - [ ] Port `/source` command to NetBeans plugin
@@ -45,10 +27,6 @@
        - [ ] Add `/llmApiKey` to NetBeans plugin
        - [ ] Add `/llmApiKey` to VSCode plugin
        - [ ] Add `/llmApiKey` to IntelliJ plugin
-       - [x] Add `/llmModel` to Eclipse plugin
-       - [x] Add `/llmModel` to NetBeans plugin
-       - [x] Add `/llmModel` to VSCode plugin
-       - [x] Add `/llmModel` to IntelliJ plugin
        - [ ] Add `/llmTemperature` to Eclipse plugin
        - [ ] Add `/llmTemperature` to NetBeans plugin
        - [ ] Add `/llmTemperature` to VSCode plugin
@@ -162,7 +140,6 @@
    - Add troubleshooting guides
 
 2. Testing
-   - [x] Add unit test coverage (JaCoCo configuration and PR reporting)
    - [ ] Implement common test framework
    - [ ] Create integration tests
    - [ ] Add performance benchmarks

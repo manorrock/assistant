@@ -27,6 +27,9 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import com.manorrock.assistant.shared.LlmConfiguration;
+import com.manorrock.assistant.shared.CommandRegistry;
+import com.manorrock.assistant.shared.Command;
+import com.manorrock.assistant.shared.SourceCommand;
 
 /**
  * Controller class for the JavaFX-based LLM chat interface. Handles user interactions, command
@@ -60,6 +63,9 @@ public class MainWindowController {
     responseArea.setText("Welcome to Manorrock Assistant");
     progressBar.setProgress(0);
     showHelp();
+
+    CommandRegistry.getInstance().registerCommand("source",
+        new SourceCommand(this::messageHandler, this::handleCommand));
 
     requestArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
@@ -111,50 +117,12 @@ public class MainWindowController {
   }
 
   private void handleSourceCommand(String command) {
-    String filePath = command.substring(8).trim();
-    try {
-      String content = Files.readString(Paths.get(filePath));
-      StringBuilder messageBuilder = new StringBuilder();
-
-      // Process the file line by line
-      for (String line : content.split("\n")) {
-        String trimmedLine = line.trim();
-
-        // Handle line continuation
-        if (line.endsWith("\\") || trimmedLine.endsWith("\\")) {
-          messageBuilder.append(line, 0, line.lastIndexOf('\\')).append("\n");
-          continue;
-        }
-
-        // Add the line to the current message
-        messageBuilder.append(line);
-
-        // Process the complete message
-        String fullMessage = messageBuilder.toString().trim();
-        if (!fullMessage.isEmpty()) {
-          if (fullMessage.startsWith("/") && !fullMessage.startsWith("/exit")) {
-            handleCommand(fullMessage);
-          } else {
-            responseArea.appendText("\n\nYou: " + fullMessage);
-            processMessage(fullMessage);
-          }
-        }
-        messageBuilder.setLength(0);
-      }
-
-      // Handle any remaining content
-      String remaining = messageBuilder.toString().trim();
-      if (!remaining.isEmpty()) {
-        if (remaining.startsWith("/") && !remaining.startsWith("/exit")) {
-          handleCommand(remaining);
-        } else {
-          responseArea.appendText("\n\nYou: " + remaining);
-          processMessage(remaining);
-        }
-      }
-
-    } catch (IOException e) {
-      responseArea.appendText("\n\nSystem: Error reading source file: " + e.getMessage());
+    Command sourceCommand = CommandRegistry.getInstance().getCommand("source");
+    if (sourceCommand != null) {
+      String result = sourceCommand.executeToString(command.substring(8).trim());
+      responseArea.appendText("\n\nSystem: " + result);
+    } else {
+      responseArea.appendText("\n\nSystem: Source command not available");
     }
   }
 
@@ -350,5 +318,10 @@ public class MainWindowController {
     } else {
       responseArea.appendText("\n\nSystem: No text found in clipboard. Copy some text and try again.");
     }
+  }
+
+  private void messageHandler(String message) {
+    responseArea.appendText("\n\nYou: " + message);
+    processMessage(message);
   }
 }

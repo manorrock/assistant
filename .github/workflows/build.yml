@@ -38,11 +38,6 @@ jobs:
         name: distribution
         path: |
           cli/target/cli.jar
-          desktop/target/desktop.jar
-          netbeans/target/*.nbm
-          vscode/target/*.vsix
-          intellij/target/*.jar
-          eclipse/target/*.jar
         if-no-files-found: error
         retention-days: 30
         compression-level: 6

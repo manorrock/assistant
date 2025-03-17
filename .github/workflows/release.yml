@@ -64,31 +64,8 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./cli/target/cli.jar
-          asset_name: manorrock-assistant-cli-${{ github.event.inputs.version }}.jar
+          asset_name: cli-${{ github.event.inputs.version }}.jar
           asset_content_type: application/java-archive
-
-      - name: Upload Desktop JAR
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./desktop/target/desktop.jar
-          asset_name: manorrock-assistant-desktop-${{ github.event.inputs.version }}.jar
-          asset_content_type: application/java-archive
-
-      - name: Upload IDE Plugin artifacts
-        run: |
-          # Upload any plugin artifacts that exist
-          for file in $(find . -name "*.nbm" -o -name "*.vsix" -o -name "*plugin*.jar"); do
-            filename=$(basename "$file")
-            echo "Uploading $filename"
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Content-Type: application/octet-stream" \
-              --data-binary @"$file" \
-              ${{ steps.create_release.outputs.upload_url }}?name=${filename/\.jar/-${{ github.event.inputs.version }}.jar}
-          done
 
       - name: Remove artifacts from previous releases (only for 'current' branch)
         if: github.event.inputs.branch == 'current'
