@@ -187,7 +187,7 @@
                                 <argument>--main-class</argument>
                                 <argument>com.manorrock.assistant.desktop.Main</argument>
                                 <argument>--main-jar</argument>
-                                <argument>${project.build.directory}/desktop-${project.version}.jar</argument>
+                                <argument>${project.build.directory}/manorrock-assistant-desktop.jar</argument>
                                 <argument>--temp</argument>
                                 <argument>${project.build.directory}/temp</argument>
                                 <argument>--resource-dir</argument>
