@@ -160,12 +160,19 @@
                         </executions>
                     </plugin>
                     <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dependency</outputDirectory>
+                        </configuration>
+                    </plugin>
+                    <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>3.5.0</version>
                         <executions>
                             <execution>
-                                <phase>package</phase>
+                                <phase>install</phase>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
@@ -187,7 +194,7 @@
                                 <argument>--main-class</argument>
                                 <argument>com.manorrock.assistant.desktop.Main</argument>
                                 <argument>--main-jar</argument>
-                                <argument>${project.build.directory}/manorrock-assistant-desktop.jar</argument>
+                                <argument>manorrock-assistant-desktop.jar</argument>
                                 <argument>--temp</argument>
                                 <argument>${project.build.directory}/temp</argument>
                                 <argument>--resource-dir</argument>
