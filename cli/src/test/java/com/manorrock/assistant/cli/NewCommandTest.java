@@ -14,28 +14,12 @@ import org.junit.jupiter.api.Test;
 
 class NewCommandTest {
 
-  private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-  private final PrintStream originalOut = System.out;
-  private CLI cli;
-
-  @BeforeEach
-  void setUp() {
-    System.setOut(new PrintStream(outputStream));
-    cli = new CLI();
-    CommandRegistry.getInstance().clearCommands();
-  }
-
-  @AfterEach
-  void tearDown() {
-    System.setOut(originalOut);
-    CommandRegistry.getInstance().clearCommands();
-    outputStream.reset();
-  }
-
   @Test
   void testNewCommand() throws Exception {
-    // Ensure CLI is initialized
-    cli.call();
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+    System.setOut(new PrintStream(outputStream));
+    CLI cli = new CLI();
 
     // Add some history
     cli.handleSendAction("Test message");
@@ -55,5 +39,8 @@ class NewCommandTest {
     output = outputStream.toString();
     assertFalse(output.contains("Test message"));
     assertTrue(output.contains("Another test"));
+
+    System.setOut(originalOut);
+    outputStream.close();
   }
 }
