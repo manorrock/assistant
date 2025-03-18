@@ -95,6 +95,21 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 6. **Eclipse plugin**
    - A plugin for the Eclipse IDE to integrate Manorrock Assistant functionalities.
 
+## Testing SNAPSHOT releases
+
+The latest development builds are automatically published as SNAPSHOT releases. These builds contain the most recent features and fixes but may not be as stable as official releases.
+
+### macOS ARM64
+
+A macOS ARM64 DMG installer is available from our [SNAPSHOT release page](https://github.com/manorrock/assistant/releases/tag/SNAPSHOT). This build is automatically updated whenever changes are pushed to the main branch.
+
+To install:
+1. Download the Manorrock-Assistant-arm64.dmg file
+2. Open the DMG file
+3. Drag the Manorrock Assistant app to your Applications folder
+
+Note: Since this is a development build, you may need to bypass macOS security settings by right-clicking the app and selecting "Open" the first time you run it.
+
 ## Test Coverage
 
 The project uses JaCoCo for test coverage reporting. Coverage reports are generated during the test phase and posted as comments on pull requests. The shared module has a minimum instruction coverage requirement of 15%.
