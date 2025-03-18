@@ -88,7 +88,6 @@ jobs:
           body-file: coverage.md
           edit-mode: replace
   macos-arm64:
-    needs: build
     runs-on: macos-14
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     permissions:
@@ -100,26 +99,16 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
-        cache: 'maven'
     - name: Build macOS DMG
-      run: mvn -B package -P macos
+      run: mvn -B -DskipTests -DskipITs -ntp -P macos install
     - name: Standardize DMG filename
       run: |
         mkdir -p standardized
         cp desktop/target/*.dmg standardized/Manorrock-Assistant-arm64.dmg
-    - name: Upload DMG Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: macos-arm64-dmg
-        path: standardized/Manorrock-Assistant-arm64.dmg
-        if-no-files-found: error
-        retention-days: 30
-        compression-level: 6
-        overwrite: true
     - name: Update SNAPSHOT release
       uses: softprops/action-gh-release@v1
       with:
-        name: Development Build (SNAPSHOT)
+        name: SNAPSHOT Build
         tag_name: SNAPSHOT
         prerelease: true
         files: standardized/Manorrock-Assistant-arm64.dmg
