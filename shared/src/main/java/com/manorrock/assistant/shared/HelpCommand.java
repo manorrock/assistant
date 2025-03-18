@@ -13,15 +13,18 @@ public class HelpCommand implements Command {
 
   @Override
   public String executeToString(String input) {
-    CommandRegistry registry = CommandRegistry.getInstance();
-    StringBuilder help = new StringBuilder("Available commands:\n");
-
-    registry.getCommandNames().stream().sorted().forEach(name -> {
-      Command cmd = registry.getCommand(name);
-      help.append("/").append(name).append(" - ").append(cmd.getDescription()).append("\n");
-    });
-
-    return help.toString();
+    StringBuilder result = new StringBuilder();
+    result.append("Available commands:\n");
+    result.append("/clear - Clear the response window\n");
+    result.append("/explain - Explain text from clipboard or selection\n");
+    result.append("/help - Show this help message\n");
+    result.append("/llmEndpoint <host:port> - Change LLM API endpoint\n");
+    result.append("/llmModel <name> - Change LLM model\n");
+    result.append("/llmVendor <name> - Change LLM vendor\n");
+    result.append("/model <name> - Legacy: Change model\n");
+    result.append("/new - Start a new chat session\n");
+    result.append("/source <file_path> - Execute commands from a file\n");
+    return result.toString();
   }
 
   @Override

@@ -148,7 +148,7 @@ public class MainWindowController {
           config.temperature());
       responseArea.appendText("\n\nSystem: Model changed to " + newModel);
     } else {
-      responseArea.appendText("\n\nSystem: Invalid model format. Use /model <name>");
+      responseArea.appendText("\n\nSystem: Invalid model format. Use /llmModel <name>");
     }
   }
 

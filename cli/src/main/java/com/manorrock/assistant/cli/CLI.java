@@ -4,6 +4,7 @@ import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
+import com.manorrock.assistant.shared.NewCommand;
 import com.manorrock.assistant.shared.SourceCommand;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -71,6 +72,7 @@ public class CLI implements Callable<Integer> {
     CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(config));
     CommandRegistry.getInstance().registerCommand("source",
         new SourceCommand(this::handleSendAction, this::handleCommand));
+    CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
 
     if (interactive) {
       startInteractiveMode();
@@ -86,7 +88,7 @@ public class CLI implements Callable<Integer> {
     return 0;
   }
 
-  private void handleSendAction(String userMessage) {
+  void handleSendAction(String userMessage) {
     if (!userMessage.isEmpty()) {
       if (userMessage.startsWith("/")) {
         handleCommand(userMessage);
@@ -219,13 +221,6 @@ public class CLI implements Callable<Integer> {
     saveState();
   }
 
-  private void changeModel(String command) {
-    String newModel = command.substring(10).trim();
-    config = new LlmConfiguration(config.endpoint(), newModel, config.vendor(), config.apiKey(), config.temperature());
-    System.out.println("System: Model changed to " + newModel);
-    saveState();
-  }
-
   private void changeVendor(String command) {
     String newVendor = command.substring(11).trim().toUpperCase();
     config = new LlmConfiguration(config.endpoint(), config.model(), newVendor, config.apiKey(), config.temperature());
@@ -263,7 +258,8 @@ public class CLI implements Callable<Integer> {
         + "/llmApiKey <key> - Set API key for OpenAI or Azure\n"
         + "/llmTemperature <value> - Set temperature (0.0-1.0)\n"
         + "/source <file_path> - Execute commands from a file\n"
-        + "/explain [file_path] - Explain text from clipboard or specified file\n" + "/exit - Exit interactive mode";
+        + "/explain [file_path] - Explain text from clipboard or specified file\n" + "/new - Start a new chat session\n"
+        + "/exit - Exit interactive mode";
     System.out.println(cliHelp);
 
     Command helpCommand = CommandRegistry.getInstance().getCommand("help");
@@ -495,6 +491,11 @@ public class CLI implements Callable<Integer> {
     } catch (IOException e) {
       System.out.println("Error saving state: " + e.getMessage());
     }
+  }
+
+  private void startNewSession() {
+    history.clear();
+    saveState();
   }
 
   static class PropertiesVersionProvider implements CommandLine.IVersionProvider {

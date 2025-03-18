@@ -26,45 +26,41 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 |---------|-------------|
 | `/clear` | Clears the response window |
 | `/llmEndpoint <host:port>` | Changes the LLM API endpoint (default: localhost:11434) |
-| `/explain` | Explains text from clipboard (Desktop) or selected text (IDE plugins) |
+| `/explain [file_path]` | Explains text from clipboard, selection, or file |
 | `/help` | Displays available commands |
 | `/llmApiKey <key>` | Sets the API key for OpenAI or Azure OpenAI (default: empty) |
 | `/llmModel <name>` | Changes the LLM model used (default: llama3) |
 | `/llmTemperature <number>` | Sets the model's temperature parameter (default: 0.0, range: 0.0-1.0) |
 | `/llmVendor <name>` | Changes the LLM vendor (default: OLLAMA, options: OLLAMA, OPENAI, or AZURE_OPENAI) |
 | `/model <name>` | Legacy command for changing model (default: llama3) |
-| `/startover` | Resets the conversation and starts over |
-| `/reset` | Resets the application state |
+| `/new` | Starts a new chat session |
 | `/source <file_path>` | Executes commands from a file |
 
 ## Command Support Matrix
 
-This matrix shows which commands are supported by each implementation of the Manorrock Assistant.
-
 | Command | CLI | Desktop | Eclipse | NetBeans | IntelliJ | VSCode | Mobile |
 |---------|-----|---------|---------|----------|----------|--------|--------|
-| `/clear` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `/llmEndpoint <host:port>` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅<sup>1</sup> | ✅ |
-| `/explain` | ✅<sup>4</sup> | ✅<sup>2</sup> | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `/clear` | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `/llmEndpoint <host:port>` | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ |
+| `/explain [file_path]` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/llmApiKey <key>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmModel <name>` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `/llmTemperature <number>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmVendor <name>` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/model <name>` | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `/startover` | ❌ | ✅<sup>3</sup> | ✅<sup>3</sup> | ✅<sup>3</sup> | ✅<sup>3</sup> | ❌ | ❌ |
-| `/reset` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/source <file_path>` | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `/model <name>` | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
+| `/new` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/source <file_path>` | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ |
 
 **Legend:**
 - ✅ Fully supported
 - ❌ Not supported
 
 **Notes:**
-1. VSCode extension handles endpoint through Configuration settings rather than command
-2. Desktop implementation uses clipboard content instead of editor selection
-3. Desktop, Eclipse, NetBeans, and IntelliJ implementations have a "Start Over" button rather than a command
-4. In CLI, `/explain` explains the provided text argument.
+1. VSCode extension supports endpoint configuration through both settings and `/llmEndpoint` command
+2. Desktop implementation uses clipboard content for `/explain`
+3. CLI implements `/explain` with both clipboard and file support
+4. Eclipse implements `/explain` for selected text
 
 ## Implementations
 

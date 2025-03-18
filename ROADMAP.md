@@ -9,20 +9,32 @@
      - [ ] Standardize missing commands across platforms:
        - [ ] Port `/source` command to IntelliJ plugin
        - [ ] Port `/source` command to Eclipse plugin
-       - [ ] Port `/source` command to NetBeans plugin
+       - [x] Port `/source` command to NetBeans plugin
        - [ ] Add `/llmEndpoint` to IntelliJ plugin
        - [ ] Add `/llmEndpoint` to Eclipse plugin
-       - [ ] Add `/llmEndpoint` to NetBeans plugin
+       - [x] Add `/llmEndpoint` to NetBeans plugin
+       - [x] Remove `/clear` from CLI implementation
+       - [x] Remove `/reset` from CLI implementation
+       - [x] Remove `/startover` from CLI implementation
+       - [x] Add `/new` command to CLI implementation
+       - [ ] Add `/new` to Desktop application
+       - [ ] Add `/new` to VSCode plugin
+       - [ ] Add `/new` to IntelliJ plugin
+       - [ ] Add `/new` to Eclipse plugin
+       - [ ] Add `/new` to NetBeans plugin
        - [ ] Convert `/startover` button to command in Desktop application
        - [ ] Convert `/startover` button to command in VSCode plugin
        - [ ] Convert `/startover` button to command in IntelliJ plugin
        - [ ] Convert `/startover` button to command in Eclipse plugin
        - [ ] Convert `/startover` button to command in NetBeans plugin
        - [ ] Implement `/clear` in VSCode plugin
-       - [ ] Implement `/clear` in Eclipse plugin
+       - [x] Implement `/clear` in Eclipse plugin
+       - [x] Implement `/clear` in NetBeans plugin
+       - [x] Add `/explain` to CLI with clipboard and file support
        - [ ] Add `/explain` to VSCode plugin
        - [ ] Add `/explain` to IntelliJ plugin
-       - [ ] Add `/explain` to Eclipse plugin
+       - [x] Add `/explain` to Eclipse plugin
+       - [x] Add `/explain` to NetBeans plugin
        - [ ] Add `/llmApiKey` to Eclipse plugin
        - [ ] Add `/llmApiKey` to NetBeans plugin
        - [ ] Add `/llmApiKey` to VSCode plugin
@@ -36,7 +48,7 @@
        - [ ] Add `/llmVendor` to VSCode plugin
        - [ ] Add `/llmVendor` to IntelliJ plugin
        - [ ] Add Mobile platform support for `/explain`
-       - [ ] Add Mobile platform support for `/startover`
+       - [ ] Add Mobile platform support for `/new`
      - [ ] Implement platform-specific command wrappers:
        - [ ] Create command interface for Desktop application
        - [ ] Create command interface for IDE plugins
