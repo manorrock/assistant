@@ -102,4 +102,12 @@ public class CommandRegistry {
   public Command unregisterCommand(String name) {
     return name != null ? commands.remove(name) : null;
   }
+
+  /**
+   * Clear all registered commands except the built-in help command.
+   */
+  public void clearCommands() {
+    commands.clear();
+    registerCommand("help", new HelpCommand());
+  }
 }

@@ -22,14 +22,12 @@ class NewCommandTest {
   void setUp() {
     System.setOut(new PrintStream(outputStream));
     cli = new CLI();
-    // Clear any existing commands to start fresh
     CommandRegistry.getInstance().clearCommands();
   }
 
   @AfterEach
   void tearDown() {
     System.setOut(originalOut);
-    // Clear commands after test
     CommandRegistry.getInstance().clearCommands();
     outputStream.reset();
   }
