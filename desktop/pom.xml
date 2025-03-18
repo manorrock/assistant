@@ -57,8 +57,50 @@
         </dependency>
     </dependencies>
     <build>
+        <finalName>manorrock-assistant-desktop</finalName>
         <plugins>
-            <!-- ...existing plugins... -->
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.23.0</version>
+                <configuration>
+                    <lineEnding>LF</lineEnding>
+                    <encoding>UTF-8</encoding>
+                    <configFile>../eclipse-java-google-style.xml</configFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>${spotbugs.version}</version>
+                <configuration>
+                    <xmlOutput>true</xmlOutput>
+                    <effort>Max</effort>
+                    <threshold>Medium</threshold>
+                    <failOnError>false</failOnError>
+                    <formats>
+                        <format>xml</format>
+                        <format>html</format>
+                        <format>sarif</format>
+                    </formats>
+                    <includeFilterFile>../spotbugs-security-include.xml</includeFilterFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>spotbugs</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -152,15 +194,6 @@
                                 <argument>${basedir}/src/main/jpackage/macos</argument>
                                 <argument>--verbose</argument>
                             </arguments>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.14.0</version>
-                        <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
                         </configuration>
                     </plugin>
                 </plugins>
