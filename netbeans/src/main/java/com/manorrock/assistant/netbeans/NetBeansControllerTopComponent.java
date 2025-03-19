@@ -58,7 +58,6 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
   private JProgressBar progressBar;
   private String sessionId = UUID.randomUUID().toString();
   private LinkedList<JSONObject> history = new LinkedList<>();
-  private String ollamaEndpoint = "http://localhost:11434/api/chat";
   private LlmConfiguration llmConfig;
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
   private InputOutput io;
@@ -175,7 +174,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     }
 
     // Fall back to legacy commands that haven't been migrated yet
-    if (command.startsWith("/llmEndpoint ")) {
+    if (command.startsWith("/llmEndpoint")) {
       changeEndpoint(command);
     } else if (command.equals("/clear")) {
       clearResponseArea();
@@ -219,16 +218,35 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
   }
 
   private void changeEndpoint(String command) {
-    Pattern pattern = Pattern.compile("/llmEndpoint\\s+(\\S+)");
-    Matcher matcher = pattern.matcher(command);
-    if (matcher.find()) {
-      String newEndpoint = matcher.group(1);
-      ollamaEndpoint = "http://" + newEndpoint + "/api/chat";
-      responseArea.append("\n\nSystem: Endpoint changed to " + ollamaEndpoint);
-      io.getOut()
-          .println("[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + ollamaEndpoint);
+    String[] parts = command.split("\\s+", 2);
+    if (parts.length < 2) {
+      responseArea.append("\n\nSystem: Invalid format. Usage: /llmEndpoint <URL>");
+      return;
+    }
+    
+    String newEndpoint = parts[1].trim();
+    if (!newEndpoint.startsWith("http://") && !newEndpoint.startsWith("https://")) {
+      newEndpoint = "http://" + newEndpoint;
+    }
+    if (!newEndpoint.endsWith("/api/chat")) {
+      newEndpoint = newEndpoint + "/api/chat";
+    }
+    
+    if (isValidUrl(newEndpoint)) {
+      llmConfig = new LlmConfiguration(newEndpoint, llmConfig.model(), llmConfig.vendor(), llmConfig.apiKey(), llmConfig.temperature());
+      responseArea.append("\n\nSystem: Endpoint changed to " + newEndpoint);
+      io.getOut().println("[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + newEndpoint);
     } else {
-      responseArea.append("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport");
+      responseArea.append("\n\nSystem: Invalid URL format. Please provide a valid URL.");
+    }
+  }
+
+  private boolean isValidUrl(String urlString) {
+    try {
+      new java.net.URL(urlString);
+      return true;
+    } catch (java.net.MalformedURLException e) {
+      return false;
     }
   }
 
@@ -286,7 +304,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
       jsonInput.put("session_id", sessionId);
 
       HttpClient client = HttpClient.newHttpClient();
-      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(ollamaEndpoint))
+      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(llmConfig.endpoint()))  // Use llmConfig.endpoint() instead of ollamaEndpoint
           .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
           .build();
 
