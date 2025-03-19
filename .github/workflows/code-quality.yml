@@ -1,4 +1,4 @@
-name: Code Quality Checks
+name: SpotBugs Check
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
       packages: read
       checks: write
       pull-requests: write
-      security-events: write  # Add permission for SARIF upload
+      security-events: write
 
     steps:
     - uses: actions/checkout@v4
@@ -26,60 +26,18 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
     
-    - name: Run SpotBugs and Checkstyle
-      run: mvn clean verify com.github.spotbugs:spotbugs-maven-plugin:spotbugs -Dspotbugs.outputFormat=xml,html,sarif checkstyle:checkstyle
+    - name: Run SpotBugs
+      run: mvn clean verify com.github.spotbugs:spotbugs-maven-plugin:spotbugs -Dspotbugs.outputFormat=xml,html,sarif
     
     - name: Debug output
       run: |
         echo "Listing target directories..."
         find . -name "target" -type d | xargs ls -la
         echo "Searching for SARIF files..."
-        find . -name "*.sarif" -type f
-    
-    - name: Upload SpotBugs Results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: spotbugs-results
-        path: |
-          **/target/spotbugsXml.xml
-          **/target/site/spotbugs/*.html
-        retention-days: 7
+        find . -name "*.sarif"
 
-    - name: Upload Checkstyle Results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: checkstyle-results
-        path: '**/target/checkstyle-result.xml'
-        retention-days: 7
-    
-    # Only run SARIF upload if files are found
-    - name: Check for SARIF files
-      id: check-sarif
-      run: |
-        if find . -name "*.sarif" -type f | grep -q .; then
-          echo "sarif_files_found=true" >> $GITHUB_OUTPUT
-          mkdir -p sarif-output
-          find . -name "*.sarif" -type f -exec cp {} ./sarif-output/ \;
-        else
-          echo "sarif_files_found=false" >> $GITHUB_OUTPUT
-          echo "No SARIF files found"
-          mkdir -p sarif-output
-          echo '{"version":"2.1.0","runs":[]}' > ./sarif-output/empty.sarif
-        fi
-        ls -la ./sarif-output/
-        
-    - name: Publish Code Quality Results
+    - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v3
-      if: steps.check-sarif.outputs.sarif_files_found == 'true'
       with:
-        sarif_file: ./sarif-output
+        sarif_file: '**/target/spotbugsXml.sarif'
         category: spotbugs
-        
-    - name: Annotate Code Quality Issues
-      if: always()
-      uses: jwgmeligmeyling/checkstyle-github-action@master
-      with:
-        path: '**/checkstyle-result.xml'
-        token: ${{ github.token }}

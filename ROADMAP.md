@@ -31,8 +31,6 @@
    - [ ] Update documentation
    - [ ] Ensure code consistency across modules
    - [ ] Remove SpotBugs and related workflows
-   - [ ] Remove Google Code Style and related workflows
-   - [ ] Remove Jacoco and related workflows
 
 ## Future Enhancements
 

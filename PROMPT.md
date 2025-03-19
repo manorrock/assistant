@@ -34,7 +34,6 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
 
 5. Testing Requirements:
    - Do NOT include test cases in the task file
-   - We are relying on manual testing to keep overhead low
 
 6. Task Management:
    - Remove task if fully completed task from ROADMAP.md
@@ -59,10 +58,3 @@ into the PROMPT.md file and not just appended at the end.
 
 Task ID: {ID}
 Task Description: {DESCRIPTION}
-
-# Prompt Guidance
-
-## Code Quality and Testing
-- Project uses manual testing approach to reduce overhead
-- No automated code coverage requirements
-- Tests should be focused on critical functionality
