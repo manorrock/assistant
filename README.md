@@ -34,7 +34,7 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 | `/llmModel` | ✅ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ | ✅ |
 | `/llmTemperature` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmVendor` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/new` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/new` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/source` | ✅ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ | ❌ |
 
 **Legend:**
