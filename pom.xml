@@ -18,7 +18,7 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spotbugs.version>4.7.3.5</spotbugs.version>
+        <spotbugs.version>4.9.3.0</spotbugs.version>
         <checkstyle.version>3.6.0</checkstyle.version>
         <maven.compiler.release>17</maven.compiler.release>
         <jacoco.version>0.8.11</jacoco.version>
