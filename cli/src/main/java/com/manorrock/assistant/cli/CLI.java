@@ -49,7 +49,6 @@ public class CLI implements Callable<Integer> {
   @Parameters(paramLabel = "MESSAGE", description = "Message to send", arity = "0..1")
   private String message;
 
-  private String sessionId = UUID.randomUUID().toString();
   private LinkedList<ChatMessage> history = new LinkedList<>();
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
   private Path stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "cli-state");
@@ -443,11 +442,6 @@ public class CLI implements Callable<Integer> {
             } // Ignore system messages for simplicity
           }
         }
-
-        Path sessionIdFile = stateDir.resolve("session_id.txt");
-        if (Files.exists(sessionIdFile)) {
-          sessionId = Files.readString(sessionIdFile).trim();
-        }
       } else {
         Files.createDirectories(stateDir);
       }
@@ -485,15 +479,12 @@ public class CLI implements Callable<Integer> {
         historyArray.put(msgObj);
       }
       Files.writeString(historyFile, historyArray.toString());
-
-      Path sessionIdFile = stateDir.resolve("session_id.txt");
-      Files.writeString(sessionIdFile, sessionId);
     } catch (IOException e) {
       System.out.println("Error saving state: " + e.getMessage());
     }
   }
 
-  private void startNewSession() {
+  protected void startNewSession() {
     history.clear();
     saveState();
   }
