@@ -30,6 +30,7 @@ import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.SourceCommand;
+import com.manorrock.assistant.shared.NewCommand;
 
 /**
  * Controller class for the JavaFX-based LLM chat interface. Handles user interactions, command
@@ -66,6 +67,8 @@ public class MainWindowController {
 
     CommandRegistry.getInstance().registerCommand("source",
         new SourceCommand(this::messageHandler, this::handleCommand));
+    CommandRegistry.getInstance().registerCommand("new",  
+        new NewCommand(this::startNewSession));
 
     requestArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
@@ -203,6 +206,7 @@ public class MainWindowController {
         + "/llmApiKey <apikey> - Set API key for OpenAI or Azure\n"
         + "/llmEndpoint myhostname:myport - Change the endpoint\n" + "/llmModel <name> - Change the model used\n"
         + "/llmTemperature <number> - Set temperature (0.0-1.0)\n" + "/llmVendor <name> - Change vendor\n"
+        + "/new - Start a new chat session\n"
         + "/source <file_path> - Execute commands from a file";
     responseArea.appendText(helpMessage);
   }
@@ -211,12 +215,16 @@ public class MainWindowController {
     responseArea.clear();
   }
 
-  @FXML
-  private void handleStartOverAction() {
+  private void startNewSession() {
     history.clear();
     responseArea.clear();
     responseArea.setText("Welcome to Manorrock Assistant");
     showHelp();
+  }
+
+  @FXML
+  private void handleStartOverAction() {
+    startNewSession();
   }
 
   private StreamingChatLanguageModel createLanguageModel() {
