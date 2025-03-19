@@ -43,4 +43,6 @@ class NewCommandTest {
     System.setOut(originalOut);
     outputStream.close();
   }
+
+  // Removed testNewCommandWithExport test as export functionality is no longer needed
 }
