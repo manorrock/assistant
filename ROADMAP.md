@@ -30,7 +30,6 @@
    - [ ] Optimize performance
    - [ ] Update documentation
    - [ ] Ensure code consistency across modules
-   - [ ] Remove SpotBugs and related workflows
 
 ## Future Enhancements
 

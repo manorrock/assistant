@@ -60,31 +60,6 @@
         <finalName>manorrock-assistant-desktop</finalName>
         <plugins>
             <plugin>
-                <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${spotbugs.version}</version>
-                <configuration>
-                    <xmlOutput>true</xmlOutput>
-                    <effort>Max</effort>
-                    <threshold>Medium</threshold>
-                    <failOnError>false</failOnError>
-                    <formats>
-                        <format>xml</format>
-                        <format>html</format>
-                        <format>sarif</format>
-                    </formats>
-                    <includeFilterFile>../spotbugs-security-include.xml</includeFilterFile>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>spotbugs</goal>
-                        </goals>
-                        <phase>verify</phase>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>

@@ -18,7 +18,6 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spotbugs.version>4.9.3.0</spotbugs.version>
         <maven.compiler.release>17</maven.compiler.release>
     </properties>
     <build>

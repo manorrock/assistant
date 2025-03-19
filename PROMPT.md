@@ -45,6 +45,16 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
    - Include validation steps
    - Utilize and update existing code if available
 
+## Handling Removal Tasks
+
+When implementing tasks that involve removing components:
+
+1. Document all affected files and configurations
+2. Verify no remaining references exist after removal
+3. Ensure builds succeed after component removal
+4. Update documentation to remove references to removed components
+5. Validate CI/CD pipeline continues to work
+
 All file paths MUST:
 - Exist in the project
 - Be relative to the project root
