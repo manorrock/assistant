@@ -26,10 +26,9 @@
 
 4. Cleanup and Refactoring
    - [ ] Remove unused code
-   - [ ] Change release workflow to only scrub last 3 releases
+   - [ ] Change release workflow to only keep the last 3 release and the SNAPSHOT artifacts 
    - [ ] Refactor to use Manorrock standard trigger and release workflows
    - [ ] Add MSI to required workflows
-   - [ ] Add amd64 DMG to required workflows
    - [ ] Add a job to the build workflow to remove the SNAPSHOT release 
          prior to running any of the platform specific jobs that will 
          upload their SNAPSHOT artifacts
