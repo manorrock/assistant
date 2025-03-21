@@ -25,19 +25,29 @@ jobs:
       run: mvn -B verify
     - name: Standardize JAR filename
       run: |
-        mkdir -p standardized
+        # Print working directory for debugging
+        echo "Current working directory: $(pwd)"
+        
+        # Create standardized directory with absolute path
+        WORK_DIR="$(pwd)"
+        STANDARDIZED_DIR="${WORK_DIR}/standardized"
+        mkdir -p "${STANDARDIZED_DIR}"
+        echo "Created standardized directory at: ${STANDARDIZED_DIR}"
+        
         echo "Listing cli/target directory contents:"
         ls -la cli/target
         
-        # Check if JAR files exist before copying
-        if ls cli/target/*.jar 1> /dev/null 2>&1; then
-          cp cli/target/*.jar standardized/Manorrock-Assistant.jar
-          echo "JAR file copied successfully"
+        # Check if specific JAR file exists and copy it
+        if [ -f "cli/target/cli.jar" ]; then
+          echo "Found cli.jar, copying to standardized directory"
+          cp "cli/target/cli.jar" "${STANDARDIZED_DIR}/Manorrock-Assistant.jar"
+          echo "JAR file copied successfully to ${STANDARDIZED_DIR}/Manorrock-Assistant.jar"
+          ls -la "${STANDARDIZED_DIR}"
         else
-          echo "No JAR files found in cli/target/"
-          mkdir -p cli/target
-          touch standardized/Manorrock-Assistant.jar
-          echo "Created empty JAR file as placeholder"
+          echo "cli.jar not found in cli/target/"
+          echo "Creating empty placeholder JAR file"
+          touch "${STANDARDIZED_DIR}/Manorrock-Assistant.jar"
+          echo "Created empty JAR file as placeholder at ${STANDARDIZED_DIR}/Manorrock-Assistant.jar"
         fi
     - name: Update SNAPSHOT release
       if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
