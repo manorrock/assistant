@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tool Request Schema",
+  "description": "Schema for requests from LLM to execute a tool",
+  "type": "object",
+  "required": ["toolName"],
+  "properties": {
+    "toolName": {
+      "type": "string",
+      "description": "Name of the tool to execute"
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Map of parameter names to their values",
+      "additionalProperties": true
+    },
+    "context": {
+      "type": "object",
+      "description": "Optional context information for multi-step tool operations",
+      "additionalProperties": true
+    }
+  }
+}

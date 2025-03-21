@@ -39,7 +39,7 @@ public class MobileUIController {
     private String sessionId = UUID.randomUUID().toString();
     private LinkedList<JSONObject> history = new LinkedList<>();
     private String ollamaEndpoint = "http://localhost:11434/api/chat";
-    private String model = "llama3";
+    private String model = "llama3.1";
     
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
 

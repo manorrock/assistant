@@ -39,9 +39,9 @@ jobs:
             exit 1
           fi
           
-          # Model command check - set model to gpt4
-          if ! java -jar "${PWD}/cli/target/cli.jar" "/llmModel gpt4"; then
-            echo "Failed to set model to gpt4"
+          # Model command check - set model to llama3.1
+          if ! java -jar "${PWD}/cli/target/cli.jar" "/llmModel llama3.1"; then
+            echo "Failed to set model to llama3.1"
             exit 1
           fi
           

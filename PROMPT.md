@@ -40,6 +40,9 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
 
 7. Implementation Plan:
    - Step-by-step breakdown
+      - 4 levels of detail
+      - Checklist format
+   - Include all necessary steps for implementation
    - Review existing implementations (prioritize CLI)
    - Document interface requirements
    - Include validation steps

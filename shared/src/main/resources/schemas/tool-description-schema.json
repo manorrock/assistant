@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tool Description Schema",
+  "description": "Schema for describing tools available to an LLM",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["name", "description", "parameters"],
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "Unique identifier for the tool"
+      },
+      "description": {
+        "type": "string",
+        "description": "Human-readable description of what the tool does"
+      },
+      "parameters": {
+        "type": "array",
+        "description": "List of parameters accepted by this tool",
+        "items": {
+          "type": "object",
+          "required": ["name", "type", "description", "required"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the parameter"
+            },
+            "type": {
+              "type": "string",
+              "description": "Data type of the parameter",
+              "enum": ["string", "number", "boolean", "object", "array"]
+            },
+            "description": {
+              "type": "string",
+              "description": "Human-readable description of the parameter"
+            },
+            "required": {
+              "type": "boolean",
+              "description": "Whether this parameter is required for tool execution"
+            }
+          }
+        }
+      }
+    }
+  }
+}

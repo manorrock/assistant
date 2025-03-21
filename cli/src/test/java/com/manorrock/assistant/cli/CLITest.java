@@ -52,14 +52,14 @@ class CLITest {
     cli.call();
 
     // Test changing model
-    cli.handleCommand("/llmModel gpt4");
+    cli.handleCommand("/llmModel llama3.1");
     String output = outputStream.toString();
-    assertTrue(output.contains("Model changed to gpt4"));
+    assertTrue(output.contains("Model changed to llama3.1"));
     outputStream.reset();
 
     // Verify model was changed by getting current model again
     cli.handleCommand("/llmModel");
     output = outputStream.toString();
-    assertTrue(output.contains("Current model: gpt4"));
+    assertTrue(output.contains("Current model: llama3.1"));
   }
 }
