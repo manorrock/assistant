@@ -23,16 +23,6 @@ jobs:
         distribution: 'temurin'
     - name: Build and Test
       run: mvn -B verify
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: '**/target/surefire-reports'
-        if-no-files-found: ignore
-        retention-days: 3
-        compression-level: 9
-        overwrite: true
     - name: Standardize JAR filename
       run: |
         mkdir -p standardized
@@ -47,6 +37,16 @@ jobs:
         prerelease: true
         files: standardized/Manorrock-Assistant.jar
         draft: false
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: '**/target/surefire-reports'
+        if-no-files-found: ignore
+        retention-days: 3
+        compression-level: 9
+        overwrite: true
   macos-arm64-dmg:
     runs-on: macos-14
     steps:
