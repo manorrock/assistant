@@ -28,8 +28,6 @@
    - [ ] Remove unused code
    - [ ] Change release workflow to only scrub last 3 releases
    - [ ] Refactor to use Manorrock standard trigger and release workflows
-   - [ ] Add VSIX to required workflows
-   - [ ] Add NBM to required workflows
    - [ ] Add MSI to required workflows
    - [ ] Add amd64 DMG to required workflows
    - [ ] Add a job to the build workflow to remove the SNAPSHOT release 
