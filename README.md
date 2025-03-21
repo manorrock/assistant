@@ -21,6 +21,16 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 | `/new` | Starts a new chat session |
 | `/source <file_path>` | Executes commands from a file |
 
+## Quick Install
+
+To install the CLI version of Manorrock Assistant, run the following command:
+
+```shell
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/manorrock/assistant/current/install.sh)"
+```
+
+This will download and install the latest SNAPSHOT build of Manorrock Assistant to your home directory.
+
 ## Command Support Matrix
 
 | Command | CLI | Desktop | VSCode | IntelliJ | Eclipse | NetBeans | Mobile |
