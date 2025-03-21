@@ -43,7 +43,7 @@ jobs:
         compression-level: 6
         overwrite: true
         include-hidden-files: false
-  macos-arm64:
+  macos-arm64-dmg:
     runs-on: macos-14
     steps:
     - uses: actions/checkout@v4
@@ -58,14 +58,8 @@ jobs:
       run: |
         mkdir -p standardized
         cp desktop/target/*.dmg standardized/Manorrock-Assistant-arm64.dmg
-  macos-arm64-upload:
-    needs: macos-arm64
-    runs-on: macos-14
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    permissions:
-      contents: write
-    steps:
     - name: Update SNAPSHOT release
+      if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
       uses: softprops/action-gh-release@v1
       with:
         name: SNAPSHOT Build
@@ -73,3 +67,23 @@ jobs:
         prerelease: true
         files: standardized/Manorrock-Assistant-arm64.dmg
         draft: false
+  vsix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12  # v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build VSCode extension
+        run: mvn clean install
+      - name: Upload VSCode extension to SNAPSHOT release
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        uses: softprops/action-gh-release@v1
+        with:
+          name: SNAPSHOT Build
+          tag_name: SNAPSHOT
+          prerelease: true
+          files: vscode/target/*.vsix
+          draft: false
