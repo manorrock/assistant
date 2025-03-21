@@ -32,9 +32,6 @@
    - [ ] Add NBM to required workflows
    - [ ] Add MSI to required workflows
    - [ ] Add amd64 DMG to required workflows
-   - [ ] Refactor macos-arm64 job to separate build and upload part
-         and only upload the SNAPSHOT if the branch is the default branch,
-         but it should always build the SNAPSHOT
    - [ ] Add a job to the build workflow to remove the SNAPSHOT release 
          prior to running any of the platform specific jobs that will 
          upload their SNAPSHOT artifacts
