@@ -45,9 +45,6 @@ jobs:
         include-hidden-files: false
   macos-arm64:
     runs-on: macos-14
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    permissions:
-      contents: write
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 21
@@ -61,6 +58,13 @@ jobs:
       run: |
         mkdir -p standardized
         cp desktop/target/*.dmg standardized/Manorrock-Assistant-arm64.dmg
+  macos-arm64-upload:
+    needs: macos-arm64
+    runs-on: macos-14
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    permissions:
+      contents: write
+    steps:
     - name: Update SNAPSHOT release
       uses: softprops/action-gh-release@v1
       with:
@@ -69,4 +73,3 @@ jobs:
         prerelease: true
         files: standardized/Manorrock-Assistant-arm64.dmg
         draft: false
-        update_existing: true
