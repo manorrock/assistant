@@ -144,6 +144,11 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         // Register commands
         CommandRegistry.getInstance().registerCommand("source", new SourceCommand(this::processMessage, this::handleCommand));
         CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
+        
+        // Register deprecated command for model
+        CommandRegistry.getInstance().registerCommand("model", 
+            new DeprecatedCommand("model", "llm model", 
+            CommandRegistry.getInstance().getCommand("llmModel")));
     }
     
     private void createActions() {

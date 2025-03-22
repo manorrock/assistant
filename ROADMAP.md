@@ -178,7 +178,6 @@ The CLI version of the assistant requires integration with external tools throug
 
 # Backlog
 
-- [ ] Refactor /llmModel command to use '/llm model' instead of '/llmModel'
 - [ ] Refactor /llmApiKey command to use '/llm apiKey' instead of '/llmApiKey'
 - [ ] Refactor /llmEndpoint command to use '/llm endpoint' instead of '/llmEndpoint'
 - [ ] Refactor /llmTemperature command to use '/llm temperature' instead of '/llmTemperature'
@@ -233,3 +232,9 @@ The CLI version of the assistant requires integration with external tools throug
 - [ ] Create response serialization/deserialization utilities
 - [ ] Add response signature/verification for secure commands
 - [ ] Implement response timing metrics and performance tracking
+- [ ] Add a job to build.yml that will delete the SNAPSHOT release
+      prior to running any of the platform specific jobs that will 
+      upload their SNAPSHOT artifacts
+- [ ] Refactor the CLI class to create hook-in points that allow you to call the CLI 
+      from any other class without have to go through the main method or the call method
+      making sure that the CLI class is not a singleton and that it is not a static class

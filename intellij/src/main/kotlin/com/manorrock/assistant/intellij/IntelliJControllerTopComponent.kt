@@ -106,6 +106,11 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         
         // Register the new command
         CommandRegistry.getInstance().registerCommand("new", NewCommand { startNewSession() })
+        
+        // Register deprecated command for model
+        CommandRegistry.getInstance().registerCommand("model", 
+            DeprecatedCommand("model", "llm model", 
+            CommandRegistry.getInstance().getCommand("llmModel")))
     }
 
     override fun actionPerformed(e: ActionEvent) {

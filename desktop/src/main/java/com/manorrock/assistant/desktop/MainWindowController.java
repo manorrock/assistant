@@ -28,6 +28,7 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.CommandRegistry;
+import com.manorrock.assistant.shared.DeprecatedCommand;
 import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.SourceCommand;
 import com.manorrock.assistant.shared.NewCommand;
@@ -69,6 +70,10 @@ public class MainWindowController {
         new SourceCommand(this::messageHandler, this::handleCommand));
     CommandRegistry.getInstance().registerCommand("new",  
         new NewCommand(this::startNewSession));
+        
+    // Register deprecated commands
+    CommandRegistry.getInstance().registerCommand("llmModel", 
+        new DeprecatedCommand("llmModel", "llm model"));
 
     requestArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
