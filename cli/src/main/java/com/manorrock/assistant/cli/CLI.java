@@ -7,6 +7,7 @@ import com.manorrock.assistant.shared.DeprecatedCommand;
 import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.NewCommand;
+import com.manorrock.assistant.shared.OllamaCommand;
 import com.manorrock.assistant.shared.SourceCommand;
 import com.manorrock.assistant.shared.ToolManager;
 
@@ -124,6 +125,9 @@ public class CLI implements Callable<Integer> {
     CommandRegistry.getInstance().registerCommand("source",
         new SourceCommand(this::handleSendAction, this::handleCommand));
     CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
+    
+    // Register the Ollama command with config supplier
+    CommandRegistry.getInstance().registerCommand("ollama", new OllamaCommand(() -> config));
     
     // Register deprecated command for model
     CommandRegistry.getInstance().registerCommand("model", 
