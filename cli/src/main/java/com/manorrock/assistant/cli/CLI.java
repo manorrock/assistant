@@ -23,9 +23,7 @@ import dev.langchain4j.model.chat.listener.ChatModelRequestContext;
 import dev.langchain4j.model.chat.listener.ChatModelResponseContext;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.ChatRequestParameters;
-import dev.langchain4j.model.chat.request.ResponseFormat;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
-import dev.langchain4j.model.chat.request.json.JsonSchema;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.ChatResponseMetadata;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
@@ -34,8 +32,6 @@ import dev.langchain4j.model.openai.OpenAiChatResponseMetadata;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiTokenUsage;
 import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.TokenStream;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -53,19 +49,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import com.manorrock.assistant.shared.Tool;
 import com.manorrock.assistant.shared.ToolResult;
 import com.manorrock.assistant.shared.tools.FileReadTool;
-import com.manorrock.assistant.shared.tools.FileWriteTool;
 import com.manorrock.assistant.shared.tools.DirectoryListTool;
 import com.manorrock.assistant.shared.tools.ProcessExecutionTool;
 import com.manorrock.assistant.shared.tools.ProjectStructureAnalysisTool;
 import com.manorrock.assistant.shared.tools.DependencyAnalysisTool;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.ServiceLoader;
 import java.io.File;
 import java.net.URL;
@@ -90,16 +83,13 @@ public class CLI implements Callable<Integer> {
   @Option(names = {"-i", "--interactive"}, description = "Start in interactive mode")
   private boolean interactive = false;
 
-  @Option(names = "--enable-tools", description = "Enable LLM tool integration")
-  private boolean enableTools;
-
   @Parameters(paramLabel = "MESSAGE", description = "Message to send", arity = "0..1")
   private String message;
 
   private LinkedList<ChatMessage> history = new LinkedList<>();
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
   private Path stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "cli-state");
-  private static final Duration TIMEOUT = Duration.ofSeconds(30);
+  private static final Duration TIMEOUT = Duration.ofMinutes(5);
 
   public CLI() {
   }
@@ -132,11 +122,6 @@ public class CLI implements Callable<Integer> {
         () -> useToolIntegration
     ));
 
-    if (enableTools) {
-      useToolIntegration = true;
-      System.out.println("Tool integration enabled with " + toolManager.getAvailableTools().size() + " available tools");
-    }
-
     if (interactive) {
       startInteractiveMode();
     } else if (readFromStdin) {
@@ -159,7 +144,6 @@ public class CLI implements Callable<Integer> {
     
     // Register default tools
     registerTool(new FileReadTool());
-    registerTool(new FileWriteTool());
     registerTool(new DirectoryListTool());
     registerTool(new ProcessExecutionTool());
     registerTool(new ProjectStructureAnalysisTool());

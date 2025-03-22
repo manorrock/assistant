@@ -128,18 +128,43 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
           const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
           message.text = fileContent.toString();
         }
+        
+        // Enhanced /explain command handling
         if (message.text.startsWith('/explain')) {
           const editor = vscode.window.activeTextEditor;
           if (editor) {
             const selection = editor.selection;
             const text = selection.isEmpty ? editor.document.getText() : editor.document.getText(selection);
-            const prompt = `Please explain the content below the line\n-----------------------------------------\n${text}`;
+            if (text.trim().length === 0) {
+              webviewView.webview.postMessage({ 
+                type: 'cli-output', 
+                text: 'No content to explain. Please select some text or ensure the file has content.' 
+              });
+              return;
+            }
+            
+            const fileName = path.basename(editor.document.fileName);
+            const fileInfo = selection.isEmpty ? 
+              `entire file: ${fileName}` : 
+              `selection from ${fileName} (${selection.start.line + 1}:${selection.start.character + 1} to ${selection.end.line + 1}:${selection.end.character + 1})`;
+            
+            const prompt = `/explain\nExplaining ${fileInfo}\n-----------------------------------------\n${text}`;
             message.text = prompt;
+            
+            // Let the user know what's being explained
+            webviewView.webview.postMessage({ 
+              type: 'cli-output', 
+              text: `Explaining ${fileInfo}...\n` 
+            });
           } else {
-            vscode.window.showInformationMessage('Please select a snippet or open a file.');
+            webviewView.webview.postMessage({ 
+              type: 'cli-output', 
+              text: 'Please select a snippet or open a file to use the /explain command.' 
+            });
             return;
           }
         }
+        
         try {
           outputChannel.appendLine(`Spawning process with CLI path: ${cliPath}`);
           outputChannel.appendLine(`Input sent to process: ${message.text}`);

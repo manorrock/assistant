@@ -58,6 +58,29 @@ When implementing tasks that involve removing components:
 4. Update documentation to remove references to removed components
 5. Validate CI/CD pipeline continues to work
 
+## Command Implementation Patterns
+
+When implementing commands across different platforms:
+
+1. Study the CLI implementation first as the reference
+2. Maintain consistent behavior across all platforms
+3. Follow platform-specific UI/UX patterns
+4. Implement proper error handling and user feedback
+5. For text-processing commands (like `/explain`):
+   - Handle text selection appropriately
+   - Provide clear feedback about what's being processed
+   - Format output consistently
+
+## VSCode-Specific Considerations
+
+When working with the VSCode extension:
+
+1. Commands should be implemented in the `onDidReceiveMessage` handler
+2. Use the VSCode API for editor interaction (text selection, file paths)
+3. Provide user feedback through the webview messaging system
+4. Handle both cases: text selection and no selection
+5. Follow the existing pattern of spawning CLI processes for command execution
+
 All file paths MUST:
 - Exist in the project
 - Be relative to the project root
@@ -69,5 +92,4 @@ remove any guidance that is no longer relevant. Note that the
 guidance should be logically and methodically be incorporated
 into the PROMPT.md file and not just appended at the end.
 
-Task ID: {ID}
-Task Description: {DESCRIPTION}
+
