@@ -33,6 +33,8 @@ import com.manorrock.assistant.shared.Command
 import com.manorrock.assistant.shared.CommandRegistry
 import com.manorrock.assistant.shared.LlmConfiguration
 import com.manorrock.assistant.shared.LlmModelCommand
+import com.manorrock.assistant.shared.SourceCommand
+import java.util.function.Consumer
 
 class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
     private lateinit var responseArea: JTextArea
@@ -92,6 +94,19 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         toolWindow.contentManager.addContent(content)
 
         CommandRegistry.getInstance().registerCommand("llmModel", LlmModelCommand(llmConfig))
+
+        val messageConsumer = Consumer<String> { message ->
+            // Handle messages from the source file - these are normal user messages
+            responseArea.append("\n\nYou: $message")
+            processMessage(message)
+        }
+
+        val commandConsumer = Consumer<String> { command ->
+            // Handle commands from the source file
+            handleCommand(command)
+        }
+
+        CommandRegistry.getInstance().registerCommand("source", SourceCommand(messageConsumer, commandConsumer))
     }
 
     override fun actionPerformed(e: ActionEvent) {

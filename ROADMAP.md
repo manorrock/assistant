@@ -6,10 +6,7 @@
 
 1. Command Implementation
    - [ ] Implement missing commands in IDE plugins:
-     - [ ] Add `/source` to IntelliJ, Eclipse
      - [ ] Add `/new` to all IDEs
-     - [ ] Add `/llmEndpoint` to IntelliJ
-     - [ ] Add `/llmApiKey` where missing
 
 2. Command Standardization
    - [ ] Create unified command interface
@@ -195,3 +192,4 @@ The CLI version of the assistant requires integration with external tools throug
 - [ ] Refactor Netbeans plugin to dispatch to the CLI version
 - [ ] Refactor IntelliJ plugin to dispatch to the CLI version
 - [ ] Refactor Eclipse plugin to dispatch to the CLI version
+- [ ] Add /ollama command dispatching to the local 'ollama' binary
