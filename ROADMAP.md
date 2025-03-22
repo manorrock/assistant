@@ -4,12 +4,7 @@
 
 ## Core Development Focus
 
-1. Command Implementation
-   - [ ] Implement missing commands in IDE plugins:
-     - [ ] Add `/new` to all IDEs
-
 2. Command Standardization
-   - [ ] Create unified command interface
    - [ ] Standardize error handling
    - [ ] Implement consistent response formatting
    - [ ] Add command validation
@@ -193,3 +188,19 @@ The CLI version of the assistant requires integration with external tools throug
 - [ ] Refactor IntelliJ plugin to dispatch to the CLI version
 - [ ] Refactor Eclipse plugin to dispatch to the CLI version
 - [ ] Add /ollama command dispatching to the local 'ollama' binary
+- [ ] Add a DeprecatedCommand that can be used to return a message
+      indicating that the command is deprecated and that the user should
+      use the new command instead. This will be used to deprecate the old
+      commands and replace them with the new ones. Note do not register it
+      in the CommandRegistry with "/deprecated", but use it in the
+      CommandRegistry to replace the old commands. 
+- [ ] Design and implement a common Command interface with standardized methods across all platforms
+- [ ] Create a CommandExecutionContext class to pass state and parameters to commands
+- [ ] Implement a CommandResult class with standardized format for success/failure status and output
+- [ ] Add command category system for organizing and grouping related commands
+- [ ] Create platform-specific command adapters for IntelliJ, Eclipse, NetBeans, and CLI
+- [ ] Implement command discovery and auto-registration mechanisms
+- [ ] Add command parameter validation with consistent error reporting
+- [ ] Create detailed command usage documentation generator from command metadata
+- [ ] Implement command history tracking and recall functionality
+- [ ] Add support for command aliases and shortcuts

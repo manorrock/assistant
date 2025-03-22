@@ -47,6 +47,8 @@ import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
+import com.manorrock.assistant.shared.NewCommand;
+import com.manorrock.assistant.shared.SourceCommand;
 
 import org.json.JSONException;
 
@@ -138,6 +140,10 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         
         // Listen for editor selections
         getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
+
+        // Register commands
+        CommandRegistry.getInstance().registerCommand("source", new SourceCommand(this::processMessage, this::handleCommand));
+        CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
     }
     
     private void createActions() {
@@ -219,20 +225,29 @@ public class AssistantView extends ViewPart implements ISelectionListener {
             clearResponseArea();
         } else if (command.equals("/explain")) {
             explainSelection();
+        } else if (command.equals("/new")) {
+            startNewSession();
         } else {
             responseArea.append("\n\nSystem: Unknown command. Type /help for a list of commands.");
         }
         requestArea.setText("");
     }
+    
+    private void startNewSession() {
+        // Clear conversation history
+        responseArea.setText("");
+        // Reset conversation state (messages, context, etc.)
+        history.clear();
+        sessionId = UUID.randomUUID().toString();
+        // Display confirmation message
+        responseArea.append("System: Started a new chat session.");
+        // Log to console if available
+        consoleStream.println("[" + LocalDateTime.now().format(formatter) + " - System] Started a new chat session.");
+    }
 
     private void explainSelection() {
-        IEditorPart editor = lastActiveEditor;
-        if (editor == null) {
-            editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-        }
-        
-        if (editor instanceof ITextEditor) {
-            ITextEditor textEditor = (ITextEditor) editor;
+        if (lastActiveEditor != null && lastActiveEditor instanceof ITextEditor) {
+            ITextEditor textEditor = (ITextEditor) lastActiveEditor;
             IDocument document = textEditor.getDocumentProvider().getDocument(textEditor.getEditorInput());
             ISelection selection = textEditor.getSelectionProvider().getSelection();
             
@@ -253,6 +268,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
                 processMessage(prompt);
             } catch (Exception e) {
                 responseArea.append("\n\nSystem: Error retrieving text from the editor.");
+                e.printStackTrace();
             }
         } else {
             responseArea.append("\n\nSystem: No active editor window found.");
@@ -304,7 +320,6 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     
     private void processMessage(String message) {
         String timestamp = LocalDateTime.now().format(formatter);
-        
         try {
             JSONObject messageObject = new JSONObject();
             messageObject.put("role", "user");
@@ -328,7 +343,6 @@ public class AssistantView extends ViewPart implements ISelectionListener {
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
                 .build();
-            
             sendButton.setEnabled(false);
             progressBar.setVisible(true);
             
@@ -427,13 +441,11 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         ConsolePlugin plugin = ConsolePlugin.getDefault();
         IConsoleManager conMan = plugin.getConsoleManager();
         IConsole[] existing = conMan.getConsoles();
-        
         for (IConsole console : existing) {
             if (name.equals(console.getName())) {
                 return (MessageConsole) console;
             }
         }
-        
         // No console found, create a new one
         MessageConsole myConsole = new MessageConsole(name, null);
         conMan.addConsoles(new IConsole[] { myConsole });

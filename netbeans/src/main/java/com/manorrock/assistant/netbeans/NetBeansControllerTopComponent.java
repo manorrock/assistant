@@ -39,6 +39,7 @@ import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.SourceCommand;
+import com.manorrock.assistant.shared.NewCommand;
 
 @TopComponent.Description(preferredID = "NetBeansControllerTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
@@ -180,10 +181,26 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
       clearResponseArea();
     } else if (command.equals("/explain")) {
       explainSelection();
+    } else if (command.equals("/new")) {
+      startNewSession();
     } else {
       responseArea.append("\n\nSystem: Unknown command. Type /help for a list of commands.");
     }
     requestArea.setText("");
+  }
+
+  private void startNewSession() {
+    // Clear conversation history
+    responseArea.setText("");
+    // Reset conversation state (messages, context, etc.)
+    history.clear(); 
+    sessionId = UUID.randomUUID().toString();
+    // Display confirmation message
+    responseArea.append("System: Started a new chat session.");
+    // Log to output window if available
+    if (io != null) {
+      io.getOut().println("[" + LocalDateTime.now().format(formatter) + " - System] Started a new chat session.");
+    }
   }
 
   private void explainSelection() {
@@ -406,5 +423,12 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
   @Override
   public void focusLost(FocusEvent e) {
     // No action needed
+  }
+
+  @Override
+  public void componentOpened() {
+    // Register commands
+    CommandRegistry.getInstance().registerCommand("source", new SourceCommand(this::processMessage, this::handleCommand));
+    CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
   }
 }
