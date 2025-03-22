@@ -7,10 +7,13 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
 ## Analysis Requirements
 1. Project Structure:
    - Maven multi-module project (root)
-   - IntelliJ plugin (gradle/)
-   - Eclipse plugin (eclipse/)
-   - CLI implementation (cli/)
-   - VSCode extension (vscode/)
+   - IntelliJ plugin (intellij/) - uses Gradle build system with Kotlin
+   - Eclipse plugin (eclipse/) - uses Maven and Java
+   - NetBeans plugin (netbeans/) - uses Maven and Java
+   - Desktop implementation (desktop/) - uses Maven and Java/JavaFX
+   - Shared module (shared/) - contains common code and APIs used by all modules
+   - CLI implementation (cli/) - uses Maven and Java
+   - VSCode extension (vscode/) - uses TypeScript/JavaScript
 
 2. Component Analysis:
    - Identify affected modules in multi-module project
@@ -20,6 +23,8 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
    - Specify platform-specific variations
    - Define interface requirements
    - Document common test scenarios
+   - Identify cross-platform command patterns for consistency
+   - Analyze existing implementations of similar features across platforms
 
 3. Implementation Requirements:
    - File-by-file changes with validated paths relative to project root
@@ -28,6 +33,8 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
    - Interface specifications
    - Shared code requirements
    - Platform-specific adaptations
+   - Consider editor-specific APIs when implementing IDE features
+   - Handle platform-specific build system requirements (Maven vs Gradle)
 
 4. Documentation Requirements:
    - Update README.md where applicable
@@ -43,10 +50,12 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
       - 4 levels of detail
       - Checklist format
    - Include all necessary steps for implementation
-   - Review existing implementations (prioritize CLI)
+   - Review existing implementations (prioritize similar features in other platforms)
    - Document interface requirements
    - Include validation steps
    - Utilize and update existing code if available
+   - Note platform-specific considerations (e.g., Kotlin vs Java, different APIs)
+   - Address build system considerations (e.g., Maven vs Gradle)
 
 ## Handling Removal Tasks
 
@@ -58,38 +67,52 @@ When implementing tasks that involve removing components:
 4. Update documentation to remove references to removed components
 5. Validate CI/CD pipeline continues to work
 
-## Command Implementation Patterns
+## Command Implementation Guidelines
 
 When implementing commands across different platforms:
+1. Maintain consistent command syntax across all implementations
+2. Ensure similar behavior for equivalent commands on different platforms
+3. Reuse shared code where possible
+4. Account for platform-specific editor APIs for text manipulation
+5. Consider different programming languages (Java vs Kotlin) when adapting implementations
+6. Follow standard prompting patterns for text processing commands
+7. Implement appropriate error handling for each platform
 
-1. Study the CLI implementation first as the reference
-2. Maintain consistent behavior across all platforms
-3. Follow platform-specific UI/UX patterns
-4. Implement proper error handling and user feedback
-5. For text-processing commands (like `/explain`):
-   - Handle text selection appropriately
-   - Provide clear feedback about what's being processed
-   - Format output consistently
+## Cross-Platform Feature Implementation
 
-## VSCode-Specific Considerations
+When implementing features that exist in multiple IDE plugins:
+1. Study existing implementations in other platforms first
+2. Maintain consistent UI/UX patterns across platforms
+3. Consider platform constraints and capabilities
+4. Follow platform-specific best practices for editor interaction
+5. Use appropriate error handling for each platform
+6. Ensure command help text is consistent across platforms
+7. Handle platform-specific build issues proactively
 
-When working with the VSCode extension:
+## Build System Considerations
 
-1. Commands should be implemented in the `onDidReceiveMessage` handler
-2. Use the VSCode API for editor interaction (text selection, file paths)
-3. Provide user feedback through the webview messaging system
-4. Handle both cases: text selection and no selection
-5. Follow the existing pattern of spawning CLI processes for command execution
+When implementing changes that affect build processes:
+1. Consider the different build systems (Maven for most modules, Gradle for IntelliJ)
+2. Validate inter-module dependencies work across build systems
+3. Test builds in isolation before integration
+4. Use appropriate platform-specific build commands and configurations
+5. Handle dependency resolution carefully between modules
 
 All file paths MUST:
 - Exist in the project
 - Be relative to the project root
 - Be validated before inclusion
 
-After completing the task, you MUST to update the PROMPT.md file 
-with additional guidance that would help for future tasks and
-remove any guidance that is no longer relevant. Note that the
-guidance should be logically and methodically be incorporated
-into the PROMPT.md file and not just appended at the end.
+## After completing the task 
+- You MUST update the PROMPT.md file with additional guidance that would help for future tasks 
+- You MUST integrated the additional guidance in a concise manner and NOT just append it at the end
+- You MUST remove any guidance that is no longer relevant
+- You MUST ensure that the guidance is logically and methodically incorporated into the PROMPT.md file
+- You MUST ensure that the guidance is clear and easy to understand
+- You MUST ensure that the guidance is consistent with the overall structure and tone of the document
+- You MUST ensure that the guidance is applicable to ALL future tasks
 
+## Task Details
 
+Task ID: {ID}
+Task Description: {DESCRIPTION}
