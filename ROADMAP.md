@@ -5,7 +5,6 @@
 ## Core Development Focus
 
 2. Command Standardization
-   - [ ] Standardize error handling
    - [ ] Implement consistent response formatting
    - [ ] Add command validation
 
@@ -188,12 +187,6 @@ The CLI version of the assistant requires integration with external tools throug
 - [ ] Refactor IntelliJ plugin to dispatch to the CLI version
 - [ ] Refactor Eclipse plugin to dispatch to the CLI version
 - [ ] Add /ollama command dispatching to the local 'ollama' binary
-- [ ] Add a DeprecatedCommand that can be used to return a message
-      indicating that the command is deprecated and that the user should
-      use the new command instead. This will be used to deprecate the old
-      commands and replace them with the new ones. Note do not register it
-      in the CommandRegistry with "/deprecated", but use it in the
-      CommandRegistry to replace the old commands. 
 - [ ] Design and implement a common Command interface with standardized methods across all platforms
 - [ ] Create a CommandExecutionContext class to pass state and parameters to commands
 - [ ] Implement a CommandResult class with standardized format for success/failure status and output
@@ -204,3 +197,20 @@ The CLI version of the assistant requires integration with external tools throug
 - [ ] Create detailed command usage documentation generator from command metadata
 - [ ] Implement command history tracking and recall functionality
 - [ ] Add support for command aliases and shortcuts
+- [ ] Update install.sh to download the latest release from the GitHub repository
+      instead of the SNAPSHOT release and update the README.md to accomodate for that
+- [ ] Implement standardized exception types for command execution errors
+- [ ] Create a unified error code system for all command operations
+- [ ] Add standardized error reporting format across all UI platforms
+- [ ] Implement command retry mechanisms for transient failures
+- [ ] Add detailed error logging for debugging command failures
+- [ ] Create command error recovery strategies where applicable
+- [ ] Implement input validation error handling with helpful user feedback
+- [ ] Add platform-specific error translation mechanisms
+- [ ] Create error severity classification system (warning/error/fatal)
+- [ ] Implement graceful degradation for commands with partial failures
+- [ ] Add user-friendly error messages with suggested actions
+- [ ] Implement command timeout handling and cancellation support
+- [ ] Create command execution context propagation for error tracing
+- [ ] Add internationalization support for error messages
+- [ ] Implement error aggregation for multi-step command operations
