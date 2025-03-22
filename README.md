@@ -36,7 +36,7 @@ This will download and install the latest SNAPSHOT build of Manorrock Assistant 
 | Command | CLI | Desktop | VSCode | IntelliJ | Eclipse | NetBeans | Mobile |
 |---------|-----|---------|--------|----------|---------|----------|--------|
 | `/clear` | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
-| `/explain` | ✅ | ✅ | ⚠️ | ❌ | ⚠️ | ⚠️ | ❌ |
+| `/explain` | ✅ | ✅ | ✅ | ❌ | ⚠️ | ⚠️ | ❌ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/llmApiKey` | ✅ | ✅ | ⚠️ | ❌ | ❌ | ❌ | ❌ |
 | `/llmEndpoint` | ✅ | ✅ | ✅ | ❌ | ✅ | ⚠️ | ✅ |
@@ -54,7 +54,7 @@ This will download and install the latest SNAPSHOT build of Manorrock Assistant 
 ## Partial Support Notes
 
 - `/clear`: VSCode relies on CLI implementation
-- `/explain`: VSCode, Eclipse, and NetBeans only support editor selection
+- `/explain`: Eclipse, and NetBeans only support editor selection
 - `/llmApiKey`: VSCode requires manual configuration in settings
 - `/llmEndpoint`: NetBeans only supports basic URL configuration
 - `/llmModel`: Eclipse and NetBeans limited to Ollama models only
