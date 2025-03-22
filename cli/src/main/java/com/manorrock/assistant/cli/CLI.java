@@ -110,6 +110,14 @@ public class CLI implements Callable<Integer> {
     initializeToolManager();
     
     CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(config));
+    // Register the LlmCommand
+    CommandRegistry.getInstance().registerCommand("llm", 
+        new com.manorrock.assistant.shared.LlmCommand(
+            () -> config, 
+            newConfig -> { 
+                config = newConfig;
+                saveState();
+            }));
     CommandRegistry.getInstance().registerCommand("source",
         new SourceCommand(this::handleSendAction, this::handleCommand));
     CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
@@ -533,16 +541,16 @@ public class CLI implements Callable<Integer> {
   }
 
   private void showHelp() {
-    String cliHelp = "\n\nCLI-specific commands:\n" + "/llmEndpoint myhostname:myport - Change the endpoint\n"
-        + "/llmModel <name> - Change the model used\n"
-        + "/llmVendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n"
-        + "/llmApiKey <key> - Set API key for OpenAI or Azure\n"
-        + "/llmTemperature <value> - Set temperature (0.0-1.0)\n"
-        + "/source <file_path> - Execute commands from a file\n"
-        + "/explain [file_path] - Explain text from clipboard or specified file\n"
-        + "/new - Start a new chat session\n"
-        + "/tool - Tool management commands\n"
-        + "/exit - Exit interactive mode";
+    String cliHelp = "CLI-specific commands:\n" + 
+        "/llmEndpoint <hostname:port> - Change the endpoint\n" +
+        "/llmModel <name> - Change the model used\n" +
+        "/llmVendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n" +
+        "/llmApiKey <key> - Set the API key\n" +
+        "/llmTemperature <value> - Set temperature (0.0-1.0)\n" +
+        "/explain [file_path] - Explain text from clipboard or specified file\n" +
+        "/new - Start a new chat session\n" +
+        "/help - Show this help message\n" +
+        "/exit - Exit interactive mode";
     System.out.println(cliHelp);
 
     Command helpCommand = CommandRegistry.getInstance().getCommand("help");
@@ -554,6 +562,12 @@ public class CLI implements Callable<Integer> {
     Command toolCommand = CommandRegistry.getInstance().getCommand("tool");
     if (toolCommand != null) {
       System.out.println("\nTool commands:\n" + toolCommand.executeToString(""));
+    }
+    
+    // Show llm command help
+    Command llmCommand = CommandRegistry.getInstance().getCommand("llm");
+    if (llmCommand != null) {
+      System.out.println("\nLLM configuration commands:\n" + llmCommand.executeToString(""));
     }
   }
 
@@ -568,96 +582,91 @@ public class CLI implements Callable<Integer> {
    * @throws IllegalArgumentException if vendor is unknown
    */
   private StreamingChatLanguageModel createLanguageModel() {
-ChatModelListener listener = new ChatModelListener() {
+    ChatModelListener listener = new ChatModelListener() {
+      @Override
+      public void onRequest(ChatModelRequestContext requestContext) {
+          ChatRequest chatRequest = requestContext.chatRequest();
+          List<ChatMessage> messages = chatRequest.messages();
+          System.out.println(messages);
 
-    @Override
-    public void onRequest(ChatModelRequestContext requestContext) {
-        ChatRequest chatRequest = requestContext.chatRequest();
+          ChatRequestParameters parameters = chatRequest.parameters();
+          System.out.println(parameters.modelName());
+          System.out.println(parameters.temperature());
+          System.out.println(parameters.topP());
+          System.out.println(parameters.topK());
+          System.out.println(parameters.frequencyPenalty());
+          System.out.println(parameters.presencePenalty());
+          System.out.println(parameters.maxOutputTokens());
+          System.out.println(parameters.stopSequences());
+          System.out.println(parameters.toolSpecifications());
+          System.out.println(parameters.toolChoice());
+          System.out.println(parameters.responseFormat());
 
-        List<ChatMessage> messages = chatRequest.messages();
-        System.out.println(messages);
+          if (parameters instanceof OpenAiChatRequestParameters openAiParameters) {
+              System.out.println(openAiParameters.maxCompletionTokens());
+              System.out.println(openAiParameters.logitBias());
+              System.out.println(openAiParameters.parallelToolCalls());
+              System.out.println(openAiParameters.seed());
+              System.out.println(openAiParameters.user());
+              System.out.println(openAiParameters.store());
+              System.out.println(openAiParameters.metadata());
+              System.out.println(openAiParameters.serviceTier());
+              System.out.println(openAiParameters.reasoningEffort());
+          }
 
-        ChatRequestParameters parameters = chatRequest.parameters();
-        System.out.println(parameters.modelName());
-        System.out.println(parameters.temperature());
-        System.out.println(parameters.topP());
-        System.out.println(parameters.topK());
-        System.out.println(parameters.frequencyPenalty());
-        System.out.println(parameters.presencePenalty());
-        System.out.println(parameters.maxOutputTokens());
-        System.out.println(parameters.stopSequences());
-        System.out.println(parameters.toolSpecifications());
-        System.out.println(parameters.toolChoice());
-        System.out.println(parameters.responseFormat());
+          System.out.println(requestContext.modelProvider());
 
-        if (parameters instanceof OpenAiChatRequestParameters openAiParameters) {
-            System.out.println(openAiParameters.maxCompletionTokens());
-            System.out.println(openAiParameters.logitBias());
-            System.out.println(openAiParameters.parallelToolCalls());
-            System.out.println(openAiParameters.seed());
-            System.out.println(openAiParameters.user());
-            System.out.println(openAiParameters.store());
-            System.out.println(openAiParameters.metadata());
-            System.out.println(openAiParameters.serviceTier());
-            System.out.println(openAiParameters.reasoningEffort());
-        }
+          Map<Object, Object> attributes = requestContext.attributes();
+          attributes.put("my-attribute", "my-value");
+      }
 
-        System.out.println(requestContext.modelProvider());
+      @Override
+      public void onResponse(ChatModelResponseContext responseContext) {
+          ChatResponse chatResponse = responseContext.chatResponse();
+          AiMessage aiMessage = chatResponse.aiMessage();
+          System.out.println(aiMessage);
 
-        Map<Object, Object> attributes = requestContext.attributes();
-        attributes.put("my-attribute", "my-value");
-    }
+          ChatResponseMetadata metadata = chatResponse.metadata();
+          System.out.println(metadata.id());
+          System.out.println(metadata.modelName());
+          System.out.println(metadata.finishReason());
 
-    @Override
-    public void onResponse(ChatModelResponseContext responseContext) {
-        ChatResponse chatResponse = responseContext.chatResponse();
+          if (metadata instanceof OpenAiChatResponseMetadata openAiMetadata) {
+              System.out.println(openAiMetadata.created());
+              System.out.println(openAiMetadata.serviceTier());
+              System.out.println(openAiMetadata.systemFingerprint());
+          }
 
-        AiMessage aiMessage = chatResponse.aiMessage();
-        System.out.println(aiMessage);
+          TokenUsage tokenUsage = metadata.tokenUsage();
+          System.out.println(tokenUsage.inputTokenCount());
+          System.out.println(tokenUsage.outputTokenCount());
+          System.out.println(tokenUsage.totalTokenCount());
+          if (tokenUsage instanceof OpenAiTokenUsage openAiTokenUsage) {
+              System.out.println(openAiTokenUsage.inputTokensDetails().cachedTokens());
+              System.out.println(openAiTokenUsage.outputTokensDetails().reasoningTokens());
+          }
 
-        ChatResponseMetadata metadata = chatResponse.metadata();
-        System.out.println(metadata.id());
-        System.out.println(metadata.modelName());
-        System.out.println(metadata.finishReason());
+          ChatRequest chatRequest = responseContext.chatRequest();
+          System.out.println(chatRequest);
+          System.out.println(responseContext.modelProvider());
 
-        if (metadata instanceof OpenAiChatResponseMetadata openAiMetadata) {
-            System.out.println(openAiMetadata.created());
-            System.out.println(openAiMetadata.serviceTier());
-            System.out.println(openAiMetadata.systemFingerprint());
-        }
+          Map<Object, Object> attributes = responseContext.attributes();
+          System.out.println(attributes.get("my-attribute"));
+      }
 
-        TokenUsage tokenUsage = metadata.tokenUsage();
-        System.out.println(tokenUsage.inputTokenCount());
-        System.out.println(tokenUsage.outputTokenCount());
-        System.out.println(tokenUsage.totalTokenCount());
-        if (tokenUsage instanceof OpenAiTokenUsage openAiTokenUsage) {
-            System.out.println(openAiTokenUsage.inputTokensDetails().cachedTokens());
-            System.out.println(openAiTokenUsage.outputTokensDetails().reasoningTokens());
-        }
+      @Override
+      public void onError(ChatModelErrorContext errorContext) {
+          Throwable error = errorContext.error();
+          error.printStackTrace();
 
-        ChatRequest chatRequest = responseContext.chatRequest();
-        System.out.println(chatRequest);
+          ChatRequest chatRequest = errorContext.chatRequest();
+          System.out.println(chatRequest);
+          System.out.println(errorContext.modelProvider());
 
-        System.out.println(responseContext.modelProvider());
-
-        Map<Object, Object> attributes = responseContext.attributes();
-        System.out.println(attributes.get("my-attribute"));
-    }
-
-    @Override
-    public void onError(ChatModelErrorContext errorContext) {
-        Throwable error = errorContext.error();
-        error.printStackTrace();
-
-        ChatRequest chatRequest = errorContext.chatRequest();
-        System.out.println(chatRequest);
-
-        System.out.println(errorContext.modelProvider());
-
-        Map<Object, Object> attributes = errorContext.attributes();
-        System.out.println(attributes.get("my-attribute"));
-    }
-};
+          Map<Object, Object> attributes = errorContext.attributes();
+          System.out.println(attributes.get("my-attribute"));
+      }
+    };
 
     String vendor = config.vendor();
     return switch (vendor.toUpperCase()) {
@@ -680,7 +689,6 @@ ChatModelListener listener = new ChatModelListener() {
 
   private void processMessage(String message) {
     String timestamp = LocalDateTime.now().format(formatter);
-
     try {
       UserMessage userMessage = UserMessage.from(message);
       history.add(userMessage);
@@ -702,7 +710,6 @@ ChatModelListener listener = new ChatModelListener() {
             "You are a helpful assistant with access to tools. When appropriate, use tools to accomplish tasks. " +
             "Always think step by step and explain your reasoning clearly."));
       }
-      
       List<ToolSpecification> toolSpecifications = new ArrayList<>();
       toolSpecifications.addAll(toolManager.getAvailableTools().stream()
       .map(tool -> {
@@ -735,13 +742,11 @@ ChatModelListener listener = new ChatModelListener() {
                     // Default to string for unknown types
                     schemaBuilder.addStringProperty(param.getName(), param.getDescription());
             }
-            
             // Mark required parameters
             if (param.isRequired()) {
                 schemaBuilder.required(param.getName());
             }
         });
-        
         // Add the parameter schema to the tool specification
         return toolSpecBuilder
             .parameters(schemaBuilder.build())
@@ -753,7 +758,6 @@ ChatModelListener listener = new ChatModelListener() {
           .messages(messages)
           .toolSpecifications(toolSpecifications)
           .build();
-
       
       
       langChainModel.chat(request, new dev.langchain4j.model.chat.response.StreamingChatResponseHandler() {
@@ -771,14 +775,12 @@ ChatModelListener listener = new ChatModelListener() {
 
         public void onCompleteResponse(ChatResponse completeResponse) {
             System.out.println(); // Print newline after completion
-            
             AiMessage aiMessage = completeResponse.aiMessage();
             
             if (aiMessage.hasToolExecutionRequests()) {
                 // Process all tool requests and collect their results
                 List<ChatMessage> updatedMessages = new ArrayList<>(history);
                 updatedMessages.add(aiMessage);
-                
                 aiMessage.toolExecutionRequests().forEach(request -> {
                     try {
                         // Execute the tool
@@ -786,7 +788,6 @@ ChatModelListener listener = new ChatModelListener() {
                             request.name(),
                             new JSONObject(request.arguments()).toMap()
                         );
-                        
                         // Create a JSON object containing both status and result data
                         JSONObject resultJson = new JSONObject();
                         resultJson.put("status", result.success() ? "success" : "error");
@@ -818,18 +819,15 @@ ChatModelListener listener = new ChatModelListener() {
                         updatedMessages.add(errorMessage);
                     }
                 });
-                
                 // Send the updated conversation back to the LLM for a final response
                 try {
                     ChatRequest followUpRequest = ChatRequest.builder()
                         .messages(updatedMessages)
                         .toolSpecifications(toolSpecifications)  // Add tool specifications to follow-up request
                         .build();
-                    
                     // Clear the existing response builder for the new response
                     responseBuilder.setLength(0);
                     isFirstLine[0] = true;
-                    
                     // Process the follow-up request
                     langChainModel.chat(followUpRequest, this);
                     return; // The new response chain will handle the latch countdown
@@ -863,7 +861,6 @@ ChatModelListener listener = new ChatModelListener() {
         System.out.println("Assistant: Processing was interrupted");
         Thread.currentThread().interrupt();
       }
-
     } catch (Exception e) {
       String errorMessage;
       if (e.getCause() instanceof java.util.concurrent.TimeoutException) {
@@ -876,53 +873,10 @@ ChatModelListener listener = new ChatModelListener() {
     }
   }
   
-  /**
-   * Converts a Manorrock Tool to a LangChain4J ToolSpecification.
-   *
-   * @param tool The tool to convert
-   * @return A ToolSpecification for the given tool
-   */
-  // private ToolSpecification convertToToolSpecification(Tool tool) {
-  //     ToolSpecification.Builder builder = ToolSpecification.builder()
-  //         .name(tool.getName())
-  //         .description(tool.getDescription());
-      
-  //     // Add parameters to the tool specification
-  //     tool.getParameters().forEach(param -> {
-  //         builder.parameter(
-  //             param.getName(),
-  //             mapParameterType(param.getType()),
-  //             param.getDescription(),
-  //             param.isRequired()
-  //         );
-  //     });
-      
-  //     return builder.build();
-  // }
-  
-  /**
-   * Maps Manorrock parameter types to LangChain4J parameter types.
-   *
-   * @param type The Manorrock parameter type
-   * @return The corresponding LangChain4J parameter type
-   */
-  private String mapParameterType(String type) {
-      return switch (type.toLowerCase()) {
-          case "string" -> "string";
-          case "integer", "int" -> "integer";
-          case "number", "float", "double" -> "number";
-          case "boolean", "bool" -> "boolean";
-          case "array" -> "array";
-          case "object" -> "object";
-          default -> "string";  // Default to string for unknown types
-      };
-  }
-
   private void startInteractiveMode() {
     System.out.println("Entering interactive mode. Type /exit to quit, or /help for commands.");
     System.out.println("Use \\ at end of line for multi-line input.");
     java.util.Scanner scanner = new java.util.Scanner(System.in);
-
     StringBuilder messageBuilder = new StringBuilder();
     while (true) {
       System.out.print(messageBuilder.length() == 0 ? "\nYou: " : "... ");
@@ -970,7 +924,6 @@ ChatModelListener listener = new ChatModelListener() {
           config = new LlmConfiguration(configJson.getString("endpoint"), configJson.getString("model"),
               configJson.getString("vendor"), configJson.getString("apiKey"), configJson.getDouble("temperature"));
         }
-
         // History saved in JSON format needs to be converted to ChatMessage objects
         Path historyFile = stateDir.resolve("history.json");
         if (Files.exists(historyFile)) {
@@ -980,7 +933,6 @@ ChatModelListener listener = new ChatModelListener() {
             JSONObject msgObj = jsonArray.getJSONObject(i);
             String role = msgObj.getString("role");
             String msgContent = msgObj.getString("content");
-
             if ("user".equals(role)) {
               history.add(UserMessage.from(msgContent));
             } else if ("assistant".equals(role)) {
@@ -1006,7 +958,7 @@ ChatModelListener listener = new ChatModelListener() {
       configJson.put("apiKey", config.apiKey());
       configJson.put("temperature", config.temperature());
       Files.writeString(configFile, configJson.toString());
-
+      
       // Convert ChatMessage objects to JSON format for saving
       Path historyFile = stateDir.resolve("history.json");
       JSONArray historyArray = new JSONArray();

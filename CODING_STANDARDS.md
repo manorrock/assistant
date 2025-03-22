@@ -46,8 +46,7 @@ This document outlines the coding standards for the Assistant project.
 
 1. All public APIs must have Javadoc
 2. Include examples in README.md for each module
-3. Keep CHANGELOG.md up to date
-4. Document all commands in README.md
+3. Document all commands in README.md
 
 ## Git Workflow
 

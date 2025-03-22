@@ -6,7 +6,6 @@
 
 1. Command Implementation
    - [ ] Implement missing commands in IDE plugins:
-     - [ ] Add `/explain` to IntelliJ
      - [ ] Add `/source` to IntelliJ, Eclipse
      - [ ] Add `/new` to all IDEs
      - [ ] Add `/llmEndpoint` to IntelliJ
@@ -189,8 +188,10 @@ The CLI version of the assistant requires integration with external tools throug
 
 # Backlog
 
-- [ ] Add /llm command that shows the current LLM configuration
 - [ ] Refactor /llmModel command to use '/llm model' instead of '/llmModel'
 - [ ] Refactor /llmApiKey command to use '/llm apiKey' instead of '/llmApiKey'
 - [ ] Refactor /llmEndpoint command to use '/llm endpoint' instead of '/llmEndpoint'
 - [ ] Refactor /llmTemperature command to use '/llm temperature' instead of '/llmTemperature'
+- [ ] Refactor Netbeans plugin to dispatch to the CLI version
+- [ ] Refactor IntelliJ plugin to dispatch to the CLI version
+- [ ] Refactor Eclipse plugin to dispatch to the CLI version
