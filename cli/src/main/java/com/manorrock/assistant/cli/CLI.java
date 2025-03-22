@@ -3,6 +3,7 @@ package com.manorrock.assistant.cli;
 import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.DefaultToolManager;
+import com.manorrock.assistant.shared.DeprecatedCommand;
 import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.NewCommand;
@@ -121,6 +122,11 @@ public class CLI implements Callable<Integer> {
     CommandRegistry.getInstance().registerCommand("source",
         new SourceCommand(this::handleSendAction, this::handleCommand));
     CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
+    
+    // Register deprecated command for model
+    CommandRegistry.getInstance().registerCommand("model", 
+        new DeprecatedCommand("model", "llm model", 
+        CommandRegistry.getInstance().getCommand("llmModel")));
     
     // Register the tool command with integration support - use toolManager directly
     CommandRegistry.getInstance().registerCommand("tool", new ToolCommand(
