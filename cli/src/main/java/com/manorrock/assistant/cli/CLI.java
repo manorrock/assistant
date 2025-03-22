@@ -57,6 +57,7 @@ import com.manorrock.assistant.shared.tools.FileReadTool;
 import com.manorrock.assistant.shared.tools.DirectoryListTool;
 import com.manorrock.assistant.shared.tools.ProcessExecutionTool;
 import com.manorrock.assistant.shared.tools.ProjectStructureAnalysisTool;
+import com.manorrock.assistant.shared.tools.ShellExecutionTool;
 import com.manorrock.assistant.shared.tools.DependencyAnalysisTool;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,7 @@ import com.manorrock.assistant.shared.tools.generic.ScriptBasedTool;
 import com.manorrock.assistant.shared.ToolCommand;
 import com.manorrock.assistant.shared.ToolExecutionException;
 import java.util.stream.Collectors;
+import java.util.HashMap;
 
 @picocli.CommandLine.Command(name = "assistant-cli", mixinStandardHelpOptions = true, versionProvider = CLI.PropertiesVersionProvider.class, description = "CLI version of the Manorrock Assistant")
 public class CLI implements Callable<Integer> {
@@ -159,6 +161,7 @@ public class CLI implements Callable<Integer> {
     // Register default tools
     registerTool(new FileReadTool());
     registerTool(new DirectoryListTool());
+    registerTool(new ShellExecutionTool());  // Add this line
     registerTool(new ProcessExecutionTool());
     registerTool(new ProjectStructureAnalysisTool());
     registerTool(new DependencyAnalysisTool());
@@ -228,7 +231,7 @@ public class CLI implements Callable<Integer> {
     List<String> toolDirs = new ArrayList<>();
     toolDirs.add(defaultToolDir);
     
-    if (toolDirsProp != null && !toolDirsProp.isEmpty()) {
+    if (toolDirsProp != null && !toolDirs.isEmpty()) {
       String[] dirs = toolDirsProp.split(File.pathSeparator);
       for (String dir : dirs) {
         if (!dir.trim().isEmpty()) {
@@ -784,22 +787,51 @@ public class CLI implements Callable<Integer> {
             AiMessage aiMessage = completeResponse.aiMessage();
             
             if (aiMessage.hasToolExecutionRequests()) {
-                // Process all tool requests and collect their results
+                System.out.println("\nExecuting tools to help answer your question...");
                 List<ChatMessage> updatedMessages = new ArrayList<>(history);
                 updatedMessages.add(aiMessage);
                 aiMessage.toolExecutionRequests().forEach(request -> {
                     try {
-                        // Execute the tool
-                        ToolResult result = executeToolWithParams(
-                            request.name(),
-                            new JSONObject(request.arguments()).toMap()
-                        );
+                        // Display tool execution details
+                        System.out.println("\nTool");
+                        System.out.println("  Name: " + request.name());
+                        
+                        // Map and validate arguments
+                        Map<String, Object> mappedArgs;
+                        try {
+                            mappedArgs = mapToolArguments(request.name(), request.arguments());
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("  ✗ Invalid arguments: " + e.getMessage());
+                            throw e;
+                        }
+                        
+                        // Display mapped arguments
+                        System.out.println("  Arguments: " + mappedArgs.entrySet().stream()
+                            .map(e -> e.getKey() + "=" + e.getValue())
+                            .collect(Collectors.joining(", ")));
+                        
+                        // Execute the tool with mapped arguments
+                        ToolResult result = executeToolWithParams(request.name(), mappedArgs);
+                        
+                        if (result.success()) {
+                            System.out.println("  ✓ Tool execution successful");
+                            // Display tool output if available
+                            if (result.getData() != null) {
+                                System.out.println("  Output:");
+                                System.out.println(result.getData().toString()
+                                    .lines()
+                                    .map(line -> "    " + line)
+                                    .collect(Collectors.joining("\n")));
+                            }
+                        } else {
+                            System.out.println("  ✗ Tool execution failed: " + result.getMessage());
+                        }
+                        
                         // Create a JSON object containing both status and result data
                         JSONObject resultJson = new JSONObject();
                         resultJson.put("status", result.success() ? "success" : "error");
                         resultJson.put("message", result.getMessage());
                         
-                        // If there's result data, include it
                         if (result.getData() != null) {
                             resultJson.put("data", result.getData());
                         }
@@ -813,6 +845,7 @@ public class CLI implements Callable<Integer> {
                         // Add the tool result to the message history
                         updatedMessages.add(resultMessage);
                     } catch (Exception e) {
+                        System.out.println("  ✗ Tool execution error: " + e.getMessage());
                         // Handle any errors during tool execution
                         JSONObject errorJson = new JSONObject();
                         errorJson.put("status", "error");
@@ -879,6 +912,120 @@ public class CLI implements Callable<Integer> {
     }
   }
   
+  /**
+   * Maps and validates tool execution request arguments to tool parameters.
+   * 
+   * @param toolName Name of the tool
+   * @param requestArgs Raw arguments from the ToolExecutionRequest
+   * @return Mapped and validated arguments for the Manorrock Tool
+   * @throws IllegalArgumentException if arguments are invalid
+   */
+  private Map<String, Object> mapToolArguments(String toolName, String requestArgs) {
+    Tool tool = toolManager.getAvailableTools().stream()
+        .filter(t -> t.getName().equals(toolName))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Tool not found: " + toolName));
+
+    Map<String, Object> rawArgs = new JSONObject(requestArgs).toMap();
+    Map<String, Object> mappedArgs = new HashMap<>();
+    
+    // Validate and map each parameter
+    tool.getParameters().forEach(param -> {
+        String paramName = param.getName();
+        Object value = rawArgs.get(paramName);
+        
+        // Check required parameters
+        if (param.isRequired() && value == null) {
+            throw new IllegalArgumentException("Missing required parameter: " + paramName);
+        }
+        
+        // Skip if parameter is optional and not provided
+        if (value == null) {
+            return;
+        }
+        
+        // Type validation and conversion
+        try {
+            switch (param.getType().toLowerCase()) {
+                case "string":
+                    mappedArgs.put(paramName, String.valueOf(value));
+                    break;
+                case "integer":
+                case "int":
+                    if (value instanceof Number) {
+                        mappedArgs.put(paramName, ((Number) value).intValue());
+                    } else {
+                        mappedArgs.put(paramName, Integer.parseInt(value.toString()));
+                    }
+                    break;
+                case "number":
+                case "float":
+                case "double":
+                    if (value instanceof Number) {
+                        mappedArgs.put(paramName, ((Number) value).doubleValue());
+                    } else {
+                        mappedArgs.put(paramName, Double.parseDouble(value.toString()));
+                    }
+                    break;
+                case "boolean":
+                case "bool":
+                    if (value instanceof Boolean) {
+                        mappedArgs.put(paramName, value);
+                    } else {
+                        mappedArgs.put(paramName, Boolean.parseBoolean(value.toString()));
+                    }
+                    break;
+                case "map":
+                    if (value instanceof Map) {
+                        mappedArgs.put(paramName, value);
+                    } else if (value instanceof String && ((String) value).trim().isEmpty()) {
+                        // Handle empty string case for maps by providing an empty map
+                        mappedArgs.put(paramName, new HashMap<>());
+                    } else {
+                        // Try to parse as JSON if it's a string
+                        try {
+                            JSONObject jsonObj = new JSONObject(value.toString());
+                            mappedArgs.put(paramName, jsonObj.toMap());
+                        } catch (Exception e) {
+                            throw new IllegalArgumentException(
+                                "Invalid map value for parameter '" + paramName + "': " + value);
+                        }
+                    }
+                    break;
+                case "list":
+                    if (value instanceof List) {
+                        mappedArgs.put(paramName, value);
+                    } else if (value instanceof String && ((String) value).trim().isEmpty()) {
+                        // Handle empty string case for lists by providing an empty list
+                        mappedArgs.put(paramName, new ArrayList<>());
+                    } else {
+                        // Try to parse as JSON if it's a string
+                        try {
+                            JSONArray jsonArray = new JSONArray(value.toString());
+                            List<Object> list = new ArrayList<>();
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                list.add(jsonArray.get(i));
+                            }
+                            mappedArgs.put(paramName, list);
+                        } catch (Exception e) {
+                            throw new IllegalArgumentException(
+                                "Invalid list value for parameter '" + paramName + "': " + value);
+                        }
+                    }
+                    break;
+                default:
+                    // For unknown types, pass through as string
+                    mappedArgs.put(paramName, String.valueOf(value));
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException(
+                "Invalid value for parameter '" + paramName + "': " + value);
+        }
+    });
+    
+    return mappedArgs;
+  }
+
   private void startInteractiveMode() {
     System.out.println("Entering interactive mode. Type /exit to quit, or /help for commands.");
     System.out.println("Use \\ at end of line for multi-line input.");
