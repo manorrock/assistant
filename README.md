@@ -11,15 +11,19 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 | Command | Description |
 |---------|-------------|
 | `/clear` | Clears the response window |
+| `/endpoint <host:port>` | Changes the LLM API endpoint (legacy, use `/llmEndpoint` instead) |
 | `/explain [file_path]` | Explains text from clipboard, selection, or file |
 | `/help` | Displays available commands |
+| `/llm` | Displays or configures LLM settings |
 | `/llmApiKey <key>` | Sets the API key for OpenAI or Azure OpenAI (default: empty) |
 | `/llmEndpoint <host:port>` | Changes the LLM API endpoint (default: localhost:11434) |
 | `/llmModel <name>` | Changes the LLM model used (default: llama3.1) |
 | `/llmTemperature <number>` | Sets the model's temperature parameter (default: 0.0, range: 0.0-1.0) |
 | `/llmVendor <name>` | Changes the LLM vendor (default: OLLAMA, options: OLLAMA, OPENAI, or AZURE_OPENAI) |
+| `/model <name>` | Changes the LLM model used (legacy, use `/llmModel` instead) |
 | `/new` | Starts a new chat session |
 | `/source <file_path>` | Executes commands from a file |
+| `/tool [list|use|enable|disable]` | Lists available tools, uses a specific tool, or toggles tool integration |
 
 ## Quick Install
 
@@ -36,15 +40,19 @@ This will download and install the latest SNAPSHOT build of Manorrock Assistant 
 | Command | CLI | Desktop | VSCode | IntelliJ | Eclipse | NetBeans | Mobile |
 |---------|-----|---------|--------|----------|---------|----------|--------|
 | `/clear` | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
-| `/explain` | ✅ | ✅ | ✅ | ❌ | ⚠️ | ⚠️ | ❌ |
+| `/endpoint` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `/explain` | ✅ | ✅ | ✅ | ✅ | ⚠️ | ⚠️ | ❌ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/llm` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmApiKey` | ✅ | ✅ | ⚠️ | ❌ | ❌ | ❌ | ❌ |
 | `/llmEndpoint` | ✅ | ✅ | ✅ | ❌ | ✅ | ⚠️ | ✅ |
-| `/llmModel` | ✅ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ | ✅ |
+| `/llmModel` | ✅ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ | ❌ |
 | `/llmTemperature` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmVendor` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/model` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `/new` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/source` | ✅ | ✅ | ⚠️ | ❌ | ⚠️ | ⚠️ | ❌ |
+| `/source` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `/tool` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 **Legend:**
 - ✅ Fully supported
@@ -54,11 +62,14 @@ This will download and install the latest SNAPSHOT build of Manorrock Assistant 
 ## Partial Support Notes
 
 - `/clear`: VSCode relies on CLI implementation
-- `/explain`: Eclipse, and NetBeans only support editor selection
+- `/endpoint`: Legacy command, prefer using `/llmEndpoint` instead
+- `/explain`: Eclipse and NetBeans only support editor selection
 - `/llmApiKey`: VSCode requires manual configuration in settings
 - `/llmEndpoint`: NetBeans only supports basic URL configuration
 - `/llmModel`: Eclipse and NetBeans limited to Ollama models only
-- `/source`: VSCode, Eclipse, and NetBeans limited to workspace files only
+- `/model`: Legacy command, prefer using `/llmModel` instead
+- `/source`: All implementations except mobile fully support executing commands from a file
+- `/tool`: CLI only, provides access to built-in and custom tool integrations
 
 ## Downloads
 
