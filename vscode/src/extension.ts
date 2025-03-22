@@ -26,6 +26,8 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // We don't need the assistant.newSession command since we handle /new directly in the webview handler
+
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider('assistantView', provider, {
       webviewOptions: { retainContextWhenHidden: true }
@@ -77,7 +79,10 @@ function updateLLMEndpoint() {
 class AssistantViewProvider implements vscode.WebviewViewProvider {
   constructor(private readonly context: vscode.ExtensionContext) {}
 
+  private _view: vscode.WebviewView | undefined;
+
   resolveWebviewView(webviewView: vscode.WebviewView) {
+    this._view = webviewView;
     console.log('Resolving Webview View'); // Add logging
     webviewView.webview.options = { enableScripts: true };
     webviewView.webview.html = this.getWebviewContent();
@@ -123,12 +128,31 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.onDidReceiveMessage(async (message: { type: string; text: string }) => {
       if (message.type === 'sendMessage') {
-        if (message.text.startsWith('/source ')) {
-          const filePath = message.text.substring(8).trim();
-          const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
-          message.text = fileContent.toString();
+        // Handle /new command by first clearing UI, then sending to CLI
+        if (message.text.trim() === '/new') {
+          // Clear the UI
+          webviewView.webview.postMessage({
+            type: 'newSession',
+            message: 'Started a new chat session.'
+          });
+          
+          // Also dispatch to CLI so it resets its state
+          try {
+            outputChannel.appendLine(`Sending /new command to CLI`);
+            const cliProcess = spawn(getJavaPath(), ['-jar', cliPath, '--stdin']);
+            cliProcess.stdin.write(`/new\n`);
+            cliProcess.stdin.end();
+            
+            cliProcess.stdout.on('data', (data) => {
+              const output = data.toString();
+              outputChannel.appendLine(`CLI response to /new: ${output}`);
+            });
+          } catch (error) {
+            outputChannel.appendLine(`Error sending /new to CLI: ${(error as Error).message}`);
+          }
+          return;
         }
-        
+
         // Enhanced /explain command handling
         if (message.text.startsWith('/explain')) {
           const editor = vscode.window.activeTextEditor;
@@ -255,11 +279,16 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
             });
 
             window.addEventListener('message', event => {
-              const { type, text } = event.data;
-              console.log('Message received:', type, text); // Add logging
-              if (type === 'cli-output') {
+              const message = event.data;
+              console.log('Message received:', message.type); // Add logging
+              
+              if (message.type === 'cli-output') {
                 const outputParagraph = document.getElementById('outputParagraph');
-                outputParagraph.textContent += text;
+                outputParagraph.textContent += message.text;
+              } else if (message.type === 'newSession') {
+                // Simply clear the output area and add the confirmation message
+                const outputParagraph = document.getElementById('outputParagraph');
+                outputParagraph.textContent = message.message || 'Started a new chat session.';
               }
             });
           </script>

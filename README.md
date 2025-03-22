@@ -50,7 +50,7 @@ This will download and install the latest SNAPSHOT build of Manorrock Assistant 
 | `/llmTemperature` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/llmVendor` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `/model` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| `/new` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/new` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `/source` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `/tool` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 

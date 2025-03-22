@@ -9,8 +9,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: com.manorrock.assistant.eclipse
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
- lib/json-20231013.jar,
- lib/shared-25.3.0-SNAPSHOT.jar
+ lib/json-20250107.jar,
+ lib/shared-25.3.5-SNAPSHOT.jar
 Export-Package: com.manorrock.assistant.eclipse;uses:="org.osgi.framework,org.eclipse.ui.plugin",
  com.manorrock.assistant.eclipse.perspectives;uses:="org.eclipse.ui",
  com.manorrock.assistant.eclipse.views;

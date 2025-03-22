@@ -14,6 +14,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
+import com.manorrock.assistant.shared.*
 import org.jetbrains.annotations.NotNull
 import javax.swing.*
 import java.awt.*
@@ -29,11 +30,6 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import com.manorrock.assistant.shared.Command
-import com.manorrock.assistant.shared.CommandRegistry
-import com.manorrock.assistant.shared.LlmConfiguration
-import com.manorrock.assistant.shared.LlmModelCommand
-import com.manorrock.assistant.shared.SourceCommand
 import java.util.function.Consumer
 
 class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
@@ -107,6 +103,9 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         }
 
         CommandRegistry.getInstance().registerCommand("source", SourceCommand(messageConsumer, commandConsumer))
+        
+        // Register the new command
+        CommandRegistry.getInstance().registerCommand("new", NewCommand { startNewSession() })
     }
 
     override fun actionPerformed(e: ActionEvent) {
@@ -159,9 +158,19 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
             command == "/help" -> showHelp()
             command == "/clear" -> clearResponseArea()
             command == "/explain" -> explainSelection()
+            command == "/new" -> startNewSession()
             else -> responseArea.append("\n\nSystem: Unknown command. Type /help for a list of commands.")
         }
         requestArea.text = ""
+    }
+
+    private fun startNewSession() {
+        // Clear conversation history
+        responseArea.text = ""
+        // Reset conversation state (messages, context, etc.)
+        history.clear()
+        // Display confirmation message
+        responseArea.append("System: Started a new chat session.")
     }
 
     private fun changeEndpoint(command: String) {
