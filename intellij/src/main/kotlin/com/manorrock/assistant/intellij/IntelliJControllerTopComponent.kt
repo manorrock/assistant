@@ -6,7 +6,9 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -33,7 +35,6 @@ import com.manorrock.assistant.shared.LlmConfiguration
 import com.manorrock.assistant.shared.LlmModelCommand
 
 class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
-
     private lateinit var responseArea: JTextArea
     private lateinit var requestArea: JTextArea
     private lateinit var sendButton: JButton
@@ -139,23 +140,24 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
 
         // Fall back to legacy commands
         when {
-            command.startsWith("/llmEndpoint ") -> changeEndpoint(command)
+            command.startsWith("/endpoint") -> changeEndpoint(command)
             command == "/help" -> showHelp()
             command == "/clear" -> clearResponseArea()
+            command == "/explain" -> explainSelection()
             else -> responseArea.append("\n\nSystem: Unknown command. Type /help for a list of commands.")
         }
         requestArea.text = ""
     }
 
     private fun changeEndpoint(command: String) {
-        val pattern = java.util.regex.Pattern.compile("/llmEndpoint\\s+(\\S+)")
+        val pattern = java.util.regex.Pattern.compile("/endpoint\\s+(\\S+)")
         val matcher = pattern.matcher(command)
         if (matcher.find()) {
             val newEndpoint = matcher.group(1)
             ollamaEndpoint = "http://$newEndpoint/api/chat"
             responseArea.append("\n\nSystem: Endpoint changed to $ollamaEndpoint")
         } else {
-            responseArea.append("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport")
+            responseArea.append("\n\nSystem: Invalid endpoint format. Use /endpoint myhostname:myport")
         }
     }
 
@@ -163,10 +165,49 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         val pattern = java.util.regex.Pattern.compile("/model\\s+(\\S+)")
         val matcher = pattern.matcher(command)
         if (matcher.find()) {
-            model = matcher.group(1)
+            val model = matcher.group(1)
             responseArea.append("\n\nSystem: Model changed to $model")
         } else {
             responseArea.append("\n\nSystem: Invalid model format. Use /model <name>")
+        }
+    }
+
+    private fun explainSelection() {
+        // Get the current project and editor
+        val project = ProjectManager.getInstance().openProjects.firstOrNull() ?: return
+        val editor = FileEditorManager.getInstance(project).selectedTextEditor
+
+        if (editor != null) {
+            try {
+                // Get selected text or entire document if no selection
+                val selectionModel = editor.selectionModel
+                val document = editor.document
+                
+                val selectedText = if (selectionModel.hasSelection()) {
+                    selectionModel.selectedText
+                } else {
+                    document.text
+                }
+                
+                if (selectedText.isNullOrEmpty()) {
+                    responseArea.append("\n\nSystem: No text selected or document is empty.")
+                    return
+                }
+                
+                // Format the prompt consistently with NetBeans implementation
+                val prompt = "Please explain the content below the line\n-----------------------------------------\n$selectedText"
+                
+                // Display the prompt in the response area
+                responseArea.append("\n\nYou: $prompt")
+                
+                // Process the prompt through LLM
+                processMessage(prompt)
+                
+            } catch (e: Exception) {
+                responseArea.append("\n\nSystem: Error retrieving text from the editor: ${e.message}")
+            }
+        } else {
+            responseArea.append("\n\nSystem: No active editor window found.")
         }
     }
 
@@ -175,6 +216,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
             |System: Available commands:
             |/endpoint myhostname:myport - Change the Ollama endpoint
             |/model <name> - Change the model used
+            |/explain - Explain the selected text or current document
             |/help - Show this help message
             |/clear - Clear the response window
         """.trimMargin()
