@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.json.JSONObject;
 
 /**
  * A tool that executes local system processes.
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class ProcessExecutionTool implements Tool {
     
     private static final String NAME = "process_execution";
-    private static final String DESCRIPTION = "Executes a command on the local system and returns the output. Can be configured to run with specific environment variables, working directory, and timeout.";
+    private static final String DESCRIPTION = "Executes a command on the local system and returns the output. Can be configured to run with specific environment variables, working directory, and timeout. Not meant for shell execution.";
     private static final List<ToolParameter> PARAMETERS = Arrays.asList(
         new ToolParameter("command", "string", "The command to execute", true),
         new ToolParameter("args", "string", "Command arguments", false),
@@ -84,10 +85,23 @@ public class ProcessExecutionTool implements Tool {
             
             // Add custom environment variables if provided
             if (parameters.containsKey("environmentVariables")) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> envVarsObj = (Map<String, Object>) parameters.get("environmentVariables");
-                for (Map.Entry<String, Object> entry : envVarsObj.entrySet()) {
-                    environment.put(entry.getKey(), String.valueOf(entry.getValue()));
+                Object envVarsObj = parameters.get("environmentVariables");
+                if (envVarsObj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> envVars = (Map<String, Object>) envVarsObj;
+                    for (Map.Entry<String, Object> entry : envVars.entrySet()) {
+                        environment.put(entry.getKey(), String.valueOf(entry.getValue()));
+                    }
+                } else if (envVarsObj instanceof String && !((String) envVarsObj).trim().isEmpty()) {
+                    // Try to parse as JSON if it's a non-empty string
+                    try {
+                        JSONObject jsonObj = new JSONObject((String) envVarsObj);
+                        for (String key : jsonObj.keySet()) {
+                            environment.put(key, String.valueOf(jsonObj.get(key)));
+                        }
+                    } catch (Exception e) {
+                        return ToolResult.failure("Invalid environment variables format: " + e.getMessage());
+                    }
                 }
             }
             
@@ -124,7 +138,12 @@ public class ProcessExecutionTool implements Tool {
                 : ToolResult.failure("Process exited with non-zero code: " + exitCode);
 
         } catch (Exception e) {
-            return ToolResult.failure("Error executing process: " + e.getMessage());
+            String command = (String) parameters.get("command");
+            if (command != null && command.contains(" ")) {
+                return ToolResult.failure("Command contains whitespace, are you sure you should not be using shell_execution instead?");
+            } else {
+                return ToolResult.failure("Error executing process: " + e.getMessage());
+            }
         }
     }
 }

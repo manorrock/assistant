@@ -113,6 +113,7 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
           outputChannel.appendLine(exitMessage);
           webviewView.webview.postMessage({ type: 'cli-output', text: exitMessage });
         }
+        webviewView.webview.postMessage({ type: 'process-complete' });
       });
 
       cliProcess.on('error', (error) => {
@@ -208,6 +209,7 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
               outputChannel.appendLine(exitMessage);
               webviewView.webview.postMessage({ type: 'cli-output', text: exitMessage });
             }
+            webviewView.webview.postMessage({ type: 'process-complete' });
           });
 
           cliProcess.on('error', (error) => {
@@ -231,6 +233,7 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
       <html>
         <head>
           <meta charset="UTF-8">
+          <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
           <style>
             body { 
               font-family: var(--vscode-font-family, 'Segoe WPC', 'Segoe UI', sans-serif); 
@@ -243,17 +246,136 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
               background-color: var(--vscode-editor-background); 
               color: var(--vscode-editor-foreground);
             }
-            .container { flex: 1; display: flex; flex-direction: column; }
-            #messages { flex: 1; overflow-y: auto; padding: 10px; }
-            #inputContainer { display: flex; padding: 10px; border-top: 1px solid var(--vscode-editorGroup-border); }
-            #inputBox { flex: 1; margin-right: 10px; }
-            #outputParagraph { white-space: pre-wrap; } /* Ensure text wraps */
+            .container { 
+              flex: 1; 
+              display: flex; 
+              flex-direction: column; 
+              min-height: 0; /* Crucial for nested flex scrolling */
+            }
+            #messages { 
+              flex: 1 1 auto;
+              overflow-y: auto;
+              padding: 10px;
+              min-height: 0; /* Allows proper scrolling */
+            }
+            #inputContainer { 
+              flex: 0 0 auto; /* Prevents shrinking/growing */
+              display: flex; 
+              padding: 10px; 
+              border-top: 1px solid var(--vscode-editorGroup-border);
+              background: var(--vscode-editor-background);
+            }
+            #inputBox { 
+              flex: 1; 
+              margin-right: 10px;
+              resize: none;
+              background-color: var(--vscode-input-background);
+              border: 1px solid var(--vscode-input-border);
+              color: var(--vscode-input-foreground);
+              padding: 4px 8px;
+              font-family: inherit;
+            }
+            #inputBox:focus {
+              outline: 1px solid var(--vscode-focusBorder);
+              border-color: var(--vscode-focusBorder);
+            }
+            #sendBtn {
+              background-color: var(--vscode-button-background);
+              color: var(--vscode-button-foreground);
+              border: none;
+              padding: 4px 12px;
+              cursor: pointer;
+            }
+            #sendBtn:hover {
+              background-color: var(--vscode-button-hoverBackground);
+            }
+            #outputParagraph { white-space: pre-wrap; }
+
+            /* Markdown table styles */
+            .markdown-body table {
+              border-collapse: collapse;
+              width: 100%;
+              margin: 1em 0;
+            }
+            .markdown-body table th,
+            .markdown-body table td {
+              border: 1px solid var(--vscode-editorGroup-border);
+              padding: 6px 13px;
+            }
+            .markdown-body table tr {
+              background-color: var(--vscode-editor-background);
+              border-top: 1px solid var(--vscode-editorGroup-border);
+            }
+            .markdown-body table tr:nth-child(2n) {
+              background-color: var(--vscode-list-hoverBackground);
+            }
+            .markdown-body table thead tr {
+              background-color: var(--vscode-editor-lineHighlightBackground);
+            }
+
+            #statusArea {
+              padding: 8px;
+              border-top: 1px solid var(--vscode-editorGroup-border);
+              background: var(--vscode-editor-background);
+              max-height: 0;
+              overflow: hidden;
+              transition: max-height 0.3s ease, padding 0.3s ease;
+              display: none;
+            }
+            
+            #statusArea.active {
+              max-height: 40px;
+              padding: 8px;
+              display: block;
+            }
+
+            .progress {
+              width: 100%;
+              height: 2px;
+              background: var(--vscode-editor-background);
+              position: relative;
+              overflow: hidden;
+            }
+
+            .progress::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -50%;
+              height: 100%;
+              width: 50%;
+              background: linear-gradient(
+                90deg,
+                transparent 0%,
+                var(--vscode-progressBar-background) 50%,
+                transparent 100%
+              );
+              animation: cylonScan 2s infinite ease-in-out;
+            }
+            
+            @keyframes cylonScan {
+              0% { transform: translateX(0); }
+              50% { transform: translateX(300%); }
+              100% { transform: translateX(0); }
+            }
+
+            .typing {
+              margin: 8px 0;
+              color: var(--vscode-descriptionForeground);
+              font-style: italic;
+            }
           </style>
         </head>
         <body class="theme-${theme}">
           <h1>Manorrock Assistant</h1>
           <div class="container">
-            <div id="messages"><p id="outputParagraph"></p></div>
+            <div id="messages">
+              <div id="outputArea" class="markdown-body"></div>
+            </div>
+            <div id="statusArea">
+              <div class="progress"></div>
+              <div id="statusText">Assistant is thinking...</div>
+            </div>
             <div id="inputContainer">
               <textarea id="inputBox" rows="3"></textarea> <!-- Changed input to textarea -->
               <button id="sendBtn">Send</button>
@@ -263,10 +385,26 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
             const vscode = acquireVsCodeApi();
             const inputBox = document.getElementById('inputBox');
             const sendBtn = document.getElementById('sendBtn');
+            const outputArea = document.getElementById('outputArea');
+            const statusArea = document.getElementById('statusArea');
+
+            function setProcessing(processing) {
+              statusArea.classList.toggle('active', processing);
+              sendBtn.disabled = processing;
+              inputBox.disabled = processing;
+            }
+            
+            marked.setOptions({
+              gfm: true, // GitHub Flavored Markdown
+              breaks: true,
+              tables: true // Enable table parsing
+            });
 
             sendBtn.addEventListener('click', () => {
               const message = inputBox.value;
-              console.log('Sending message:', message); // Add logging
+              if (!message.trim()) return;
+              
+              setProcessing(true);
               vscode.postMessage({ type: 'sendMessage', text: message });
               inputBox.value = '';
             });
@@ -280,15 +418,16 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
 
             window.addEventListener('message', event => {
               const message = event.data;
-              console.log('Message received:', message.type); // Add logging
               
               if (message.type === 'cli-output') {
-                const outputParagraph = document.getElementById('outputParagraph');
-                outputParagraph.textContent += message.text;
+                const content = marked.parse(message.text);
+                outputArea.insertAdjacentHTML('beforeend', content);
+                outputArea.parentElement.scrollTop = outputArea.parentElement.scrollHeight;
+              } else if (message.type === 'process-complete') {
+                setProcessing(false);
               } else if (message.type === 'newSession') {
-                // Simply clear the output area and add the confirmation message
-                const outputParagraph = document.getElementById('outputParagraph');
-                outputParagraph.textContent = message.message || 'Started a new chat session.';
+                outputArea.innerHTML = marked.parse(message.message || 'Started a new chat session.');
+                setProcessing(false);
               }
             });
           </script>
