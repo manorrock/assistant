@@ -45,12 +45,8 @@ import org.json.JSONObject;
 
 import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
-<<<<<<< Updated upstream
-import com.manorrock.assistant.shared.LlmConfiguration;
-=======
 import com.manorrock.assistant.shared.DeprecatedCommand;
-import com.manorrock.assistant.llm.LlmConfiguration;
->>>>>>> Stashed changes
+import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.NewCommand;
 import com.manorrock.assistant.shared.SourceCommand;
