@@ -44,9 +44,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.manorrock.assistant.shared.Command;
-import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.DeprecatedCommand;
-import com.manorrock.assistant.shared.LlmConfiguration;
+import com.manorrock.assistant.llm.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.NewCommand;
 import com.manorrock.assistant.shared.SourceCommand;
