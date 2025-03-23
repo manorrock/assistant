@@ -206,29 +206,41 @@ jobs:
           wget "https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.35-202502280140/eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz&mirror_id=1" -O eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
           tar -xzf eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
           
-          # Create directory for build output
+          # Create directories for build output
+          mkdir -p build/plugins
           mkdir -p standardized
       - name: Build Eclipse Plugin
         run: |
+          # Set environment variables
+          ECLIPSE_HOME="$(pwd)/eclipse"
+          WORKSPACE="$(pwd)/eclipse-workspace"
+          
+          # Create workspace directory
+          mkdir -p $WORKSPACE
+          
+          # Use Eclipse's headless build system
           cd eclipse
-          
-          # Export environment variables needed for the build
-          export JAVA_HOME=$JAVA_HOME
-          export ECLIPSE_HOME=$(pwd)/../eclipse
-          
-          # Run the Ant build using our custom ant.xml file
-          ant -f ant.xml -Declipse.home=$ECLIPSE_HOME
-          
-          # Copy the built plugin to standardized directory
-          if [ -f "build/plugins/Manorrock-Assistant-Eclipse.jar" ]; then
-            cp build/plugins/Manorrock-Assistant-Eclipse.jar ../standardized/Manorrock-Assistant-Eclipse.jar
-            echo "Copied plugin JAR to standardized directory"
-          elif [ -f "build/Manorrock-Assistant-Eclipse-update-site.zip" ]; then
-            cp build/Manorrock-Assistant-Eclipse-update-site.zip ../standardized/Manorrock-Assistant-Eclipse.zip
-            echo "Copied update site ZIP to standardized directory"
+          $ECLIPSE_HOME/eclipse \
+            -noSplash \
+            -application org.eclipse.ant.core.antRunner \
+            -buildfile $ECLIPSE_HOME/plugins/org.eclipse.pde.build_*/scripts/build.xml \
+            -Dbuilder=./build \
+            -DbaseLocation=$ECLIPSE_HOME \
+            -DjavacSource=21 \
+            -DjavacTarget=21 \
+            -Dbase=$(pwd) \
+            -DpluginPath=. \
+            -DskipFetch=true
+            
+          # Package plugin into a zip file
+          mkdir -p ../standardized
+          if [ -d "build/plugins" ]; then
+            cd build
+            zip -r ../standardized/Manorrock-Assistant-Eclipse.zip plugins/
+            echo "Created plugin zip in standardized directory"
           else
-            echo "WARNING: No built Eclipse plugin found, creating empty file as placeholder"
-            touch ../standardized/Manorrock-Assistant-Eclipse.jar
+            echo "WARNING: No plugins directory found, creating empty file as placeholder"
+            touch ../standardized/Manorrock-Assistant-Eclipse.zip
           fi
       - name: Update SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
@@ -237,7 +249,5 @@ jobs:
           name: SNAPSHOT Build
           tag_name: SNAPSHOT
           prerelease: true
-          files: |
-            standardized/Manorrock-Assistant-Eclipse.jar
-            standardized/Manorrock-Assistant-Eclipse.zip
+          files: standardized/Manorrock-Assistant-Eclipse.zip
           draft: false
