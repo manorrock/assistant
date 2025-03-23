@@ -219,7 +219,7 @@ jobs:
           distribution: 'temurin'
       - name: Build VSCode extension
         run: |
-          mvn -B -DskipTests -DskipITs -ntp  clean install
+          mvn -B -DskipTests -DskipITs -ntp -P vscode clean install
       - name: Standardize VSIX filename
         run: |
           mkdir -p standardized
