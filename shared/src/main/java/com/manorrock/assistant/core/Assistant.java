@@ -60,4 +60,14 @@ public class Assistant {
     public void setLlm(Llm llm) {
         this.llm = llm;
     }
+
+    /**
+     * Process an assistant request.
+     * 
+     * @param request the assistant request
+     * @return the assistant response
+     */
+    public AssistantResponse process(AssistantRequest request) {
+        return new AssistantResponse(request.toString());
+    }
 }
