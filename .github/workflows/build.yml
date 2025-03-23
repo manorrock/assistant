@@ -203,7 +203,7 @@ jobs:
       - name: Setup Eclipse PDE Build Environment
         run: |
           # Download and extract Eclipse SDK for headless PDE build
-          wget --follow-redirects "https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.35-202502280140/eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz&mirror_id=1" -O eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
+          wget "https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.35-202502280140/eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz&mirror_id=1" -O eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
           tar -xzf eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
           
           # Create directory for build output
