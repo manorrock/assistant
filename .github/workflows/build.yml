@@ -82,8 +82,8 @@ jobs:
           mvn -B -DskipTests -DskipITs -ntp clean install 
           cd intellij
           ./gradlew buildPlugin
-          mkdir -p standardized
-          cp intellij/build/distributions/*.zip standardized/Manorrock-Assistant-IntelliJ.zip
+          mkdir -p ../standardized
+          cp build/distributions/*.zip ../standardized/Manorrock-Assistant-IntelliJ.zip
       - name: Update SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         uses: softprops/action-gh-release@v1
