@@ -1,16 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="plugin_export" name="build">
-	<target name="plugin_export">
+	<!-- Add properties for debug and tracing -->
+	<property environment="env"/>
+	<property name="buildDirectory" location="target"/>
+	<property name="plugin.destination" location="${buildDirectory}"/>
+	
+	<target name="init">
 		<!-- Ensure target directory exists -->
-		<mkdir dir="target" />
-		
+		<mkdir dir="${buildDirectory}" />
+		<echo message="Build directory: ${buildDirectory}"/>
+		<echo message="Plugin destination: ${plugin.destination}"/>
+		<echo message="Eclipse home: ${env.ECLIPSE_HOME}"/>
+	</target>
+	
+	<target name="plugin_export" depends="init">
 		<!-- Export the Eclipse plugin using PDE -->
+		<echo message="Starting plugin export..."/>
+		
 		<pde.exportPlugins 
-			destination="target" 
+			destination="${plugin.destination}"
 			exportSource="false" 
 			exportType="zip" 
 			filename="Manorrock-Assistant-Eclipse.zip" 
 			plugins="com.manorrock.assistant.eclipse" 
 			useJARFormat="false"/>
+			
+		<echo message="Plugin export completed"/>
+		
+		<!-- List the output directory to verify the export -->
+		<exec executable="ls" failonerror="false">
+			<arg value="-la"/>
+			<arg value="${plugin.destination}"/>
+		</exec>
 	</target>
 </project>

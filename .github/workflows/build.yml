@@ -207,16 +207,25 @@ jobs:
           tar -xzf eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
           
           # Create directory for build output
-          mkdir -p target
+          mkdir -p eclipse/target
           mkdir -p standardized
       - name: Build Eclipse Plugin
         run: |
           # Set Java options for headless environment
           export JAVA_OPTS="-Djava.awt.headless=true -Dorg.eclipse.swt.internal.gtk.disablePrinting"
+          export ECLIPSE_HOME="$(pwd)/eclipse"
+          
+          # Debug: List Eclipse directory contents
+          echo "==== ECLIPSE DIRECTORY CONTENTS ===="
+          ls -la eclipse/
           
           # Run the Ant build file directly
           cd eclipse
-          export ECLIPSE_HOME="$(pwd)/../eclipse"
+          
+          # Debug Eclipse plugins directory
+          echo "==== ECLIPSE PLUGINS AVAILABLE ===="
+          ls -la $ECLIPSE_HOME/plugins | grep -i ant
+          
           $ECLIPSE_HOME/eclipse \
             -noSplash \
             -data ../workspace \
@@ -224,14 +233,34 @@ jobs:
             -buildfile ant.xml \
             plugin_export
             
+          # Debug output: show what was created
+          echo "==== TARGET DIRECTORY CONTENTS ===="
+          ls -la target/
+          
+          # Debug output: check for zip files in all target directories
+          echo "==== ZIP FILES SEARCH RESULTS ===="
+          find $(pwd) -name "*.zip" | sort
+          
           # Move the output to standardized directory
           mkdir -p ../standardized
+          
+          # Look for the ZIP file in multiple possible locations
           if [ -f "target/Manorrock-Assistant-Eclipse.zip" ]; then
             cp target/Manorrock-Assistant-Eclipse.zip ../standardized/
-            echo "Created plugin zip in standardized directory"
+            echo "Found and copied zip from target directory"
+          elif [ -f "Manorrock-Assistant-Eclipse.zip" ]; then
+            cp Manorrock-Assistant-Eclipse.zip ../standardized/
+            echo "Found and copied zip from eclipse directory"
           else
-            echo "WARNING: Build output not found, creating empty file as placeholder"
-            touch ../standardized/Manorrock-Assistant-Eclipse.zip
+            # Search for any zip files and use the first one if found
+            ZIP_FILE=$(find $(pwd) -name "*.zip" | head -1)
+            if [ -n "$ZIP_FILE" ]; then
+              cp "$ZIP_FILE" ../standardized/Manorrock-Assistant-Eclipse.zip
+              echo "Found and copied zip from: $ZIP_FILE"
+            else
+              echo "WARNING: No zip file found in any location, creating empty file as placeholder"
+              touch ../standardized/Manorrock-Assistant-Eclipse.zip
+            fi
           fi
       - name: Update SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
