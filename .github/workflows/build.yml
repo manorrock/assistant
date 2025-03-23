@@ -206,40 +206,31 @@ jobs:
           wget "https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.35-202502280140/eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz&mirror_id=1" -O eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
           tar -xzf eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
           
-          # Create directories for build output
-          mkdir -p build/plugins
+          # Create directory for build output
+          mkdir -p target
           mkdir -p standardized
       - name: Build Eclipse Plugin
         run: |
-          # Set environment variables
-          ECLIPSE_HOME="$(pwd)/eclipse"
-          WORKSPACE="$(pwd)/eclipse-workspace"
+          # Set Java options for headless environment
+          export JAVA_OPTS="-Djava.awt.headless=true -Dorg.eclipse.swt.internal.gtk.disablePrinting"
           
-          # Create workspace directory
-          mkdir -p $WORKSPACE
-          
-          # Use Eclipse's headless build system
+          # Run the Ant build file directly
           cd eclipse
+          export ECLIPSE_HOME="$(pwd)/../eclipse"
           $ECLIPSE_HOME/eclipse \
             -noSplash \
+            -data ../workspace \
             -application org.eclipse.ant.core.antRunner \
-            -buildfile $ECLIPSE_HOME/plugins/org.eclipse.pde.build_*/scripts/build.xml \
-            -Dbuilder=./build \
-            -DbaseLocation=$ECLIPSE_HOME \
-            -DjavacSource=21 \
-            -DjavacTarget=21 \
-            -Dbase=$(pwd) \
-            -DpluginPath=. \
-            -DskipFetch=true
+            -buildfile ant.xml \
+            plugin_export
             
-          # Package plugin into a zip file
+          # Move the output to standardized directory
           mkdir -p ../standardized
-          if [ -d "build/plugins" ]; then
-            cd build
-            zip -r ../standardized/Manorrock-Assistant-Eclipse.zip plugins/
+          if [ -f "target/Manorrock-Assistant-Eclipse.zip" ]; then
+            cp target/Manorrock-Assistant-Eclipse.zip ../standardized/
             echo "Created plugin zip in standardized directory"
           else
-            echo "WARNING: No plugins directory found, creating empty file as placeholder"
+            echo "WARNING: Build output not found, creating empty file as placeholder"
             touch ../standardized/Manorrock-Assistant-Eclipse.zip
           fi
       - name: Update SNAPSHOT release

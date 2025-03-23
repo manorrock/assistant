@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="plugin_export" name="build">
 	<target name="plugin_export">
-		<pde.exportPlugins destination="target" exportSource="false" exportType="zip" filename="Manorrock-Assistant-Eclipse.zip" plugins="com.manorrock.assistant.eclipse" useJARFormat="false"/>
+		<!-- Ensure target directory exists -->
+		<mkdir dir="target" />
+		
+		<!-- Export the Eclipse plugin using PDE -->
+		<pde.exportPlugins 
+			destination="target" 
+			exportSource="false" 
+			exportType="zip" 
+			filename="Manorrock-Assistant-Eclipse.zip" 
+			plugins="com.manorrock.assistant.eclipse" 
+			useJARFormat="false"/>
 	</target>
 </project>
