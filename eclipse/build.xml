@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="com.manorrock.assistant.eclipse" default="jar">
+
+    <!-- Project properties -->
+    <property name="src.dir" value="src"/>
+    <property name="bin.dir" value="bin"/>  <!-- Output directory matching build.properties output.. = bin/ -->
+    <property name="lib.dir" value="lib"/>
+    <property name="build.dir" value="target"/>
+    <property name="tools.dir" value="${build.dir}/tools"/>  <!-- New directory for build tools -->
+    <property name="plugin.id" value="com.manorrock.assistant.eclipse"/>
+    <property name="plugin.version" value="25.3.0.qualifier"/>
+    <property name="plugin.jar" value="${build.dir}/${plugin.id}_${plugin.version}.jar"/>
+    <property name="build.properties.file" value="build.properties"/>
+    <property name="ant.contrib.jar" value="${tools.dir}/ant-contrib-1.0b3.jar"/>  <!-- Updated location -->
+    <property name="ant.contrib.url" value="https://repo1.maven.org/maven2/ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar"/>
+    
+    <!-- Eclipse home for dependencies, can be overridden -->
+    <property environment="env"/>
+    <property name="eclipse.home" value="${env.ECLIPSE_HOME}"/>
+    <property name="eclipse.plugins" value="${eclipse.home}/plugins"/>
+    
+    <!-- Check for required dependencies before starting any other tasks -->
+    <target name="check-dependencies">
+        <available file="${ant.contrib.jar}" property="ant.contrib.exists"/>
+        
+        <!-- Download ant-contrib if not available -->
+        <antcall target="download-ant-contrib"/>
+    </target>
+    
+    <!-- Download ant-contrib if not available -->
+    <target name="download-ant-contrib" unless="ant.contrib.exists">
+        <echo message="Ant-contrib library not found at ${ant.contrib.jar}"/>
+        <echo message="Downloading ant-contrib library..."/>
+        
+        <!-- Create tools directory if it doesn't exist -->
+        <mkdir dir="${tools.dir}"/>
+        
+        <!-- Download the jar file -->
+        <get src="${ant.contrib.url}" dest="${ant.contrib.jar}" usetimestamp="true"/>
+        
+        <!-- Verify download was successful -->
+        <available file="${ant.contrib.jar}" property="ant.contrib.downloaded"/>
+        
+        <fail message="Failed to download ant-contrib. Please download manually from ${ant.contrib.url} and place in ${tools.dir}">
+            <condition>
+                <not>
+                    <isset property="ant.contrib.downloaded"/>
+                </not>
+            </condition>
+        </fail>
+        
+        <echo message="==============================================="/>
+        <echo message="Ant-contrib has been downloaded successfully."/>
+        <echo message="Please restart the build for changes to take effect."/>
+        <echo message="==============================================="/>
+        
+        <!-- Stop the build -->
+        <fail message="Build restarting required."/>
+    </target>
+    
+    <!-- Define ant-contrib tasks - make sure tools.dir exists first -->
+    <mkdir dir="${tools.dir}"/>
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties" onerror="ignore">
+        <classpath>
+            <pathelement location="${ant.contrib.jar}"/>
+        </classpath>
+    </taskdef>
+    
+    <!-- Clean target -->
+    <target name="clean" depends="check-dependencies">
+        <delete dir="${bin.dir}"/>
+        <delete dir="${build.dir}" excludes="tools/**"/>  <!-- Keep tools directory during clean -->
+    </target>
+    
+    <!-- Initialization target -->
+    <target name="init" depends="check-dependencies">
+        <mkdir dir="${bin.dir}"/>
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${tools.dir}"/>  <!-- Ensure tools directory exists -->
+        <!-- Check if Eclipse home is set -->
+        <echo message="Using Eclipse plugins from: ${eclipse.plugins}"/>
+    </target>
+    
+    <!-- Load build properties -->
+    <target name="load-properties" depends="init">
+        <!-- Load build.properties file -->
+        <property file="${build.properties.file}"/>
+        
+        <!-- Process bin.includes property -->
+        <echo message="Processing bin.includes: ${bin.includes}"/>
+        
+        <!-- Replace backslashes and newlines with commas for consistent processing -->
+        <loadresource property="bin.includes.normalized">
+            <propertyresource name="bin.includes"/>
+            <filterchain>
+                <tokenfilter>
+                    <replaceregex pattern="\\\s*\n\s*" replace="," flags="g"/>
+                </tokenfilter>
+                <striplinebreaks/>
+            </filterchain>
+        </loadresource>
+        
+        <echo message="Normalized bin.includes: ${bin.includes.normalized}"/>
+    </target>
+    
+    <!-- Set up classpath for compilation -->
+    <target name="setup-classpath" depends="load-properties">
+        <!-- First check if Eclipse home is set -->
+        <fail message="ECLIPSE_HOME environment variable is not set. Please set it to point to your Eclipse installation directory.">
+            <condition>
+                <not>
+                    <isset property="env.ECLIPSE_HOME"/>
+                </not>
+            </condition>
+        </fail>
+        
+        <path id="plugin.classpath">
+            <!-- Include all JARs from lib directory -->
+            <fileset dir="${lib.dir}">
+                <include name="**/*.jar"/>
+            </fileset>
+            
+            <!-- Include ALL Eclipse plugins -->
+            <fileset dir="${eclipse.plugins}" erroronmissingdir="false">
+                <include name="**/*.jar"/>
+            </fileset>
+        </path>
+    </target>
+    
+    <!-- Compile the Java sources -->
+    <target name="compile" depends="setup-classpath">
+        <javac srcdir="${src.dir}" destdir="${bin.dir}" debug="true" includeantruntime="false">
+            <classpath refid="plugin.classpath"/>
+        </javac>
+        <!-- Copy non-Java resources from src directory -->
+        <copy todir="${bin.dir}">
+            <fileset dir="${src.dir}">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    
+    <!-- Create the plugin JAR -->
+    <target name="jar" depends="compile">
+        <!-- Create a temporary directory for preparing the JAR contents -->
+        <mkdir dir="${build.dir}/temp"/>
+        
+        <!-- Copy all necessary files to the temp directory -->
+        <copy todir="${build.dir}/temp">
+            <!-- Copy compiled classes -->
+            <fileset dir="${bin.dir}"/>
+        </copy>
+        
+        <!-- Process bin.includes to copy resources dynamically -->
+        <echo message="Copying resources from bin.includes dynamically"/>
+        
+        <!-- Use property to track current resources being processed -->
+        <property name="resources.to.process" value="${bin.includes.normalized}"/>
+        
+        <!-- Loop through all resources -->
+        <antcall target="process-resources">
+            <param name="resources.list" value="${resources.to.process}"/>
+        </antcall>
+        
+        <!-- Now create the JAR from the prepared temp directory -->
+        <jar destfile="${plugin.jar}" manifest="META-INF/MANIFEST.MF">
+            <fileset dir="${build.dir}/temp"/>
+        </jar>
+        
+        <!-- Clean up temp directory -->
+        <delete dir="${build.dir}/temp"/>
+        
+        <echo message="Plugin JAR created at: ${plugin.jar}"/>
+    </target>
+    
+    <!-- Process all resources from bin.includes -->
+    <target name="process-resources">
+        <echo message="Processing resources: ${resources.list}"/>
+        
+        <!-- Use foreach task from ant-contrib to process each item -->
+        <foreach list="${resources.list}" target="process-single-resource" param="current.resource" delimiter=","/>
+    </target>
+    
+    <!-- Process a single resource from the list -->
+    <target name="process-single-resource">
+        <echo message="Processing resource: ${current.resource}"/>
+        
+        <!-- Skip the "." entry which represents compiled classes (already handled) -->
+        <if>
+            <equals arg1="${current.resource}" arg2="."/>
+            <then>
+                <echo message="Skipping '.' entry as it represents compiled classes"/>
+            </then>
+            <else>
+                <!-- Copy the current resource -->
+                <antcall target="copy-resource">
+                    <param name="resource.path" value="${current.resource}"/>
+                </antcall>
+            </else>
+        </if>
+    </target>
+    
+    <!-- Copy a single resource -->
+    <target name="copy-resource">
+        <echo message="Copying: ${resource.path}"/>
+        
+        <!-- Check if resource is a directory (ends with /) -->
+        <if>
+            <contains string="${resource.path}" substring="/"/>
+            <then>
+                <!-- Handle as directory -->
+                <available file="${resource.path}" type="dir" property="resource.is.dir"/>
+                <if>
+                    <isset property="resource.is.dir"/>
+                    <then>
+                        <echo message="Copying directory: ${resource.path}"/>
+                        <mkdir dir="${build.dir}/temp/${resource.path}"/>
+                        <copy todir="${build.dir}/temp/${resource.path}">
+                            <fileset dir="${resource.path}"/>
+                        </copy>
+                    </then>
+                </if>
+            </then>
+            <else>
+                <!-- Handle as file -->
+                <available file="${resource.path}" property="resource.exists"/>
+                <if>
+                    <isset property="resource.exists"/>
+                    <then>
+                        <echo message="Copying file: ${resource.path}"/>
+                        <copy file="${resource.path}" todir="${build.dir}/temp"/>
+                    </then>
+                </if>
+            </else>
+        </if>
+    </target>
+    
+    <!-- Copy lib directory but exclude ant-contrib jar -->
+    <target name="copy-lib-dir" if="lib-dir.exists">
+        <echo message="Copying resource: lib/"/>
+        <mkdir dir="${build.dir}/temp/lib"/>
+        <copy todir="${build.dir}/temp/lib">
+            <fileset dir="${lib.dir}">
+                <!-- Exclude any ant-contrib jars to avoid including in the plugin -->
+                <exclude name="ant-contrib*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+    
+</project>

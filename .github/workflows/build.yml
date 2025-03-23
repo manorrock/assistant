@@ -209,13 +209,20 @@ jobs:
         run: |
           wget "https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.35-202502280140/eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz&mirror_id=1" -O eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
           tar -xzf eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
-      - name: Build Eclipse Plugin
+      - name: Download Ant Contrib
+        working-directory: eclipse
         run: |
-          echo "Building Eclipse Plugin"
-          echo "For now we just touch the standardized/Manorrock-Assistant-Eclipse.jar file"
+          export ECLIPSE_HOME=$GITHUB_WORKSPACE/eclipse
+          ant
+      - name: Build Eclipse Plugin
+        working-directory: eclipse
+        run: |
+          export ECLIPSE_HOME=$GITHUB_WORKSPACE/eclipse
+          ant
+      - name: Standardize Plugin JAR
+        run: |
           mkdir -p standardized
-          touch standardized/Manorrock-Assistant-Eclipse.jar
-          echo "Eclipse Plugin build complete"
+          cp eclipse/target/com.manorrock.assistant.eclipse_*.jar standardized/Manorrock-Assistant-Eclipse.jar
       - name: Update SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         uses: softprops/action-gh-release@v1
