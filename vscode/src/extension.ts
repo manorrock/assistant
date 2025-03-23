@@ -2,6 +2,7 @@ import * as vscode from 'vscode'; // Add this import statement
 import { spawn } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
+import * as fs from 'fs'; // Add this import for file system operations
 
 function getJavaPath(): string {
   const javaHome = vscode.workspace.getConfiguration('java').get<string>('home') 
@@ -10,9 +11,35 @@ function getJavaPath(): string {
   return javaHome ? path.join(javaHome, 'bin', 'java') : 'java';
 }
 
+function checkCliExists(cliPath: string): boolean {
+  return fs.existsSync(cliPath);
+}
+
 export function activate(context: vscode.ExtensionContext) {
   console.log('Activating Manorrock Assistant extension'); // Add logging
   const provider = new AssistantViewProvider(context);
+  
+  // Get CLI path
+  const config = vscode.workspace.getConfiguration('assistant');
+  let cliPath = config.get<string>('cliPath') || path.join(os.homedir(), '.manorrock', 'assistant', 'cli.jar');
+  if (cliPath.startsWith('~') || cliPath.startsWith('%USERPROFILE%')) {
+    cliPath = path.join(os.homedir(), cliPath.slice(cliPath.indexOf(path.sep) + 1));
+  }
+  
+  // Check if CLI exists and store the result
+  const cliExists = checkCliExists(cliPath);
+  context.workspaceState.update('cliExists', cliExists);
+  
+  if (!cliExists) {
+    vscode.window.showWarningMessage(
+      'Manorrock Assistant CLI not found. Please visit https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install for installation instructions.',
+      'Open Instructions'
+    ).then(selection => {
+      if (selection === 'Open Instructions') {
+        vscode.env.openExternal(vscode.Uri.parse('https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install'));
+      }
+    });
+  }
   
   // Set up initial endpoint configuration
   updateLLMEndpoint();
@@ -95,36 +122,21 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
       cliPath = path.join(os.homedir(), cliPath.slice(cliPath.indexOf(path.sep) + 1));
     }
 
-    try {
-      outputChannel.appendLine(`Spawning process with CLI path: ${cliPath} for /help request`);
-      const cliProcess = spawn(getJavaPath(), ['-jar', cliPath, '--stdin']);
-      cliProcess.stdin.write(`/help\n`);
-      cliProcess.stdin.end();
-
-      cliProcess.stdout.on('data', (data) => {
-        const output = data.toString();
-        outputChannel.appendLine(`Output received from process: ${output}`);
-        webviewView.webview.postMessage({ type: 'cli-output', text: output });
+    // Check if CLI exists and show appropriate message
+    const cliExists = this.context.workspaceState.get('cliExists', false);
+    
+    if (!cliExists) {
+      webviewView.webview.postMessage({ 
+        type: 'cli-output', 
+        text: '⚠️ **CLI Not Found**\n\nThe Manorrock Assistant CLI was not found at the expected location.\n\nPlease visit [installation instructions](https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install) to set up the CLI.'
       });
-
-      cliProcess.on('close', (code) => {
-        if (code !== 0) {
-          const exitMessage = `CLI process exited with code ${code}`;
-          outputChannel.appendLine(exitMessage);
-          webviewView.webview.postMessage({ type: 'cli-output', text: exitMessage });
-        }
-        webviewView.webview.postMessage({ type: 'process-complete' });
+      return;
+    } else {
+      // Show ready message if CLI exists
+      webviewView.webview.postMessage({
+        type: 'cli-output',
+        text: 'Ready to answer! Use /help for help'
       });
-
-      cliProcess.on('error', (error) => {
-        const errorMessage = (error as Error).message;
-        outputChannel.appendLine(`Error: ${errorMessage}`);
-        webviewView.webview.postMessage({ type: 'cli-output', text: `Error: ${errorMessage}` });
-      });
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      outputChannel.appendLine(`Exception: ${errorMessage}`);
-      webviewView.webview.postMessage({ type: 'cli-output', text: `Exception: ${errorMessage}` });
     }
 
     webviewView.webview.onDidReceiveMessage(async (message: { type: string; text: string }) => {

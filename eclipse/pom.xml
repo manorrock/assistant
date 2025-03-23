@@ -8,11 +8,9 @@
         <artifactId>project</artifactId>
         <version>25.3.5-SNAPSHOT</version>
     </parent>
-    
     <artifactId>eclipse</artifactId>
     <packaging>pom</packaging>
     <name>Manorrock Assistant - Eclipse Plugin</name>
-
     <dependencies>
         <dependency>
             <groupId>org.json</groupId>
@@ -30,28 +28,25 @@
     <build>
         <plugins>
             <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <version>3.8.1</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
                         <configuration>
-                            <skip>false</skip>
+                            <outputDirectory>${project.basedir}/lib</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <excludeTransitive>true</excludeTransitive>
                         </configuration>
-                        <executions>
-                            <execution>
-                                <id>copy-dependencies</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>copy-dependencies</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${project.basedir}/lib</outputDirectory>
-                                    <overWriteReleases>false</overWriteReleases>
-                                    <overWriteSnapshots>true</overWriteSnapshots>
-                                    <excludeTransitive>true</excludeTransitive>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-    </plugins>
-</build>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
