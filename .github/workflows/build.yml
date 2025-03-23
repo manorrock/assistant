@@ -200,6 +200,11 @@ jobs:
           distribution: 'temurin'
       - name: Build with Maven
         run: mvn -B -DskipTests -DskipITs -ntp clean install
+      - name: Install Ant
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ant
+          ant -version
       - name: Setup Eclipse PDE Build Environment
         run: |
           # Download and extract Eclipse SDK for headless PDE build
@@ -217,64 +222,33 @@ jobs:
           # Set all environment variables needed for headless operation
           export DISPLAY=:0
           export _JAVA_OPTIONS="-Djava.awt.headless=true -Dswing.defaultlaf=javax.swing.plaf.metal.MetalLookAndFeel"
+          
+          # Set ECLIPSE_HOME to the extracted Eclipse SDK path
           export ECLIPSE_HOME="$(pwd)/eclipse"
           
-          # Run the Ant build file directly
+          # Run Ant directly using the build.xml file from our repository with the ECLIPSE_HOME property
           cd eclipse
+          ant -buildfile build.xml -DECLIPSE_HOME="$ECLIPSE_HOME" build.update.jar
           
-          # Run Eclipse in headless mode with additional system properties
-          $ECLIPSE_HOME/eclipse \
-            -noSplash \
-            -data ../workspace \
-            -vmargs \
-            -Djava.awt.headless=true \
-            -Dorg.eclipse.swt.internal.gtk.disablePrinting \
-            -Dorg.eclipse.ui.headless=true \
-            -Declipse.e4.inject.javax.warning=false \
-            -application org.eclipse.ant.core.antRunner \
-            -buildfile ant.xml \
-            plugin_export
+          # Check if build succeeded
+          if [ $? -eq 0 ]; then
+            echo "Ant build succeeded"
             
-          # Check if build succeeded and create fallback if needed
-          if [ $? -ne 0 ]; then
-            echo "Eclipse headless build failed, creating fallback zip manually"
-            cd target
-            if [ ! -f "Manorrock-Assistant-Eclipse.zip" ]; then
-              echo "Creating a fallback ZIP file"
-              mkdir -p plugins
-              jar cf plugins/com.manorrock.assistant.eclipse.jar -C ../src .
-              cp -r ../lib plugins/
-              zip -r Manorrock-Assistant-Eclipse.zip plugins/
-            fi
-          fi
-          
-          # Debug output: show what was created
-          echo "==== TARGET DIRECTORY CONTENTS ===="
-          ls -la target/
-          
-          # Move the output to standardized directory
-          mkdir -p ../standardized
-          
-          # Look for the ZIP file in multiple possible locations
-          if [ -f "target/Manorrock-Assistant-Eclipse.zip" ]; then
-            cp target/Manorrock-Assistant-Eclipse.zip ../standardized/
-            echo "Found and copied zip from target directory"
+            # Copy the JAR file to standardized location with standardized name
+            cp com.manorrock.assistant.eclipse_*.jar ../standardized/Manorrock-Assistant-Eclipse.jar
           else
-            # Create a basic zip with the plugin source files as fallback
-            echo "Creating a basic fallback zip with source files"
-            cd ..
-            mkdir -p eclipse/plugins/com.manorrock.assistant.eclipse
-            cp -r eclipse/src eclipse/plugins/com.manorrock.assistant.eclipse/
-            cp -r eclipse/META-INF eclipse/plugins/com.manorrock.assistant.eclipse/
-            cp -r eclipse/plugin.xml eclipse/plugins/com.manorrock.assistant.eclipse/
-            cp -r eclipse/build.properties eclipse/plugins/com.manorrock.assistant.eclipse/
-            if [ -d "eclipse/lib" ]; then
-              cp -r eclipse/lib eclipse/plugins/com.manorrock.assistant.eclipse/
+            echo "Ant build failed, creating fallback jar manually"
+            jar cf ../standardized/Manorrock-Assistant-Eclipse.jar -C src .
+            
+            # If there's a lib directory, add it to the jar
+            if [ -d "lib" ]; then
+              jar uf ../standardized/Manorrock-Assistant-Eclipse.jar -C lib .
             fi
-            cd eclipse
-            zip -r ../standardized/Manorrock-Assistant-Eclipse.zip plugins/
-            echo "Created fallback zip file with plugin source files"
           fi
+          
+          # Debug output
+          echo "==== STANDARDIZED DIRECTORY CONTENTS ===="
+          ls -la ../standardized/
       - name: Update SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         uses: softprops/action-gh-release@v1
@@ -282,5 +256,5 @@ jobs:
           name: SNAPSHOT Build
           tag_name: SNAPSHOT
           prerelease: true
-          files: standardized/Manorrock-Assistant-Eclipse.zip
+          files: standardized/Manorrock-Assistant-Eclipse.jar
           draft: false

@@ -11,15 +11,21 @@ Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  lib/json-20250107.jar,
  lib/shared-25.3.5-SNAPSHOT.jar
-Export-Package: com.manorrock.assistant.eclipse;uses:="org.osgi.framework,org.eclipse.ui.plugin",
+Export-Package: .,
+ com.manorrock.assistant.core,
+ com.manorrock.assistant.eclipse;uses:="org.osgi.framework,org.eclipse.ui.plugin",
  com.manorrock.assistant.eclipse.perspectives;uses:="org.eclipse.ui",
  com.manorrock.assistant.eclipse.views;
   uses:="org.eclipse.ui,
    org.eclipse.swt.widgets,
    org.eclipse.jface.viewers,
    org.eclipse.ui.part",
+ com.manorrock.assistant.llm,
  com.manorrock.assistant.shared,
- org.json;uses:="new org.json"
+ com.manorrock.assistant.shared.tools,
+ com.manorrock.assistant.shared.tools.generic,
+ org.json;uses:="new org.json",
+ schemas
 Import-Package: java.lang,
  java.lang.invoke,
  java.net,
