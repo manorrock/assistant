@@ -16,6 +16,7 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import java.awt.GraphicsEnvironment;
 import com.manorrock.assistant.shared.Command;
+import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.core.Assistant;
 import java.lang.reflect.Field;
 
