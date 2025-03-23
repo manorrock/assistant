@@ -10,32 +10,24 @@ import java.util.Set;
  */
 public class CommandRegistry {
 
-  private static final CommandRegistry INSTANCE = new CommandRegistry();
+  /**
+   * Stores the registered commands.
+   */
   private final Map<String, Command> commands;
 
-  private CommandRegistry() {
-    commands = new HashMap<>();
-    registerCommand("help", new HelpCommand());
-  }
-
-  /**
-   * Get the singleton instance of the CommandRegistry.
-   *
-   * @return The CommandRegistry instance
+  /*
+   * Constructor to initialize the CommandRegistry.
    */
-  public static CommandRegistry getInstance() {
-    return INSTANCE;
+  public CommandRegistry() {
+    commands = new HashMap<>();
   }
 
   /**
    * Register a command with the given name.
    *
-   * @param name
-   *          The name of the command
-   * @param command
-   *          The command implementation
-   * @throws IllegalArgumentException
-   *           if name is null or empty
+   * @param name The name of the command
+   * @param command The command implementation
+   * @throws IllegalArgumentException if name is null or empty
    */
   public void registerCommand(String name, Command command) {
     if (name == null || name.trim().isEmpty()) {
@@ -50,8 +42,7 @@ public class CommandRegistry {
   /**
    * Get a command by name.
    *
-   * @param name
-   *          The name of the command
+   * @param name The name of the command
    * @return The command implementation, or null if not found
    */
   public Command getCommand(String name) {
@@ -61,10 +52,8 @@ public class CommandRegistry {
   /**
    * Get a command by name and required type.
    *
-   * @param name
-   *          The name of the command
-   * @param type
-   *          The required command type
+   * @param name The name of the command
+   * @param type The required command type
    * @return The command implementation if it exists and matches the type, or null
    */
   public <T extends Command> T getCommand(String name, Class<T> type) {
@@ -75,8 +64,7 @@ public class CommandRegistry {
   /**
    * Check if a command exists.
    *
-   * @param name
-   *          The name of the command
+   * @param name The name of the command
    * @return true if the command exists, false otherwise
    */
   public boolean hasCommand(String name) {
@@ -95,8 +83,7 @@ public class CommandRegistry {
   /**
    * Remove a command from the registry.
    *
-   * @param name
-   *          The name of the command to remove
+   * @param name The name of the command to remove
    * @return The removed command, or null if not found
    */
   public Command unregisterCommand(String name) {
@@ -108,6 +95,5 @@ public class CommandRegistry {
    */
   public void clearCommands() {
     commands.clear();
-    registerCommand("help", new HelpCommand());
   }
 }

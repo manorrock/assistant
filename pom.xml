@@ -15,6 +15,7 @@
         <module>shared</module>
         <module>vscode</module>
         <module>windows</module>
+        <module>intellij</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

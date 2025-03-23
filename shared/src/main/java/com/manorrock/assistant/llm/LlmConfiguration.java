@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.llm;
 
 public class LlmConfiguration {
   private String endpoint;

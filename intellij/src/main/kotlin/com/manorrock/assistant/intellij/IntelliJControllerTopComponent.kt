@@ -15,6 +15,8 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.manorrock.assistant.shared.*
+import com.manorrock.assistant.llm.LlmConfiguration
+import com.manorrock.assistant.core.Assistant
 import org.jetbrains.annotations.NotNull
 import javax.swing.*
 import java.awt.*
@@ -40,9 +42,8 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
     private lateinit var progressBar: JProgressBar
     private var sessionId: String = UUID.randomUUID().toString()
     private val history: LinkedList<JSONObject> = LinkedList()
-    private var ollamaEndpoint: String = "http://localhost:11434/api/chat"
-    private val llmConfig: LlmConfiguration = LlmConfiguration.defaultConfig()
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")
+    private val assistance: Assistant = Assistant()
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val panel = JPanel(BorderLayout())
@@ -89,7 +90,8 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         val content = contentFactory.createContent(panel, "", false)
         toolWindow.contentManager.addContent(content)
 
-        CommandRegistry.getInstance().registerCommand("llmModel", LlmModelCommand(llmConfig))
+        assistance.getCommandRegistry().registerCommand("llmModel", 
+            LlmModelCommand(assistance.getLlm().getConfiguration()))
 
         val messageConsumer = Consumer<String> { message ->
             // Handle messages from the source file - these are normal user messages
@@ -102,15 +104,15 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
             handleCommand(command)
         }
 
-        CommandRegistry.getInstance().registerCommand("source", SourceCommand(messageConsumer, commandConsumer))
+        assistance.getCommandRegistry().registerCommand("source", SourceCommand(messageConsumer, commandConsumer))
         
         // Register the new command
-        CommandRegistry.getInstance().registerCommand("new", NewCommand { startNewSession() })
+        assistance.getCommandRegistry().registerCommand("new", NewCommand { startNewSession() })
         
         // Register deprecated command for model
-        CommandRegistry.getInstance().registerCommand("model", 
+        assistance.getCommandRegistry().registerCommand("model", 
             DeprecatedCommand("model", "llm model", 
-            CommandRegistry.getInstance().getCommand("llmModel")))
+            assistance.getCommandRegistry().getCommand("llmModel")))
     }
 
     override fun actionPerformed(e: ActionEvent) {
@@ -149,7 +151,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         val commandName = command.substring(1).split("\\s+".toRegex())[0]
         val arguments = if (command.contains(" ")) command.substring(command.indexOf(' ')).trim() else ""
 
-        val cmd = CommandRegistry.getInstance().getCommand(commandName)
+        val cmd = assistance.getCommandRegistry().getCommand(commandName)
         if (cmd != null) {
             val result = cmd.executeToString(arguments)
             responseArea.append("\n\nSystem: $result")
@@ -182,9 +184,19 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         val pattern = java.util.regex.Pattern.compile("/endpoint\\s+(\\S+)")
         val matcher = pattern.matcher(command)
         if (matcher.find()) {
-            val newEndpoint = matcher.group(1)
-            ollamaEndpoint = "http://$newEndpoint/api/chat"
-            responseArea.append("\n\nSystem: Endpoint changed to $ollamaEndpoint")
+            val newEndpoint = "http://${matcher.group(1)}/api/chat"
+            
+            val currentConfig = assistance.getLlm().getConfiguration()
+            val newConfig = LlmConfiguration(
+                newEndpoint,
+                currentConfig.model(),
+                currentConfig.vendor(),
+                currentConfig.apiKey(),
+                currentConfig.temperature()
+            )
+            
+            assistance.getLlm().setConfiguration(newConfig)
+            responseArea.append("\n\nSystem: Endpoint changed to $newEndpoint")
         } else {
             responseArea.append("\n\nSystem: Invalid endpoint format. Use /endpoint myhostname:myport")
         }
@@ -195,6 +207,17 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         val matcher = pattern.matcher(command)
         if (matcher.find()) {
             val model = matcher.group(1)
+            
+            val currentConfig = assistance.getLlm().getConfiguration()
+            val newConfig = LlmConfiguration(
+                currentConfig.endpoint(),
+                model,
+                currentConfig.vendor(),
+                currentConfig.apiKey(),
+                currentConfig.temperature()
+            )
+            
+            assistance.getLlm().setConfiguration(newConfig)
             responseArea.append("\n\nSystem: Model changed to $model")
         } else {
             responseArea.append("\n\nSystem: Invalid model format. Use /model <name>")
@@ -286,8 +309,10 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
                 history.removeFirst()
             }
 
+            val config = assistance.getLlm().getConfiguration()
+            
             val jsonInput = JSONObject().apply {
-                put("model", llmConfig.model())
+                put("model", config.model())
                 put("messages", JSONArray(history))
                 put("stream", true)
                 put("session_id", sessionId)
@@ -295,7 +320,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
 
             val client = HttpClient.newHttpClient()
             val request = HttpRequest.newBuilder()
-                .uri(URI.create(ollamaEndpoint))
+                .uri(URI.create(config.endpoint()))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
                 .build()
