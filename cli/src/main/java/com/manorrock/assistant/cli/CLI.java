@@ -4,12 +4,14 @@ import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.DefaultToolManager;
 import com.manorrock.assistant.shared.DeprecatedCommand;
-import com.manorrock.assistant.shared.LlmConfiguration;
+import com.manorrock.assistant.shared.HelpCommand;
+import com.manorrock.assistant.llm.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.NewCommand;
 import com.manorrock.assistant.shared.OllamaCommand;
 import com.manorrock.assistant.shared.SourceCommand;
 import com.manorrock.assistant.shared.ToolManager;
+import com.manorrock.assistant.core.Assistant;
 
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
@@ -80,6 +82,7 @@ public class CLI implements Callable<Integer> {
   private ToolManager toolManager;
   // Remove the separate registeredTools list, we'll use toolManager.getAvailableTools() instead
   private boolean useToolIntegration = false;
+  private Assistant assistance;
 
   @Option(names = {"--stdin"}, description = "Read message from standard input")
   private boolean readFromStdin = false;
@@ -96,6 +99,7 @@ public class CLI implements Callable<Integer> {
   private static final Duration TIMEOUT = Duration.ofMinutes(5);
 
   public CLI() {
+    assistance = new Assistant();
   }
 
   public static void main(String[] args) {
@@ -113,29 +117,30 @@ public class CLI implements Callable<Integer> {
     // Initialize tool manager and register default tools
     initializeToolManager();
     
-    CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(config));
+    assistance.getCommandRegistry().registerCommand("help", new HelpCommand());
+    assistance.getCommandRegistry().registerCommand("llmModel", new LlmModelCommand(config));
     // Register the LlmCommand
-    CommandRegistry.getInstance().registerCommand("llm", 
+    assistance.getCommandRegistry().registerCommand("llm", 
         new com.manorrock.assistant.shared.LlmCommand(
             () -> config, 
             newConfig -> { 
                 config = newConfig;
                 saveState();
             }));
-    CommandRegistry.getInstance().registerCommand("source",
+    assistance.getCommandRegistry().registerCommand("source",
         new SourceCommand(this::handleSendAction, this::handleCommand));
-    CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
+    assistance.getCommandRegistry().registerCommand("new", new NewCommand(this::startNewSession));
     
     // Register the Ollama command with config supplier
-    CommandRegistry.getInstance().registerCommand("ollama", new OllamaCommand(() -> config));
+    assistance.getCommandRegistry().registerCommand("ollama", new OllamaCommand(() -> config));
     
     // Register deprecated command for model
-    CommandRegistry.getInstance().registerCommand("model", 
+    assistance.getCommandRegistry().registerCommand("model", 
         new DeprecatedCommand("model", "llm model", 
-        CommandRegistry.getInstance().getCommand("llmModel")));
+        assistance.getCommandRegistry().getCommand("llmModel")));
     
     // Register the tool command with integration support - use toolManager directly
-    CommandRegistry.getInstance().registerCommand("tool", new ToolCommand(
+    assistance.getCommandRegistry().registerCommand("tool", new ToolCommand(
         () -> new ArrayList<>(toolManager.getAvailableTools()),
         this::executeToolWithParams,
         (enabled) -> useToolIntegration = enabled,
@@ -407,7 +412,7 @@ public class CLI implements Callable<Integer> {
       changeEndpoint(command);
     } else if (command.startsWith("/llmModel")) {
       String cmdLine = command.substring(9); // remove '/llmModel'
-      LlmModelCommand modelCommand = CommandRegistry.getInstance().getCommand("llmModel", LlmModelCommand.class);
+      LlmModelCommand modelCommand = assistance.getCommandRegistry().getCommand("llmModel", LlmModelCommand.class);
       if (modelCommand != null) {
         String result = modelCommand.executeToString(cmdLine);
         System.out.println("System: " + result);
@@ -440,7 +445,7 @@ public class CLI implements Callable<Integer> {
         cmdArgs = "";
       }
 
-      Command cmd = CommandRegistry.getInstance().getCommand(cmdName);
+      Command cmd = assistance.getCommandRegistry().getCommand(cmdName);
       if (cmd != null) {
         System.out.println("System: " + cmd.executeToString(cmdArgs));
       } else {
@@ -566,19 +571,19 @@ public class CLI implements Callable<Integer> {
         "/exit - Exit interactive mode";
     System.out.println(cliHelp);
 
-    Command helpCommand = CommandRegistry.getInstance().getCommand("help");
+    Command helpCommand = assistance.getCommandRegistry().getCommand("help");
     if (helpCommand != null) {
       System.out.println("\n" + helpCommand.executeToString(""));
     }
     
     // Show tool help through the tool command
-    Command toolCommand = CommandRegistry.getInstance().getCommand("tool");
+    Command toolCommand = assistance.getCommandRegistry().getCommand("tool");
     if (toolCommand != null) {
       System.out.println("\nTool commands:\n" + toolCommand.executeToString(""));
     }
     
     // Show llm command help
-    Command llmCommand = CommandRegistry.getInstance().getCommand("llm");
+    Command llmCommand = assistance.getCommandRegistry().getCommand("llm");
     if (llmCommand != null) {
       System.out.println("\nLLM configuration commands:\n" + llmCommand.executeToString(""));
     }

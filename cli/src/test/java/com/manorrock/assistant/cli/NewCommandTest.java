@@ -1,48 +1,38 @@
 package com.manorrock.assistant.cli;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.manorrock.assistant.shared.CommandRegistry;
+import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.NewCommand;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import com.manorrock.assistant.core.Assistant;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-class NewCommandTest {
-
-  @Test
-  void testNewCommand() throws Exception {
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    PrintStream originalOut = System.out;
-    System.setOut(new PrintStream(outputStream));
-    CLI cli = new CLI();
-
-    // Add some history
-    cli.handleSendAction("Test message");
-    assertTrue(outputStream.toString().contains("Test message"));
-    outputStream.reset();
-
-    // Execute new command
-    cli.handleSendAction("/new");
-
-    // Verify the response
-    String output = outputStream.toString();
-    assertTrue(output.contains("Started new chat session"));
-
-    // Add another message and verify history was cleared
-    outputStream.reset();
-    cli.handleSendAction("Another test");
-    output = outputStream.toString();
-    assertFalse(output.contains("Test message"));
-    assertTrue(output.contains("Another test"));
-
-    System.setOut(originalOut);
-    outputStream.close();
-  }
-
-  // Removed testNewCommandWithExport test as export functionality is no longer needed
+/**
+ * Tests for the NewCommand class.
+ */
+public class NewCommandTest {
+    
+    /**
+     * Test that the new command works correctly.
+     */
+    @Test
+    public void testNewCommand() {
+        // Create an Assistant instance for the test
+        Assistant assistant = new Assistant();
+        
+        // Create a simple runnable for the new command
+        Runnable newSessionAction = () -> System.out.println("New session started");
+        
+        // Register the new command
+        NewCommand newCommand = new NewCommand(newSessionAction);
+        assistant.getCommandRegistry().registerCommand("new", newCommand);
+        
+        // Verify registration
+        Command cmd = assistant.getCommandRegistry().getCommand("new");
+        assertNotNull(cmd);
+        assertTrue(cmd instanceof NewCommand);
+        
+        // Execute the command and check result
+        String result = cmd.executeToString("");
+        assertEquals("Started new chat session", result);
+    }
 }

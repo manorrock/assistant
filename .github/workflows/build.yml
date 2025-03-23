@@ -22,7 +22,7 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
     - name: Build and Test
-      run: mvn -B verify
+      run: mvn -B clean install
     - name: Standardize JAR filename
       run: |
         # Print working directory for debugging

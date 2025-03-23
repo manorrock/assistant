@@ -45,10 +45,11 @@ import org.json.JSONObject;
 
 import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
-import com.manorrock.assistant.shared.LlmConfiguration;
+import com.manorrock.assistant.llm.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.NewCommand;
 import com.manorrock.assistant.shared.SourceCommand;
+import com.manorrock.assistant.core.Assistant;
 
 import org.json.JSONException;
 
@@ -64,19 +65,23 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     
     private String sessionId = UUID.randomUUID().toString();
     private LinkedList<JSONObject> history = new LinkedList<>();
-    private String ollamaEndpoint = "http://localhost:11434/api/chat";
-    private LlmConfiguration llmConfig;
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private MessageConsole console;
     private MessageConsoleStream consoleStream;
+    private Assistant assistance;
     
     @Override
     public void createPartControl(Composite parent) {
-        llmConfig = LlmConfiguration.defaultConfig();
-        CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(llmConfig));
         // Create console for logging
         console = findConsole("Manorrock Assistant Log");
         consoleStream = console.newMessageStream();
+        
+        // Initialize assistance
+        assistance = new Assistant();
+        
+        // Register LlmModel command with configuration from assistance
+        assistance.getCommandRegistry().registerCommand("llmModel", 
+            new LlmModelCommand(assistance.getLlm().getConfiguration()));
         
         // Set up UI layout
         GridLayout layout = new GridLayout();
@@ -142,13 +147,15 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
 
         // Register commands
-        CommandRegistry.getInstance().registerCommand("source", new SourceCommand(this::processMessage, this::handleCommand));
-        CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
+        assistance.getCommandRegistry().registerCommand("source", 
+            new SourceCommand(this::processMessage, this::handleCommand));
+        assistance.getCommandRegistry().registerCommand("new", 
+            new NewCommand(this::startNewSession));
         
         // Register deprecated command for model
-        CommandRegistry.getInstance().registerCommand("model", 
+        assistance.getCommandRegistry().registerCommand("model", 
             new DeprecatedCommand("model", "llm model", 
-            CommandRegistry.getInstance().getCommand("llmModel")));
+            assistance.getCommandRegistry().getCommand("llmModel")));
     }
     
     private void createActions() {
@@ -214,7 +221,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         String commandName = command.substring(1).split("\\s+")[0];
         String arguments = command.contains(" ") ? command.substring(command.indexOf(' ')).trim() : "";
 
-        Command cmd = CommandRegistry.getInstance().getCommand(commandName);
+        Command cmd = assistance.getCommandRegistry().getCommand(commandName);
         if (cmd != null) {
             String result = cmd.executeToString(arguments);
             responseArea.append("\n\nSystem: " + result);
@@ -284,10 +291,19 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         Pattern pattern = Pattern.compile("/llmEndpoint\\s+(\\S+)");
         Matcher matcher = pattern.matcher(command);
         if (matcher.find()) {
-            String newEndpoint = matcher.group(1);
-            ollamaEndpoint = "http://" + newEndpoint + "/api/chat";
-            responseArea.append("\n\nSystem: Endpoint changed to " + ollamaEndpoint);
-            consoleStream.println("[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + ollamaEndpoint);
+            String newEndpoint = "http://" + matcher.group(1) + "/api/chat";
+            
+            LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
+            LlmConfiguration newConfig = new LlmConfiguration(
+                newEndpoint, 
+                currentConfig.model(), 
+                currentConfig.vendor(), 
+                currentConfig.apiKey(),
+                currentConfig.temperature());
+            
+            assistance.getLlm().setConfiguration(newConfig);
+            responseArea.append("\n\nSystem: Endpoint changed to " + newEndpoint);
+            consoleStream.println("[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + newEndpoint);
         } else {
             responseArea.append("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport");
         }
@@ -336,15 +352,17 @@ public class AssistantView extends ViewPart implements ISelectionListener {
                 history.removeFirst();
             }
             
+            LlmConfiguration config = assistance.getLlm().getConfiguration();
+            
             JSONObject jsonInput = new JSONObject();
-            jsonInput.put("model", llmConfig.model());
+            jsonInput.put("model", config.model());
             jsonInput.put("messages", new JSONArray(history));
             jsonInput.put("stream", true);
             jsonInput.put("session_id", sessionId);
             
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(ollamaEndpoint))
+                .uri(URI.create(config.endpoint()))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
                 .build();

@@ -21,8 +21,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -36,11 +34,13 @@ import org.openide.cookies.EditorCookie;
 import org.openide.loaders.DataObject;
 import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.CommandRegistry;
-import com.manorrock.assistant.shared.LlmConfiguration;
 import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.SourceCommand;
 import com.manorrock.assistant.shared.NewCommand;
 import com.manorrock.assistant.shared.DeprecatedCommand;
+import com.manorrock.assistant.shared.HelpCommand;
+import com.manorrock.assistant.core.Assistant;
+import com.manorrock.assistant.llm.LlmConfiguration;
 
 @TopComponent.Description(preferredID = "NetBeansControllerTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
@@ -53,6 +53,7 @@ import com.manorrock.assistant.shared.DeprecatedCommand;
     "HINT_NetBeansControllerTopComponent=This is a Manorrock Assistant window"})
 public final class NetBeansControllerTopComponent extends TopComponent implements ActionListener, FocusListener {
 
+  
   private JTextArea responseArea;
   private JTextArea requestArea;
   private JButton sendButton;
@@ -60,16 +61,21 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
   private JProgressBar progressBar;
   private String sessionId = UUID.randomUUID().toString();
   private LinkedList<JSONObject> history = new LinkedList<>();
-  private LlmConfiguration llmConfig;
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
   private InputOutput io;
   private TopComponent lastFocusedEditor;
+  private Assistant assistance;
 
   public NetBeansControllerTopComponent() {
-    llmConfig = LlmConfiguration.defaultConfig();
-    CommandRegistry.getInstance().registerCommand("llmModel", new LlmModelCommand(llmConfig));
-    CommandRegistry.getInstance().registerCommand("source",
+    assistance = new Assistant();
+    assistance.getCommandRegistry().registerCommand("llmModel", 
+        new LlmModelCommand(assistance.getLlm().getConfiguration()));
+    assistance.getCommandRegistry().registerCommand("source",
         new SourceCommand(this::messageHandler, this::handleCommand));
+    
+    // Register help command in constructor to ensure it's always available
+    assistance.getCommandRegistry().registerCommand("help", new HelpCommand());
+    
     initComponents();
     setName(Bundle.CTL_NetBeansControllerTopComponent());
     setToolTipText(Bundle.HINT_NetBeansControllerTopComponent());
@@ -167,7 +173,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     String commandName = command.substring(1).split("\\s+")[0];
     String arguments = command.contains(" ") ? command.substring(command.indexOf(' ')).trim() : "";
 
-    Command cmd = CommandRegistry.getInstance().getCommand(commandName);
+    Command cmd = assistance.getCommandRegistry().getCommand(commandName);
     if (cmd != null) {
       String result = cmd.executeToString(arguments);
       responseArea.append("\n\nSystem: " + result);
@@ -251,7 +257,15 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     }
     
     if (isValidUrl(newEndpoint)) {
-      llmConfig = new LlmConfiguration(newEndpoint, llmConfig.model(), llmConfig.vendor(), llmConfig.apiKey(), llmConfig.temperature());
+      LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
+      LlmConfiguration newConfig = new LlmConfiguration(
+          newEndpoint, 
+          currentConfig.model(), 
+          currentConfig.vendor(), 
+          currentConfig.apiKey(), 
+          currentConfig.temperature());
+      assistance.getLlm().setConfiguration(newConfig);
+      
       responseArea.append("\n\nSystem: Endpoint changed to " + newEndpoint);
       io.getOut().println("[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + newEndpoint);
     } else {
@@ -270,8 +284,9 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
 
   private void showHelp() {
     // Get help from command registry first
-    Command helpCommand = CommandRegistry.getInstance().getCommand("help");
-    String registeredHelp = helpCommand.executeToString("");
+    Command helpCommand = assistance.getCommandRegistry().getCommand("help");
+    String registeredHelp = helpCommand != null ? helpCommand.executeToString("") : 
+        "Command help not available. Please restart the application.";
 
     // Add legacy command help
     String legacyHelp = "\n\nLegacy commands:\n" + "/llmEndpoint myhostname:myport - Change the Ollama endpoint\n"
@@ -315,15 +330,19 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
         history.removeFirst();
       }
 
+      LlmConfiguration config = assistance.getLlm().getConfiguration();
+      
       JSONObject jsonInput = new JSONObject();
-      jsonInput.put("model", llmConfig.model());
+      jsonInput.put("model", config.model());
       jsonInput.put("messages", new JSONArray(history));
       jsonInput.put("stream", true);
       jsonInput.put("session_id", sessionId);
 
       HttpClient client = HttpClient.newHttpClient();
-      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(llmConfig.endpoint()))  // Use llmConfig.endpoint() instead of ollamaEndpoint
-          .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(config.endpoint()))
+          .header("Content-Type", "application/json")
+          .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
           .build();
 
       sendButton.setEnabled(false);
@@ -429,12 +448,17 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
   @Override
   public void componentOpened() {
     // Register commands
-    CommandRegistry.getInstance().registerCommand("source", new SourceCommand(this::processMessage, this::handleCommand));
-    CommandRegistry.getInstance().registerCommand("new", new NewCommand(this::startNewSession));
+    assistance.getCommandRegistry().registerCommand("source", 
+        new SourceCommand(this::processMessage, this::handleCommand));
+    assistance.getCommandRegistry().registerCommand("new", 
+        new NewCommand(this::startNewSession));
+    
+    // Ensure the help command is registered
+    assistance.getCommandRegistry().registerCommand("help", new HelpCommand());
     
     // Register deprecated command for model
-    CommandRegistry.getInstance().registerCommand("model", 
+    assistance.getCommandRegistry().registerCommand("model", 
         new DeprecatedCommand("model", "llm model", 
-        CommandRegistry.getInstance().getCommand("llmModel")));
+        assistance.getCommandRegistry().getCommand("llmModel")));
   }
 }
