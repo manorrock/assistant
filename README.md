@@ -27,13 +27,17 @@ Manorrock Assistant exposes Large Language Models in a chat like interface in a 
 
 ## Quick Install
 
-To install the CLI version of Manorrock Assistant, run the following command:
+To install the latest stable release of Manorrock Assistant, run:
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/manorrock/assistant/current/install.sh)"
 ```
 
-This will download and install the latest SNAPSHOT build of Manorrock Assistant to your home directory.
+For development builds (SNAPSHOT), use:
+
+```shell
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/manorrock/assistant/current/install.sh) --snapshot"
+```
 
 ## Command Support Matrix
 
@@ -73,11 +77,13 @@ This will download and install the latest SNAPSHOT build of Manorrock Assistant 
 
 ## Downloads
 
-### Official Releases
-Download official releases from the [GitHub Releases page](https://github.com/manorrock/assistant/releases).
+### Official Releases (Recommended)
+The latest stable release is available from our [GitHub Releases page](https://github.com/manorrock/assistant/releases/latest). We recommend using these releases for production environments.
 
-### Development Builds (SNAPSHOT)
-Latest development builds are available from our [SNAPSHOT release page](https://github.com/manorrock/assistant/releases/tag/SNAPSHOT). These builds contain the most recent features but may be less stable than official releases.
+### Development Builds
+> ⚠️ **Note:** Development (SNAPSHOT) builds are intended for testing and may be unstable. For regular use, please use the official releases.
+
+Latest development builds are available from our [SNAPSHOT release page](https://github.com/manorrock/assistant/releases/tag/SNAPSHOT).
 
 ## Extensibility Options
 

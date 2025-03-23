@@ -68,6 +68,49 @@ jobs:
         retention-days: 3
         compression-level: 9
         overwrite: true
+  eclipse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build with Maven
+        run: mvn -B -DskipTests -DskipITs -ntp clean install
+      - name: Install Ant
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ant
+          ant -version
+      - name: Install Eclipse SDK
+        run: |
+          wget "https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.35-202502280140/eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz&mirror_id=1" -O eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
+          tar -xzf eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
+      - name: Setup Ant Contrib
+        working-directory: eclipse
+        run: |
+          export ECLIPSE_HOME=$GITHUB_WORKSPACE/eclipse
+          ant download-ant-contrib
+      - name: Build Eclipse Plugin
+        working-directory: eclipse
+        run: |
+          export ECLIPSE_HOME=$GITHUB_WORKSPACE/eclipse
+          ant jar
+      - name: Standardize Plugin JAR
+        run: |
+          mkdir -p standardized
+          cp eclipse/target/com.manorrock.assistant.eclipse_*.jar standardized/Manorrock-Assistant-Eclipse.jar
+      - name: Update SNAPSHOT release
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        uses: softprops/action-gh-release@v1
+        with:
+          name: SNAPSHOT Build
+          tag_name: SNAPSHOT
+          prerelease: true
+          files: standardized/Manorrock-Assistant-Eclipse.jar
+          draft: false
   intellij:
     runs-on: ubuntu-latest
     steps:
@@ -175,7 +218,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Build VSCode extension
-        run: mvn clean install
+        run: |
+          mvn -B -DskipTests -DskipITs -ntp  clean install
       - name: Standardize VSIX filename
         run: |
           mkdir -p standardized
@@ -188,47 +232,4 @@ jobs:
           tag_name: SNAPSHOT
           prerelease: true
           files: standardized/Manorrock-Assistant.vsix
-          draft: false
-  eclipse:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Build with Maven
-        run: mvn -B -DskipTests -DskipITs -ntp clean install
-      - name: Install Ant
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ant
-          ant -version
-      - name: Install Eclipse SDK
-        run: |
-          wget "https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.35-202502280140/eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz&mirror_id=1" -O eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
-          tar -xzf eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
-      - name: Setup Ant Contrib
-        working-directory: eclipse
-        run: |
-          export ECLIPSE_HOME=$GITHUB_WORKSPACE/eclipse
-          ant download-ant-contrib
-      - name: Build Eclipse Plugin
-        working-directory: eclipse
-        run: |
-          export ECLIPSE_HOME=$GITHUB_WORKSPACE/eclipse
-          ant jar
-      - name: Standardize Plugin JAR
-        run: |
-          mkdir -p standardized
-          cp eclipse/target/com.manorrock.assistant.eclipse_*.jar standardized/Manorrock-Assistant-Eclipse.jar
-      - name: Update SNAPSHOT release
-        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: softprops/action-gh-release@v1
-        with:
-          name: SNAPSHOT Build
-          tag_name: SNAPSHOT
-          prerelease: true
-          files: standardized/Manorrock-Assistant-Eclipse.jar
           draft: false

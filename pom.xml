@@ -13,12 +13,11 @@
         <module>eclipse</module>
         <module>netbeans</module>
         <module>shared</module>
-        <module>vscode</module>
         <module>windows</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
     </properties>
     <build>
         <pluginManagement>
@@ -41,6 +40,12 @@
             <id>intellij</id>
             <modules>
                 <module>intellij</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>vscode</id>
+            <modules>
+                <module>vscode</module>
             </modules>
         </profile>
     </profiles>

@@ -2,6 +2,8 @@ package com.manorrock.assistant.core;
 
 import com.manorrock.assistant.llm.Llm;
 import com.manorrock.assistant.llm.LlmConfiguration;
+import com.manorrock.assistant.llm.LlmRequest;
+import com.manorrock.assistant.llm.LlmResponse;
 import com.manorrock.assistant.shared.CommandRegistry;
 
 /**
@@ -23,7 +25,7 @@ public class Assistant {
      * Constructor.
      */
     public Assistant() {
-        this.llm = new Llm(LlmConfiguration.defaultConfig());
+        this.llm = new Llm();
         this.commandRegistry = new CommandRegistry();
     }
 
@@ -68,6 +70,9 @@ public class Assistant {
      * @return the assistant response
      */
     public AssistantResponse process(AssistantRequest request) {
-        return new AssistantResponse(request.toString());
+        LlmRequest llmRequest = new LlmRequest();
+        llmRequest.setRequest(request.getPrompt());
+        LlmResponse llmResponse = llm.process(llmRequest);
+        return new AssistantResponse(llmResponse.getContent());
     }
 }
