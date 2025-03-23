@@ -1,7 +1,6 @@
 package com.manorrock.assistant.cli;
 
 import com.manorrock.assistant.shared.Command;
-import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.DefaultToolManager;
 import com.manorrock.assistant.shared.DeprecatedCommand;
 import com.manorrock.assistant.shared.HelpCommand;

@@ -1,29 +1,103 @@
 #!/bin/bash
 
 # Manorrock Assistant Installer
-# This script downloads the latest SNAPSHOT JAR release of Manorrock Assistant
+# This script downloads the latest release of Manorrock Assistant
 # and places it in ~/.manorrock/assistant/cli.jar
 
 set -e
 
-INSTALL_DIR="$HOME/.manorrock/assistant"
-JAR_PATH="$INSTALL_DIR/cli.jar"
-SCRIPT_PATH="$INSTALL_DIR/assistant"
-DOWNLOAD_URL="https://github.com/manorrock/assistant/releases/download/SNAPSHOT/Manorrock-Assistant.jar"
-
-# Print banner
+# Print banner first
 echo "════════════════════════════════════════════"
 echo "    Manorrock Assistant Installer"
 echo "════════════════════════════════════════════"
 echo ""
+
+INSTALL_DIR="$HOME/.manorrock/assistant"
+JAR_PATH="$INSTALL_DIR/cli.jar"
+SCRIPT_PATH="$INSTALL_DIR/assistant"
+
+# Parse command line arguments
+USE_SNAPSHOT=false
+DEBUG=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --snapshot) USE_SNAPSHOT=true; shift ;;
+        --debug) DEBUG=true; shift ;;
+        *) shift ;;
+    esac
+done
+
+# Check if GitHub API is accessible
+check_github_api() {
+    if ! curl -s -f -I "$GITHUB_API" > /dev/null; then
+        echo "Warning: Cannot access GitHub API. Check your internet connection."
+        return 1
+    fi
+    return 0
+}
+
+# Function to pretty print JSON
+pretty_print_json() {
+    echo "$1" | python3 -m json.tool 2>/dev/null || echo "$1"
+}
+
+# Function to print debug information
+debug_info() {
+    if [ "$DEBUG" = true ]; then
+        echo "[DEBUG] $1"
+        if [ ! -z "$2" ]; then
+            pretty_print_json "$2"
+        fi
+    fi
+}
+
+if [ "$USE_SNAPSHOT" = true ]; then
+    DOWNLOAD_URL="https://github.com/manorrock/assistant/releases/download/SNAPSHOT/Manorrock-Assistant.jar"
+    VERSION="SNAPSHOT"
+else
+    GITHUB_API="https://api.github.com/repos/manorrock/assistant/releases/latest"
+    echo "Fetching latest release information..."
+    if ! check_github_api; then
+        echo "Warning: Cannot access GitHub API. Check your internet connection."
+        echo "Falling back to SNAPSHOT build..."
+        DOWNLOAD_URL="https://github.com/manorrock/assistant/releases/download/SNAPSHOT/Manorrock-Assistant.jar"
+        VERSION="SNAPSHOT"
+    else
+        RELEASE_INFO=$(curl -s -H "Accept: application/vnd.github.v3+json" $GITHUB_API)
+        debug_info "GitHub API Response:" "$RELEASE_INFO"
+        DOWNLOAD_URL=$(echo $RELEASE_INFO | grep -o '"browser_download_url": "[^"]*"' | grep 'Manorrock-Assistant.jar"' | cut -d'"' -f4)
+        VERSION=$(echo $RELEASE_INFO | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
+
+        if [ -z "$DOWNLOAD_URL" ] || [ -z "$VERSION" ]; then
+            if [ "$DEBUG" = true ]; then
+                echo "No stable release found. Debug information:"
+                echo "----------------------------------------"
+                echo "API Response:"
+                pretty_print_json "$RELEASE_INFO"
+                echo "----------------------------------------"
+            else
+                echo "No stable release found."
+            fi
+            echo "Falling back to SNAPSHOT build..."
+            DOWNLOAD_URL="https://github.com/manorrock/assistant/releases/download/SNAPSHOT/Manorrock-Assistant.jar"
+            VERSION="SNAPSHOT"
+        else
+            echo "Found stable release version: $VERSION"
+            debug_info "Download URL: $DOWNLOAD_URL"
+        fi
+    fi
+fi
 
 # Create installation directory if it doesn't exist
 echo "Creating installation directory..."
 mkdir -p "$INSTALL_DIR"
 
 # Download the JAR file
-echo "Downloading Manorrock Assistant JAR..."
-curl -L -f -# "$DOWNLOAD_URL" -o "$JAR_PATH"
+echo "Downloading Manorrock Assistant ${VERSION}..."
+if ! curl -L -f -# "$DOWNLOAD_URL" -o "$JAR_PATH"; then
+    echo "Error: Download failed. Please check your internet connection and try again."
+    exit 1
+fi
 
 # Set permissions
 echo "Setting permissions..."
@@ -64,7 +138,7 @@ fi
 echo ""
 echo "════════════════════════════════════════════"
 echo "Installation completed successfully!"
-echo "Manorrock Assistant has been installed to:"
+echo "Manorrock Assistant version ${VERSION} has been installed to:"
 echo "$JAR_PATH"
 echo ""
 echo "A convenient script has been created at:"

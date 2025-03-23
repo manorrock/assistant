@@ -5,7 +5,6 @@
 ## Core Development Focus
 
 3. Core Components
-   - [ ] Common message processing
    - [ ] State persistence
    - [ ] Error handling
 
@@ -180,7 +179,6 @@ The CLI version of the assistant requires integration with external tools throug
 - [ ] Refactor Netbeans plugin to dispatch to the CLI version
 - [ ] Refactor IntelliJ plugin to dispatch to the CLI version
 - [ ] Refactor Eclipse plugin to dispatch to the CLI version
-- [ ] Add /ollama command dispatching to the local 'ollama' binary
 - [ ] Design and implement a common Command interface with standardized methods across all platforms
 - [ ] Create a CommandExecutionContext class to pass state and parameters to commands
 - [ ] Implement a CommandResult class with standardized format for success/failure status and output
@@ -228,9 +226,6 @@ The CLI version of the assistant requires integration with external tools throug
 - [ ] Create response serialization/deserialization utilities
 - [ ] Add response signature/verification for secure commands
 - [ ] Implement response timing metrics and performance tracking
-- [ ] Add a job to build.yml that will delete the SNAPSHOT release
-      prior to running any of the platform specific jobs that will 
-      upload their SNAPSHOT artifacts
 - [ ] Refactor the CLI class to create hook-in points that allow you to call the CLI 
       from any other class without have to go through the main method or the call method
       making sure that the CLI class is not a singleton and that it is not a static class
@@ -292,3 +287,30 @@ The CLI version of the assistant requires integration with external tools throug
 - [ ] Implement environment variable override capability for configuration values
 - [ ] Add command-line argument override for configuration values
 - [ ] Create configuration value interpolation support for dynamic values
+- [ ] Create message format standardization across platforms
+- [ ] Implement message validation and sanitization
+- [ ] Add message transformation pipeline
+- [ ] Create message routing system
+- [ ] Implement message priority handling
+- [ ] Add message batch processing capability
+- [ ] Create message retry mechanism
+- [ ] Implement message acknowledgment system
+- [ ] Add message persistence options
+- [ ] Create message recovery system
+- [ ] Implement message deduplication
+- [ ] Add message version control
+- [ ] Create message compression options
+- [ ] Implement message encryption system
+- [ ] Add message signing capabilities
+- [ ] Create message format conversion utilities
+- [ ] Implement cross-platform message sync
+- [ ] Add message metadata handling
+- [ ] Create message search indexing
+- [ ] Implement message archival system
+- [ ] Add message expiration handling
+- [ ] Create message threading support
+- [ ] Implement message correlation tracking
+- [ ] Add message dependency resolution
+- [ ] Create message conflict resolution
+- [ ] Implement message replay capability
+- [ ] Add message audit logging
