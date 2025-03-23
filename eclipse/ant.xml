@@ -1,0 +1,122 @@
+<project name="ManorrockAssistantEclipse" default="package-zip" basedir=".">
+  <!-- Set global properties -->
+  <property name="src.dir" value="src"/>
+  <property name="bin.dir" value="bin"/>
+  <property name="output.dir" value="build"/>
+  <property name="plugin.name" value="Manorrock-Assistant-Eclipse"/>
+  <property name="plugin.id" value="com.manorrock.assistant.eclipse"/>
+  <property name="plugin.version" value="1.0.0"/>
+
+  <!-- Clean step to clear previous build -->
+  <target name="clean">
+    <delete dir="${bin.dir}"/>
+    <delete dir="${output.dir}"/>
+  </target>
+
+  <!-- Initialize folders -->
+  <target name="init" depends="clean">
+    <mkdir dir="${bin.dir}"/>
+    <mkdir dir="${output.dir}"/>
+    <mkdir dir="${output.dir}/plugins"/>
+    <mkdir dir="${output.dir}/features"/>
+  </target>
+
+  <!-- Compile the plugin -->
+  <target name="compile" depends="init">
+    <echo message="Compiling Eclipse plugin sources"/>
+    <javac srcdir="${src.dir}" destdir="${bin.dir}" includeantruntime="false">
+      <include name="**/*.java"/>
+      <classpath>
+        <fileset dir="${eclipse.home}/plugins">
+          <include name="org.eclipse.core.runtime_*.jar"/>
+          <include name="org.eclipse.ui_*.jar"/>
+          <include name="org.eclipse.osgi_*.jar"/>
+          <include name="org.eclipse.equinox.common_*.jar"/>
+          <include name="org.eclipse.jface_*.jar"/>
+          <include name="org.eclipse.swt_*.jar"/>
+          <include name="org.eclipse.swt.*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- Package the plugin into a JAR -->
+  <target name="jar" depends="compile">
+    <echo message="Creating plugin JAR file"/>
+    <copy todir="${bin.dir}">
+      <fileset dir="${src.dir}">
+        <exclude name="**/*.java"/>
+      </fileset>
+      <fileset dir=".">
+        <include name="META-INF/**"/>
+        <include name="icons/**"/>
+        <include name="plugin.xml"/>
+      </fileset>
+    </copy>
+    
+    <jar destfile="${output.dir}/plugins/${plugin.name}.jar" basedir="${bin.dir}">
+      <manifest>
+        <attribute name="Bundle-Name" value="Manorrock Assistant for Eclipse"/>
+        <attribute name="Bundle-SymbolicName" value="${plugin.id}"/>
+        <attribute name="Bundle-Version" value="${plugin.version}"/>
+        <attribute name="Bundle-Vendor" value="Manorrock.com"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- Create feature JAR -->
+  <target name="feature" depends="jar">
+    <echo message="Creating feature JAR"/>
+    <mkdir dir="${output.dir}/temp-feature"/>
+    <copy todir="${output.dir}/temp-feature">
+      <fileset dir="feature" erroronmissingdir="false">
+        <include name="feature.xml"/>
+      </fileset>
+    </copy>
+    
+    <!-- Create default feature.xml if not exists -->
+    <echo file="${output.dir}/temp-feature/feature.xml" message="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;feature id=&quot;${plugin.id}.feature&quot; label=&quot;Manorrock Assistant for Eclipse&quot; version=&quot;${plugin.version}&quot; provider-name=&quot;Manorrock.com&quot;&gt;
+  &lt;description&gt;
+    Manorrock Assistant Eclipse plugin
+  &lt;/description&gt;
+  &lt;copyright&gt;
+    Copyright (c) Manorrock.com
+  &lt;/copyright&gt;
+  &lt;license&gt;
+    All Rights Reserved
+  &lt;/license&gt;
+  &lt;plugin id=&quot;${plugin.id}&quot; download-size=&quot;0&quot; install-size=&quot;0&quot; version=&quot;${plugin.version}&quot; unpack=&quot;false&quot;/&gt;
+&lt;/feature&gt;" unless="feature.exists"/>
+    
+    <jar destfile="${output.dir}/features/${plugin.id}.feature_${plugin.version}.jar" basedir="${output.dir}/temp-feature"/>
+    <delete dir="${output.dir}/temp-feature"/>
+  </target>
+
+  <!-- Create update site structure -->
+  <target name="create-update-site" depends="feature">
+    <echo message="Creating update site structure"/>
+    <echo file="${output.dir}/site.xml" message="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;site&gt;
+  &lt;feature url=&quot;features/${plugin.id}.feature_${plugin.version}.jar&quot; id=&quot;${plugin.id}.feature&quot; version=&quot;${plugin.version}&quot;&gt;
+    &lt;category name=&quot;Manorrock&quot;/&gt;
+  &lt;/feature&gt;
+  &lt;category-def name=&quot;Manorrock&quot; label=&quot;Manorrock Tools&quot;&gt;
+    &lt;description&gt;
+      Tools provided by Manorrock.com
+    &lt;/description&gt;
+  &lt;/category-def&gt;
+&lt;/site&gt;"/>
+  </target>
+
+  <!-- Package everything into a ZIP -->
+  <target name="package-zip" depends="create-update-site">
+    <echo message="Packaging update site as ZIP"/>
+    <zip destfile="${output.dir}/${plugin.name}-update-site.zip" basedir="${output.dir}">
+      <include name="plugins/**"/>
+      <include name="features/**"/>
+      <include name="site.xml"/>
+    </zip>
+    <echo message="Build complete. Output in ${output.dir}"/>
+  </target>
+</project>
