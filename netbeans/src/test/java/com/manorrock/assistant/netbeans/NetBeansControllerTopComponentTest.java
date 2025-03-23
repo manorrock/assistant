@@ -16,7 +16,8 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import java.awt.GraphicsEnvironment;
 import com.manorrock.assistant.shared.Command;
-import com.manorrock.assistant.shared.CommandRegistry;
+import com.manorrock.assistant.core.Assistant;
+import java.lang.reflect.Field;
 
 public class NetBeansControllerTopComponentTest {
 
@@ -24,6 +25,7 @@ public class NetBeansControllerTopComponentTest {
   private static final int UI_DELAY = 1000; // 1 second delay for human visibility
   private NetBeansControllerTopComponent component;
   private JFrame frame;
+  private Assistant assistance;
 
   @BeforeClass
   public static void setUpClass() {
@@ -42,7 +44,7 @@ public class NetBeansControllerTopComponentTest {
   }
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     if (isHeadless) {
       component = new NetBeansControllerTopComponent();
       return;
@@ -64,6 +66,11 @@ public class NetBeansControllerTopComponentTest {
     } catch (Exception e) {
       e.printStackTrace();
     }
+
+    // Access the private assistance field using reflection
+    Field assistanceField = NetBeansControllerTopComponent.class.getDeclaredField("assistance");
+    assistanceField.setAccessible(true);
+    assistance = (Assistant) assistanceField.get(component);
   }
 
   @After
@@ -109,7 +116,7 @@ public class NetBeansControllerTopComponentTest {
   @Test
   public void testHelpCommand() throws InterruptedException {
     if (isHeadless) {
-      Command helpCommand = CommandRegistry.getInstance().getCommand("help");
+      Command helpCommand = assistance.getCommandRegistry().getCommand("help");
       assertNotNull("Help command should be available", helpCommand);
       String helpText = helpCommand.executeToString("");
       assertTrue("Help text should contain command information", helpText.contains("Available commands:"));
@@ -130,6 +137,82 @@ public class NetBeansControllerTopComponentTest {
     assertTrue("Help should list llmEndpoint command", responseArea.getText().contains("/llmEndpoint"));
 
     Thread.sleep(UI_DELAY * 2);
+  }
+
+  @Test
+  public void testCommandRegistration() {
+    // Verify that the expected commands are registered
+    assertTrue(assistance.getCommandRegistry().hasCommand("llmModel"));
+    assertTrue(assistance.getCommandRegistry().hasCommand("source"));
+    assertTrue(assistance.getCommandRegistry().hasCommand("help"));
+  }
+
+  @Test
+  public void testHandleCommand() throws Exception {
+    // Create a simple test command instead of using a mock
+    TestCommand testCommand = new TestCommand();
+    
+    // Register the test command
+    assistance.getCommandRegistry().registerCommand("testCommand", testCommand);
+
+    // Access the private handleCommand method using reflection
+    java.lang.reflect.Method handleCommandMethod = NetBeansControllerTopComponent.class.getDeclaredMethod(
+            "handleCommand", String.class);
+    handleCommandMethod.setAccessible(true);
+
+    // Invoke the handleCommand method with our test command
+    handleCommandMethod.invoke(component, "/testCommand test arguments");
+
+    // Verify that the command was executed with the correct arguments
+    assertEquals("test arguments", testCommand.getLastArguments());
+  }
+
+  @Test
+  public void testComponentOpened() {
+    // Access the private commandRegistry field
+    try {
+      // Clear any existing commands to ensure clean test
+      assistance.getCommandRegistry().clearCommands();
+
+      // Invoke componentOpened method
+      component.componentOpened();
+
+      // Verify that the expected commands are registered
+      assertTrue(assistance.getCommandRegistry().hasCommand("source"));
+      assertTrue(assistance.getCommandRegistry().hasCommand("new"));
+      assertTrue(assistance.getCommandRegistry().hasCommand("help"));
+      assertTrue(assistance.getCommandRegistry().hasCommand("model"));
+    } catch (Exception e) {
+      fail("Exception during test: " + e.getMessage());
+    }
+  }
+
+  // Simple test command implementation
+  private static class TestCommand implements Command {
+    private String lastArguments;
+    
+    @Override
+    public String executeToString(String arguments) {
+      this.lastArguments = arguments;
+      return "Test command executed with: " + arguments;
+    }
+    
+    @Override
+    public java.io.InputStream executeToStream(String arguments) {
+      // Convert the response to an InputStream
+      this.lastArguments = arguments;
+      String response = "Test command executed with: " + arguments;
+      return new java.io.ByteArrayInputStream(response.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+    
+    public String getLastArguments() {
+      return lastArguments;
+    }
+    
+    @Override
+    public String getDescription() {
+      return "Test command for unit testing";
+    }
   }
 
   private <T extends Component> T findComponent(TopComponent parent, Class<T> type, int index) {

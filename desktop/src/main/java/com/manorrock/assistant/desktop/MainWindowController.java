@@ -13,9 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.time.Duration;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.io.IOException;
 
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
@@ -26,12 +23,13 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import com.manorrock.assistant.shared.LlmConfiguration;
+import com.manorrock.assistant.llm.LlmConfiguration;
 import com.manorrock.assistant.shared.CommandRegistry;
 import com.manorrock.assistant.shared.DeprecatedCommand;
 import com.manorrock.assistant.shared.Command;
 import com.manorrock.assistant.shared.SourceCommand;
 import com.manorrock.assistant.shared.NewCommand;
+import com.manorrock.assistant.core.Assistant;
 
 /**
  * Controller class for the JavaFX-based LLM chat interface. Handles user interactions, command
@@ -55,24 +53,27 @@ public class MainWindowController {
   private ProgressBar progressBar;
 
   private LinkedList<ChatMessage> history = new LinkedList<>();
-  private LlmConfiguration config;
+  private Assistant assistance;
 
   private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
   @FXML
   public void initialize() {
-    config = LlmConfiguration.defaultConfig();
     responseArea.setText("Welcome to Manorrock Assistant");
     progressBar.setProgress(0);
+    
+    // Initialize assistance
+    assistance = new Assistant();
+    
     showHelp();
 
-    CommandRegistry.getInstance().registerCommand("source",
+    assistance.getCommandRegistry().registerCommand("source",
         new SourceCommand(this::messageHandler, this::handleCommand));
-    CommandRegistry.getInstance().registerCommand("new",  
+    assistance.getCommandRegistry().registerCommand("new",  
         new NewCommand(this::startNewSession));
         
     // Register deprecated commands
-    CommandRegistry.getInstance().registerCommand("llmModel", 
+    assistance.getCommandRegistry().registerCommand("llmModel", 
         new DeprecatedCommand("llmModel", "llm model"));
 
     requestArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -125,7 +126,7 @@ public class MainWindowController {
   }
 
   private void handleSourceCommand(String command) {
-    Command sourceCommand = CommandRegistry.getInstance().getCommand("source");
+    Command sourceCommand = assistance.getCommandRegistry().getCommand("source");
     if (sourceCommand != null) {
       String result = sourceCommand.executeToString(command.substring(8).trim());
       responseArea.appendText("\n\nSystem: " + result);
@@ -139,8 +140,16 @@ public class MainWindowController {
     Matcher matcher = pattern.matcher(command);
     if (matcher.find()) {
       String newEndpoint = "http://" + matcher.group(1) + "/api/chat";
-      config = new LlmConfiguration(newEndpoint, config.model(), config.vendor(), config.apiKey(),
-          config.temperature());
+      
+      LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
+      LlmConfiguration newConfig = new LlmConfiguration(
+          newEndpoint, 
+          currentConfig.model(), 
+          currentConfig.vendor(), 
+          currentConfig.apiKey(),
+          currentConfig.temperature());
+      
+      assistance.getLlm().setConfiguration(newConfig);
       responseArea.appendText("\n\nSystem: Endpoint changed to " + newEndpoint);
     } else {
       responseArea.appendText("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport");
@@ -152,8 +161,16 @@ public class MainWindowController {
     Matcher matcher = pattern.matcher(command);
     if (matcher.find()) {
       String newModel = matcher.group(1);
-      config = new LlmConfiguration(config.endpoint(), newModel, config.vendor(), config.apiKey(),
-          config.temperature());
+      
+      LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
+      LlmConfiguration newConfig = new LlmConfiguration(
+          currentConfig.endpoint(), 
+          newModel, 
+          currentConfig.vendor(), 
+          currentConfig.apiKey(),
+          currentConfig.temperature());
+      
+      assistance.getLlm().setConfiguration(newConfig);
       responseArea.appendText("\n\nSystem: Model changed to " + newModel);
     } else {
       responseArea.appendText("\n\nSystem: Invalid model format. Use /llmModel <name>");
@@ -166,8 +183,15 @@ public class MainWindowController {
     if (matcher.find() && !matcher.group(1).isEmpty()) {
       String newVendor = matcher.group(1).toUpperCase();
       if (newVendor.equals("OLLAMA") || newVendor.equals("OPENAI") || newVendor.equals("AZURE_OPENAI")) {
-        config = new LlmConfiguration(config.endpoint(), config.model(), newVendor, config.apiKey(),
-            config.temperature());
+        LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
+        LlmConfiguration newConfig = new LlmConfiguration(
+            currentConfig.endpoint(), 
+            currentConfig.model(), 
+            newVendor, 
+            currentConfig.apiKey(),
+            currentConfig.temperature());
+        
+        assistance.getLlm().setConfiguration(newConfig);
         responseArea.appendText("\n\nSystem: Vendor changed to " + newVendor);
       } else {
         responseArea.appendText("\n\nSystem: Invalid vendor. Supported vendors: OLLAMA, OPENAI, AZURE_OPENAI");
@@ -182,7 +206,16 @@ public class MainWindowController {
     Matcher matcher = pattern.matcher(command);
     if (matcher.find()) {
       String newKey = matcher.group(1);
-      config = new LlmConfiguration(config.endpoint(), config.model(), config.vendor(), newKey, config.temperature());
+      
+      LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
+      LlmConfiguration newConfig = new LlmConfiguration(
+          currentConfig.endpoint(), 
+          currentConfig.model(), 
+          currentConfig.vendor(), 
+          newKey,
+          currentConfig.temperature());
+      
+      assistance.getLlm().setConfiguration(newConfig);
       responseArea.appendText("\n\nSystem: API key updated");
     }
   }
@@ -194,7 +227,15 @@ public class MainWindowController {
       try {
         double newTemp = Double.parseDouble(matcher.group(1));
         if (newTemp >= 0.0 && newTemp <= 1.0) {
-          config = new LlmConfiguration(config.endpoint(), config.model(), config.vendor(), config.apiKey(), newTemp);
+          LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
+          LlmConfiguration newConfig = new LlmConfiguration(
+              currentConfig.endpoint(), 
+              currentConfig.model(), 
+              currentConfig.vendor(), 
+              currentConfig.apiKey(),
+              newTemp);
+          
+          assistance.getLlm().setConfiguration(newConfig);
           responseArea.appendText("\n\nSystem: Temperature changed to " + newTemp);
         } else {
           responseArea.appendText("\n\nSystem: Temperature must be between 0.0 and 1.0");
@@ -233,15 +274,29 @@ public class MainWindowController {
   }
 
   private StreamingChatLanguageModel createLanguageModel() {
+    LlmConfiguration config = assistance.getLlm().getConfiguration();
     String vendor = config.vendor();
+    
     return switch (vendor.toUpperCase()) {
       case "OLLAMA" -> OllamaStreamingChatModel.builder()
-          .baseUrl(config.endpoint().substring(0, config.endpoint().lastIndexOf("/api/chat"))).modelName(config.model())
-          .timeout(TIMEOUT).temperature(config.temperature()).build();
-      case "OPENAI" -> OpenAiStreamingChatModel.builder().apiKey(config.apiKey()).modelName(config.model())
-          .timeout(TIMEOUT).temperature(config.temperature()).build();
-      case "AZURE_OPENAI" -> AzureOpenAiStreamingChatModel.builder().endpoint(config.endpoint()).apiKey(config.apiKey())
-          .deploymentName(config.model()).timeout(TIMEOUT).temperature(config.temperature()).build();
+          .baseUrl(config.endpoint().substring(0, config.endpoint().lastIndexOf("/api/chat")))
+          .modelName(config.model())
+          .timeout(TIMEOUT)
+          .temperature(config.temperature())
+          .build();
+      case "OPENAI" -> OpenAiStreamingChatModel.builder()
+          .apiKey(config.apiKey())
+          .modelName(config.model())
+          .timeout(TIMEOUT)
+          .temperature(config.temperature())
+          .build();
+      case "AZURE_OPENAI" -> AzureOpenAiStreamingChatModel.builder()
+          .endpoint(config.endpoint())
+          .apiKey(config.apiKey())
+          .deploymentName(config.model())
+          .timeout(TIMEOUT)
+          .temperature(config.temperature())
+          .build();
       default -> throw new IllegalArgumentException("Unknown vendor: " + vendor);
     };
   }
