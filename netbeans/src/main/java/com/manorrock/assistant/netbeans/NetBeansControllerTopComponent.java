@@ -141,44 +141,69 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
                 // Continue to send /new to CLI to reset its state
             }
 
-            // Handle /explain command specially like VSCode does
+            // Handle /explain command specially 
             if (userMessage.startsWith("/explain")) {
-                EditorCookie editorCookie = getLastFocusedEditorCookie();
-                if (editorCookie != null) {
-                    try {
-                        String selectedText = editorCookie.getOpenedPanes()[0].getSelectedText();
-                        if (selectedText == null || selectedText.isEmpty()) {
-                            selectedText = editorCookie.getDocument().getText(0, editorCookie.getDocument().getLength());
-                        }
-                        if (selectedText.trim().length() == 0) {
-                            responseArea.append("\n\nSystem: No content to explain. Please select some text or ensure the file has content.");
-                            return; // This return is correct - no content to explain
-                        }
-                        
-                        DataObject dataObj = lastFocusedEditor.getLookup().lookup(DataObject.class);
-                        String fileName = dataObj.getPrimaryFile().getNameExt();
-                        String fileInfo = selectedText.equals(editorCookie.getDocument().getText(0, editorCookie.getDocument().getLength())) ?
-                            "entire file: " + fileName :
-                            "selection from " + fileName;
-                        
-                        // Modify the message to match VSCode format exactly
-                        userMessage = "/explain\nExplaining " + fileInfo + 
-                            "\n-----------------------------------------\n" + selectedText;
-                        
-                        // Let user know what's being explained
-                        responseArea.append("\n\nExplaining " + fileInfo + "...\n");
-                    } catch (javax.swing.text.BadLocationException e) {
-                        responseArea.append("\n\nSystem: Error retrieving text from the editor.");
-                        return; // This return is correct - editor error
-                    }
-                } else {
-                    responseArea.append("\n\nSystem: Please select a snippet or open a file to use the /explain command.");
-                    return; // This return is correct - no editor
-                }
+                handleExplain(userMessage);
+                return; // handleExplain will handle CLI processing
             }
 
             // Process message through CLI
             processMessage(userMessage);
+        }
+    }
+    
+    /**
+     * Handles explain command with appropriate text source (selection, file, or CLI).
+     * 
+     * @param command The explain command with potential arguments
+     */
+    private void handleExplain(String command) {
+        // Check if it's a bare /explain command or has arguments
+        String[] parts = command.trim().split("\\s+", 2);
+        boolean hasFilePath = parts.length > 1 && !parts[1].trim().isEmpty();
+        
+        if (hasFilePath) {
+            // If path is provided, pass directly to CLI
+            processMessage(command);
+            return;
+        }
+        
+        EditorCookie editorCookie = getLastFocusedEditorCookie();
+        if (editorCookie == null || editorCookie.getOpenedPanes() == null || editorCookie.getOpenedPanes().length == 0) {
+            // No editor available, pass through to CLI
+            processMessage(command);
+            return;
+        }
+        
+        try {
+            String selectedText = editorCookie.getOpenedPanes()[0].getSelectedText();
+            if (selectedText == null || selectedText.isEmpty()) {
+                selectedText = editorCookie.getDocument().getText(0, editorCookie.getDocument().getLength());
+            }
+            
+            if (selectedText.trim().length() == 0) {
+                // No content available, pass through to CLI
+                processMessage(command);
+                return;
+            }
+            
+            DataObject dataObj = lastFocusedEditor.getLookup().lookup(DataObject.class);
+            String fileName = dataObj.getPrimaryFile().getNameExt();
+            String fileInfo = selectedText.equals(editorCookie.getDocument().getText(0, editorCookie.getDocument().getLength())) ?
+                "entire file: " + fileName :
+                "selection from " + fileName;
+            
+            // Format the message with the required prefix and separator
+            String messageToSend = "Explain the following in an easy to understand way\n\n--------\n\n" + selectedText;
+            
+            // Let user know what's being explained
+            responseArea.append("\n\nExplaining " + fileInfo + "...\n");
+            
+            // Process through CLI
+            processMessage(messageToSend);
+        } catch (javax.swing.text.BadLocationException e) {
+            // On error, pass through to CLI
+            processMessage(command);
         }
     }
 

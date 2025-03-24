@@ -38,13 +38,10 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
     private lateinit var responseArea: JTextArea
     private lateinit var requestArea: JTextArea
     private lateinit var sendButton: JButton
-    private lateinit var startOverButton: JButton
     private lateinit var progressBar: JProgressBar
-    private var sessionId: String = UUID.randomUUID().toString()
-    private val history: LinkedList<JSONObject> = LinkedList()
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")
-    private val assistance: Assistant = Assistant()
-
+    private val cliExecutor: CLIExecutor = CLIExecutor()
+    
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val panel = JPanel(BorderLayout())
         responseArea = JTextArea().apply {
@@ -53,14 +50,18 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         }
         requestArea = JTextArea()
         sendButton = JButton("Send")
-        startOverButton = JButton("Start Over")
         progressBar = JProgressBar(0, 100)
 
-        // Set initial message
-        responseArea.text = "Welcome to Manorrock Assistant"
-
-        // Show help message on startup
-        showHelp()
+        // Check if CLI is available
+        if (!cliExecutor.isCliAvailable()) {
+            responseArea.text = "Manorrock Assistant CLI not found. Please visit " +
+                "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
+                "for installation instructions."
+            sendButton.isEnabled = false
+        } else {
+            // Match NetBeans initialization message exactly
+            responseArea.text = "Welcome to Manorrock Assistant\n\nType /help for a list of commands."
+        }
 
         // Setup key event handler for the requestArea
         requestArea.addKeyListener(object : java.awt.event.KeyAdapter() {
@@ -73,7 +74,6 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         })
 
         sendButton.addActionListener(this)
-        startOverButton.addActionListener(this)
 
         // Layout setup (simplified)
         panel.add(JScrollPane(responseArea), BorderLayout.CENTER)
@@ -81,7 +81,6 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         bottomPanel.add(JScrollPane(requestArea), BorderLayout.CENTER)
         val buttonPanel = JPanel()
         buttonPanel.add(sendButton)
-        buttonPanel.add(startOverButton)
         bottomPanel.add(buttonPanel, BorderLayout.EAST)
         bottomPanel.add(progressBar, BorderLayout.SOUTH)
         panel.add(bottomPanel, BorderLayout.SOUTH)
@@ -89,36 +88,11 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         val content = contentFactory.createContent(panel, "", false)
         toolWindow.contentManager.addContent(content)
-
-        assistance.getCommandRegistry().registerCommand("llmModel", 
-            LlmModelCommand(assistance.getLlm().getConfiguration()))
-
-        val messageConsumer = Consumer<String> { message ->
-            // Handle messages from the source file - these are normal user messages
-            responseArea.append("\n\nYou: $message")
-            processMessage(message)
-        }
-
-        val commandConsumer = Consumer<String> { command ->
-            // Handle commands from the source file
-            handleCommand(command)
-        }
-
-        assistance.getCommandRegistry().registerCommand("source", SourceCommand(messageConsumer, commandConsumer))
-        
-        // Register the new command
-        assistance.getCommandRegistry().registerCommand("new", NewCommand { startNewSession() })
-        
-        // Register deprecated command for model
-        assistance.getCommandRegistry().registerCommand("model", 
-            DeprecatedCommand("model", "llm model", 
-            assistance.getCommandRegistry().getCommand("llmModel")))
     }
 
     override fun actionPerformed(e: ActionEvent) {
         when (e.source) {
             sendButton -> handleSendAction()
-            startOverButton -> handleStartOverAction()
         }
     }
 
@@ -126,283 +100,200 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         val userMessage = requestArea.text.trim()
 
         if (userMessage.isNotEmpty()) {
-            // Check if the message is a command
-            if (userMessage.startsWith("/")) {
-                handleCommand(userMessage)
+            val timestamp = LocalDateTime.now().format(formatter)
+            responseArea.append("\n\nYou: $userMessage")
+            requestArea.text = ""
+            if (userMessage == "/new") {
+                responseArea.text = ""
+                responseArea.append("Started a new chat session.\n")
+            }
+            if (handleUiCommand(userMessage)) {
                 return
             }
-
-            // Get current timestamp
-            val timestamp = LocalDateTime.now().format(formatter)
-
-            // Display the user's message in the response area
-            responseArea.append("\n\nYou: $userMessage")
-
-            // Clear the request area
-            requestArea.text = ""
-
-            // Process the message and display a response
-            processMessage(userMessage)
+            processMessageWithCLI(userMessage)
         }
     }
 
-    private fun handleCommand(command: String) {
-        // First try the new command system
-        val commandName = command.substring(1).split("\\s+".toRegex())[0]
-        val arguments = if (command.contains(" ")) command.substring(command.indexOf(' ')).trim() else ""
-
-        val cmd = assistance.getCommandRegistry().getCommand(commandName)
-        if (cmd != null) {
-            val result = cmd.executeToString(arguments)
-            responseArea.append("\n\nSystem: $result")
-            requestArea.text = ""
-            return
-        }
-
-        // Fall back to legacy commands
+    private fun handleUiCommand(command: String): Boolean {
         when {
-            command.startsWith("/endpoint") -> changeEndpoint(command)
-            command == "/help" -> showHelp()
-            command == "/clear" -> clearResponseArea()
-            command == "/explain" -> explainSelection()
-            command == "/new" -> startNewSession()
-            else -> responseArea.append("\n\nSystem: Unknown command. Type /help for a list of commands.")
-        }
-        requestArea.text = ""
-    }
-
-    private fun startNewSession() {
-        // Clear conversation history
-        responseArea.text = ""
-        // Reset conversation state (messages, context, etc.)
-        history.clear()
-        // Display confirmation message
-        responseArea.append("System: Started a new chat session.")
-    }
-
-    private fun changeEndpoint(command: String) {
-        val pattern = java.util.regex.Pattern.compile("/endpoint\\s+(\\S+)")
-        val matcher = pattern.matcher(command)
-        if (matcher.find()) {
-            val newEndpoint = "http://${matcher.group(1)}/api/chat"
-            
-            val currentConfig = assistance.getLlm().getConfiguration()
-            val newConfig = LlmConfiguration(
-                newEndpoint,
-                currentConfig.model(),
-                currentConfig.vendor(),
-                currentConfig.apiKey(),
-                currentConfig.temperature()
-            )
-            
-            assistance.getLlm().setConfiguration(newConfig)
-            responseArea.append("\n\nSystem: Endpoint changed to $newEndpoint")
-        } else {
-            responseArea.append("\n\nSystem: Invalid endpoint format. Use /endpoint myhostname:myport")
-        }
-    }
-
-    private fun changeModel(command: String) {
-        val pattern = java.util.regex.Pattern.compile("/model\\s+(\\S+)")
-        val matcher = pattern.matcher(command)
-        if (matcher.find()) {
-            val model = matcher.group(1)
-            
-            val currentConfig = assistance.getLlm().getConfiguration()
-            val newConfig = LlmConfiguration(
-                currentConfig.endpoint(),
-                model,
-                currentConfig.vendor(),
-                currentConfig.apiKey(),
-                currentConfig.temperature()
-            )
-            
-            assistance.getLlm().setConfiguration(newConfig)
-            responseArea.append("\n\nSystem: Model changed to $model")
-        } else {
-            responseArea.append("\n\nSystem: Invalid model format. Use /model <name>")
-        }
-    }
-
-    private fun explainSelection() {
-        // Get the current project and editor
-        val project = ProjectManager.getInstance().openProjects.firstOrNull() ?: return
-        val editor = FileEditorManager.getInstance(project).selectedTextEditor
-
-        if (editor != null) {
-            try {
-                // Get selected text or entire document if no selection
-                val selectionModel = editor.selectionModel
-                val document = editor.document
-                
-                val selectedText = if (selectionModel.hasSelection()) {
-                    selectionModel.selectedText
-                } else {
-                    document.text
-                }
-                
-                if (selectedText.isNullOrEmpty()) {
-                    responseArea.append("\n\nSystem: No text selected or document is empty.")
-                    return
-                }
-                
-                // Format the prompt consistently with NetBeans implementation
-                val prompt = "Please explain the content below the line\n-----------------------------------------\n$selectedText"
-                
-                // Display the prompt in the response area
-                responseArea.append("\n\nYou: $prompt")
-                
-                // Process the prompt through LLM
-                processMessage(prompt)
-                
-            } catch (e: Exception) {
-                responseArea.append("\n\nSystem: Error retrieving text from the editor: ${e.message}")
+            command == "/help" -> {
+                showHelp()
+                return true
             }
-        } else {
-            responseArea.append("\n\nSystem: No active editor window found.")
+            command == "/clear" -> {
+                clearResponseArea()
+                return true
+            }
+            command.startsWith("/explain") -> {
+                // Always pass to handleExplain which will determine appropriate action
+                handleExplain(command)
+                return true
+            }
+            else -> return false
         }
     }
 
     private fun showHelp() {
-        val helpMessage = """
-            |System: Available commands:
-            |/endpoint myhostname:myport - Change the Ollama endpoint
-            |/model <name> - Change the model used
-            |/explain - Explain the selected text or current document
-            |/help - Show this help message
-            |/clear - Clear the response window
-        """.trimMargin()
-        responseArea.append(helpMessage)
+        // Indicate that help is being fetched
+        responseArea.append("\n\nFetching available commands...")
+        
+        // First request help from the CLI
+        cliExecutor.executeCommand("/help")
+            .thenAccept { cliHelpResponse ->
+                javax.swing.SwingUtilities.invokeLater {
+                    // Clear the "Fetching..." message
+                    responseArea.text = responseArea.text.replace("\n\nFetching available commands...", "")
+                    
+                    // Clean and deduplicate the combined help output
+                    val cleanedOutput = cleanHelpOutput(cliHelpResponse)
+                    
+                    // Show all commands
+                    responseArea.append("\n\nAvailable Commands:\n$cleanedOutput")
+                    
+                    // Ensure caret is at the end to show the help
+                    responseArea.caretPosition = responseArea.document.length
+                }
+            }
+            .exceptionally { e ->
+                javax.swing.SwingUtilities.invokeLater {
+                    // If CLI help fails, just show UI help
+                    responseArea.text = responseArea.text.replace("\n\nFetching available commands...", "")
+                    
+                    val uiHelpMessage = """
+                        |/explain - Explain the selected text or current document
+                        |/help - Show this help message
+                        |/clear - Clear the response window
+                        |/new - Start a new chat session
+                    """.trimMargin()
+                    
+                    responseArea.append("\n\nSystem: Unable to fetch all commands: ${e.message}")
+                    responseArea.append("\n\nAvailable Commands:\n$uiHelpMessage")
+                    responseArea.caretPosition = responseArea.document.length
+                }
+                null
+            }
+    }
+    
+    /**
+     * Cleans up the help output by removing duplicates and ensuring consistency.
+     */
+    private fun cleanHelpOutput(cliHelpResponse: String): String {
+        // Extract all commands from the CLI response
+        val cliCommands = cliHelpResponse.lines().filter { it.trim().startsWith("/") }
+        
+        // Define UI-specific commands
+        val uiCommands = listOf(
+            "/explain - Explain the selected text or current document",
+            "/help - Show this help message",
+            "/clear - Clear the response window",
+            "/new - Start a new chat session"
+        )
+        
+        // Combine all commands and remove duplicates based on the command name (before the space)
+        val allCommands = (cliCommands + uiCommands)
+            .filter { it.trim().isNotEmpty() }
+            .map { it.trim() }
+            .distinctBy { it.substringBefore(" ") }
+            .sorted()
+        
+        return allCommands.joinToString("\n")
     }
 
     private fun clearResponseArea() {
         responseArea.text = ""
     }
 
-    private fun handleStartOverAction() {
-        // Clear the history and reset the session ID
-        history.clear()
-        sessionId = UUID.randomUUID().toString()
-
-        // Clear the response area
-        responseArea.text = ""
-
-        // Set initial messages
-        responseArea.text = "Welcome to Manorrock Assistant"
-
-        // Show help message
-        showHelp()
-    }
-
-    private fun processMessage(message: String) {
-        val timestamp = LocalDateTime.now().format(formatter)
+    private fun handleExplain(command: String) {
+        // Parse command to extract potential file path argument
+        val parts = command.trim().split("\\s+".toRegex(), 2)
+        val hasFilePath = parts.size > 1 && parts[1].isNotEmpty()
+        
+        if (hasFilePath) {
+            // If path is provided, pass directly to CLI
+            processMessageWithCLI(command)
+            return
+        }
+        
+        // Get the current project and editor
+        val project = ProjectManager.getInstance().openProjects.firstOrNull()
+        if (project == null) {
+            // No project open, pass through to CLI
+            processMessageWithCLI(command)
+            return
+        }
+        
+        val editor = FileEditorManager.getInstance(project).selectedTextEditor
+        if (editor == null) {
+            // No editor open, pass through to CLI
+            processMessageWithCLI(command)
+            return
+        }
 
         try {
-            val messageObject = JSONObject().apply {
-                put("role", "user")
-                put("content", message)
-            }
-
-            // Add the new message to the history
-            history.add(messageObject)
-            if (history.size > 50) {
-                history.removeFirst()
-            }
-
-            val config = assistance.getLlm().getConfiguration()
+            // Get selected text or entire document if no selection
+            val selectionModel = editor.selectionModel
+            val document = editor.document
+            val file = FileEditorManager.getInstance(project).selectedEditor?.file
+            val fileName = file?.name ?: "unknown file"
             
-            val jsonInput = JSONObject().apply {
-                put("model", config.model())
-                put("messages", JSONArray(history))
-                put("stream", true)
-                put("session_id", sessionId)
+            val selectedText = if (selectionModel.hasSelection()) {
+                selectionModel.selectedText
+            } else {
+                document.text
             }
-
-            val client = HttpClient.newHttpClient()
-            val request = HttpRequest.newBuilder()
-                .uri(URI.create(config.endpoint()))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
-                .build()
-
-            sendButton.isEnabled = false
-            progressBar.isIndeterminate = true
-
-            client.sendAsync(request, HttpResponse.BodyHandlers.ofLines())
-                .thenApply { it.body() }
-                .thenAccept { lines ->
-                    val responseBuilder = StringBuilder()
-                    val isFirstLine = booleanArrayOf(true)
-                    lines.forEach { line: String ->
-                        val jsonObject = JSONObject(line)
-                        if (jsonObject.has("session_id")) {
-                            sessionId = jsonObject.getString("session_id")
-                        }
-                        if (jsonObject.has("messages")) {
-                            val messages = jsonObject.getJSONArray("messages")
-                            for (i in 0 until messages.length()) {
-                                val msg = messages.getJSONObject(i)
-                                if ("assistant" == msg.getString("role")) {
-                                    val content = msg.getString("content")
-                                    responseBuilder.append(content.toString())
-                                    javax.swing.SwingUtilities.invokeLater {
-                                        if (isFirstLine[0]) {
-                                            responseArea.append("\n\nAssistant: " + content.toString())
-                                            isFirstLine[0] = false
-                                        } else {
-                                            responseArea.append(content.toString())
-                                        }
-                                        responseArea.caretPosition = responseArea.document.length
-                                    }
-                                }
-                            }
-                        } else {
-                            val content = jsonObject.getJSONObject("message").getString("content")
-                            responseBuilder.append(content.toString())
-                            javax.swing.SwingUtilities.invokeLater {
-                                if (isFirstLine[0]) {
-                                    responseArea.append("\n\nAssistant: " + content.toString())
-                                    isFirstLine[0] = false
-                                } else {
-                                    responseArea.append(content.toString())
-                                }
-                                responseArea.caretPosition = responseArea.document.length
-                            }
-                        }
-                    }
-
-                    val response = responseBuilder.toString().trim()
-                    javax.swing.SwingUtilities.invokeLater {
-                        sendButton.isEnabled = true
-                        progressBar.isIndeterminate = false
-
-                        // Add the assistant's response to the history
-                        val responseObject = JSONObject().apply {
-                            put("role", "assistant")
-                            put("content", response)
-                        }
-                        history.add(responseObject)
-                        if (history.size > 50) {
-                            history.removeFirst()
-                        }
-                    }
-                }
-                .exceptionally { e ->
-                    javax.swing.SwingUtilities.invokeLater {
-                        val errorMessage = "Ollama is unavailable."
-                        responseArea.append("\n\nAssistant: $errorMessage")
-                        responseArea.caretPosition = responseArea.document.length
-                        sendButton.isEnabled = true
-                        progressBar.isIndeterminate = false
-                    }
-                    null
-                }
+            
+            if (selectedText.isNullOrBlank()) {
+                // No content available, pass through to CLI
+                processMessageWithCLI(command)
+                return
+            }
+            
+            val fileInfo = if (selectionModel.hasSelection()) 
+                "selection from $fileName" 
+            else 
+                "entire file: $fileName"
+            
+            // Let user know what's being explained
+            responseArea.append("\n\nExplaining $fileInfo...\n")
+            
+            // Format the message with the required prefix and separator
+            val messageToSend = "Explain the following in an easy to understand way\n\n--------\n\n$selectedText"
+            
+            // Process as a regular message
+            processMessageWithCLI(messageToSend)
         } catch (e: Exception) {
-            val errorMessage = "Ollama is unavailable."
-            responseArea.append("\n\nAssistant: $errorMessage")
-            responseArea.caretPosition = responseArea.document.length
-            sendButton.isEnabled = true
-            progressBar.isIndeterminate = false
+            // On any error, pass through to CLI
+            processMessageWithCLI(command)
         }
+    }
+
+    private fun processMessageWithCLI(message: String) {
+        sendButton.isEnabled = false
+        progressBar.isIndeterminate = true
+
+        cliExecutor.executeCommand(message)
+            .thenAccept { response ->
+                javax.swing.SwingUtilities.invokeLater {
+                    // Handle empty responses gracefully
+                    if (response.trim().isNotEmpty()) {
+                        responseArea.append("\n\nAssistant: $response")
+                    }
+                    responseArea.caretPosition = responseArea.document.length
+                    sendButton.isEnabled = true
+                    progressBar.isIndeterminate = false
+                }
+            }
+            .exceptionally { e ->
+                javax.swing.SwingUtilities.invokeLater {
+                    val errorMessage = "Error: ${e.message}"
+                    // For /new command, don't show the error (same as NetBeans)
+                    if (!message.trim().equals("/new")) {
+                        responseArea.append("\n\nSystem: $errorMessage")
+                    }
+                    sendButton.isEnabled = true
+                    progressBar.isIndeterminate = false
+                }
+                null
+            }
     }
 }
