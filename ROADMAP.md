@@ -7,7 +7,6 @@
 ## Tool Integration
 
 2. Primary Tools Integration
-   - [ ] Web Search (Google, Bing, DuckDuckGo)
    - [ ] Vector Database for Knowledge Retrieval
    - [ ] API Request Tool Integration
 
@@ -56,12 +55,39 @@
 2. Deliverables
    - [ ] Track tool selection accuracy metrics
 
+# Next release
+- [ ] Refactor Desktop application to dispatch to the CLI version
+- [ ] Add a Bing search tool (WebSearchTool)
+- [ ] Refactor to move all commands into a separate Maven module (command)
+- [ ] Strengthen ProcessExecutionTool description to be clear on when to use it
+- [ ] Refactor to move all tools into a separate Maven module (tool)
+- [ ] Add a tool to scaffold a Maven project using Maven archetypes
+- [ ] Refactor all implementations to use a shared Assistant Executor (CLIExecutor)
+- [ ] Add a /task create command to create a structured task plan for a given task
+
+# Next+1 release
+- [ ] Refactor to move all LLM related code into a separate Maven module (llm)
+- [ ] Add a /task execute command to execute a given task plan
+- [ ] Refactor NetBeansControllerTopComponent to AssistantTopComponent
+- [ ] Add building of a Windows installer (MSI) to the build process similar to the
+      one used for the MacOS installer (DMG)
+- [ ] Refactor Eclipse plugin to be a flat structure in com.manorrock.asistant.eclipse package
+- [ ] Add command category system for organizing and grouping related commands
+- [ ] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
+- [ ] Add a Spring Boot application to expose the CLI as an MCP server
+- [ ] Refactor all code in CLI except for the main and call method into a separate class called          
+      CLIProcessor with setters and getters for instance variables and make the CLI call method
+      call the process method of the CLIProcessor class. 
+- [ ] Update the WebSearchTool to add DuckDuckGo as a search provider
+
+# Next+2 release
+- [ ] Refactor to use the sync chat method instead of doing it asynchronously
+- [ ] Add a DatabaseTool to connect to a database and execute SQL commands
+- [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
+
 # Backlog
 
-- [ ] Refactor IntelliJ plugin to dispatch to the CLI version
-- [ ] Refactor Eclipse plugin to dispatch to the CLI version
 - [ ] Create a CommandExecutionContext class to pass state and parameters to commands
-- [ ] Add command category system for organizing and grouping related commands
 - [ ] Update install.sh to download the latest release from the GitHub repository
       instead of the SNAPSHOT release and update the README.md to accomodate for that
 - [ ] Create a unified error code system for all command operations
@@ -142,3 +168,11 @@
 - [ ] Add profile versioning and backward compatibility
 - [ ] Implement profile change auditing
 - [ ] Create profile documentation generator
+- [ ] Implement Google Search API integration
+- [ ] Implement DuckDuckGo API integration
+- [ ] Create unified search result interface
+- [ ] Add search provider selection logic
+- [ ] Implement search result caching
+- [ ] Add search analytics tracking
+- [ ] Implement search rate limiting
+- [ ] Add search result deduplication

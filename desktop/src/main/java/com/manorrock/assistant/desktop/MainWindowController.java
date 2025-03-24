@@ -8,388 +8,167 @@ import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.Clipboard;
-import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.ArrayList;
-import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import dev.langchain4j.model.azure.AzureOpenAiStreamingChatModel;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import com.manorrock.assistant.llm.LlmConfiguration;
-import com.manorrock.assistant.shared.CommandRegistry;
-import com.manorrock.assistant.shared.DeprecatedCommand;
-import com.manorrock.assistant.shared.Command;
-import com.manorrock.assistant.shared.SourceCommand;
-import com.manorrock.assistant.shared.NewCommand;
-import com.manorrock.assistant.core.Assistant;
-
-/**
- * Controller class for the JavaFX-based LLM chat interface. Handles user interactions, command
- * processing, and LLM communication.
- */
 public class MainWindowController {
 
-  @FXML
-  private TextArea responseArea;
+    @FXML
+    private TextArea responseArea;
 
-  @FXML
-  private TextArea requestArea;
+    @FXML
+    private TextArea requestArea;
 
-  @FXML
-  private Button sendButton;
+    @FXML
+    private Button sendButton;
 
-  @FXML
-  private Button startOverButton;
+    @FXML
+    private Button startOverButton;
 
-  @FXML
-  private ProgressBar progressBar;
+    @FXML
+    private ProgressBar progressBar;
 
-  private LinkedList<ChatMessage> history = new LinkedList<>();
-  private Assistant assistance;
+    private final CLIExecutor cliExecutor;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
 
-  private static final Duration TIMEOUT = Duration.ofSeconds(30);
+    public MainWindowController() {
+        this.cliExecutor = new CLIExecutor();
+    }
 
-  @FXML
-  public void initialize() {
-    responseArea.setText("Welcome to Manorrock Assistant");
-    progressBar.setProgress(0);
-    
-    // Initialize assistance
-    assistance = new Assistant();
-    
-    showHelp();
-
-    assistance.getCommandRegistry().registerCommand("source",
-        new SourceCommand(this::messageHandler, this::handleCommand));
-    assistance.getCommandRegistry().registerCommand("new",  
-        new NewCommand(this::startNewSession));
+    @FXML
+    public void initialize() {
+        responseArea.setText("Welcome to Manorrock Assistant");
+        progressBar.setProgress(0);
         
-    // Register deprecated commands
-    assistance.getCommandRegistry().registerCommand("llmModel", 
-        new DeprecatedCommand("llmModel", "llm model"));
-
-    requestArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
-        handleSendAction();
-        event.consume();
-      }
-    });
-  }
-
-  @FXML
-  private void handleSendAction() {
-    String userMessage = requestArea.getText().trim();
-
-    if (!userMessage.isEmpty()) {
-      if (userMessage.startsWith("/")) {
-        handleCommand(userMessage);
-        return;
-      }
-
-      responseArea.appendText("\n\nYou: " + userMessage);
-      requestArea.clear();
-      processMessage(userMessage);
-    }
-  }
-
-  private void handleCommand(String command) {
-    if (command.startsWith("/llmEndpoint ")) {
-      changeEndpoint(command);
-    } else if (command.startsWith("/llmModel ")) {
-      changeModel(command);
-    } else if (command.startsWith("/llmVendor")) {
-      changeVendor(command);
-    } else if (command.startsWith("/llmApiKey ")) {
-      changeApiKey(command);
-    } else if (command.startsWith("/llmTemperature ")) {
-      changeTemperature(command);
-    } else if (command.equals("/help")) {
-      showHelp();
-    } else if (command.equals("/clear")) {
-      clearResponseArea();
-    } else if (command.equals("/explain")) {
-      explainSelection();
-    } else if (command.startsWith("/source ")) {
-      handleSourceCommand(command);
-    } else {
-      responseArea.appendText("\n\nSystem: Unknown command. Type /help for a list of commands.");
-    }
-    requestArea.clear();
-  }
-
-  private void handleSourceCommand(String command) {
-    Command sourceCommand = assistance.getCommandRegistry().getCommand("source");
-    if (sourceCommand != null) {
-      String result = sourceCommand.executeToString(command.substring(8).trim());
-      responseArea.appendText("\n\nSystem: " + result);
-    } else {
-      responseArea.appendText("\n\nSystem: Source command not available");
-    }
-  }
-
-  private void changeEndpoint(String command) {
-    Pattern pattern = Pattern.compile("/llmEndpoint\\s+(\\S+)");
-    Matcher matcher = pattern.matcher(command);
-    if (matcher.find()) {
-      String newEndpoint = "http://" + matcher.group(1) + "/api/chat";
-      
-      LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
-      LlmConfiguration newConfig = new LlmConfiguration(
-          newEndpoint, 
-          currentConfig.model(), 
-          currentConfig.vendor(), 
-          currentConfig.apiKey(),
-          currentConfig.temperature());
-      
-      assistance.getLlm().setConfiguration(newConfig);
-      responseArea.appendText("\n\nSystem: Endpoint changed to " + newEndpoint);
-    } else {
-      responseArea.appendText("\n\nSystem: Invalid endpoint format. Use /llmEndpoint myhostname:myport");
-    }
-  }
-
-  private void changeModel(String command) {
-    Pattern pattern = Pattern.compile("/llmModel\\s+(\\S+)");
-    Matcher matcher = pattern.matcher(command);
-    if (matcher.find()) {
-      String newModel = matcher.group(1);
-      
-      LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
-      LlmConfiguration newConfig = new LlmConfiguration(
-          currentConfig.endpoint(), 
-          newModel, 
-          currentConfig.vendor(), 
-          currentConfig.apiKey(),
-          currentConfig.temperature());
-      
-      assistance.getLlm().setConfiguration(newConfig);
-      responseArea.appendText("\n\nSystem: Model changed to " + newModel);
-    } else {
-      responseArea.appendText("\n\nSystem: Invalid model format. Use /llmModel <name>");
-    }
-  }
-
-  private void changeVendor(String command) {
-    Pattern pattern = Pattern.compile("/llmVendor\\s*(\\S*)");
-    Matcher matcher = pattern.matcher(command);
-    if (matcher.find() && !matcher.group(1).isEmpty()) {
-      String newVendor = matcher.group(1).toUpperCase();
-      if (newVendor.equals("OLLAMA") || newVendor.equals("OPENAI") || newVendor.equals("AZURE_OPENAI")) {
-        LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
-        LlmConfiguration newConfig = new LlmConfiguration(
-            currentConfig.endpoint(), 
-            currentConfig.model(), 
-            newVendor, 
-            currentConfig.apiKey(),
-            currentConfig.temperature());
+        if (!cliExecutor.isCliAvailable()) {
+            responseArea.setText("Manorrock Assistant CLI not found. Please visit " +
+                "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
+                "for installation instructions.");
+            sendButton.setDisable(true);
+            return;
+        }
         
-        assistance.getLlm().setConfiguration(newConfig);
-        responseArea.appendText("\n\nSystem: Vendor changed to " + newVendor);
-      } else {
-        responseArea.appendText("\n\nSystem: Invalid vendor. Supported vendors: OLLAMA, OPENAI, AZURE_OPENAI");
-      }
-    } else {
-      responseArea.appendText("\n\nSystem: Please specify a vendor. Supported vendors: OLLAMA, OPENAI, AZURE_OPENAI");
-    }
-  }
+        showHelp();
 
-  private void changeApiKey(String command) {
-    Pattern pattern = Pattern.compile("/llmApiKey\\s+(\\S+)");
-    Matcher matcher = pattern.matcher(command);
-    if (matcher.find()) {
-      String newKey = matcher.group(1);
-      
-      LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
-      LlmConfiguration newConfig = new LlmConfiguration(
-          currentConfig.endpoint(), 
-          currentConfig.model(), 
-          currentConfig.vendor(), 
-          newKey,
-          currentConfig.temperature());
-      
-      assistance.getLlm().setConfiguration(newConfig);
-      responseArea.appendText("\n\nSystem: API key updated");
+        requestArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
+                handleSendAction();
+                event.consume();
+            }
+        });
     }
-  }
 
-  private void changeTemperature(String command) {
-    Pattern pattern = Pattern.compile("/llmTemperature\\s+(\\d*\\.?\\d+)");
-    Matcher matcher = pattern.matcher(command);
-    if (matcher.find()) {
-      try {
-        double newTemp = Double.parseDouble(matcher.group(1));
-        if (newTemp >= 0.0 && newTemp <= 1.0) {
-          LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
-          LlmConfiguration newConfig = new LlmConfiguration(
-              currentConfig.endpoint(), 
-              currentConfig.model(), 
-              currentConfig.vendor(), 
-              currentConfig.apiKey(),
-              newTemp);
-          
-          assistance.getLlm().setConfiguration(newConfig);
-          responseArea.appendText("\n\nSystem: Temperature changed to " + newTemp);
+    @FXML
+    private void handleSendAction() {
+        String userMessage = requestArea.getText().trim();
+
+        if (!userMessage.isEmpty()) {
+            if (userMessage.startsWith("/")) {
+                handleCommand(userMessage);
+                return;
+            }
+
+            responseArea.appendText("\n\nYou: " + userMessage);
+            requestArea.clear();
+            processMessage(userMessage);
+        }
+    }
+
+    private void handleCommand(String command) {
+        if (command.equals("/new")) {
+            startNewSession();
+            return; // startNewSession will handle CLI dispatch
+        } else if (command.startsWith("/explain")) {
+            handleExplain(command);
+            return; // handleExplain will handle CLI processing
+        }
+        
+        responseArea.appendText("\n\nYou: " + command);
+        processMessage(command);
+        requestArea.clear();
+    }
+
+    private void processMessage(String message) {
+        String timestamp = LocalDateTime.now().format(formatter);
+        sendButton.setDisable(true);
+        progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+
+        cliExecutor.executeCommand(message)
+            .thenAccept(response -> {
+                Platform.runLater(() -> {
+                    responseArea.appendText("\n\n[" + timestamp + " - Assistant]\n" + response);
+                    responseArea.positionCaret(responseArea.getText().length());
+                    sendButton.setDisable(false);
+                    progressBar.setProgress(0);
+                });
+            })
+            .exceptionally(error -> {
+                Platform.runLater(() -> {
+                    String errorMessage = "Error: " + error.getMessage();
+                    responseArea.appendText("\n\n[" + timestamp + " - Error]\n" + errorMessage);
+                    sendButton.setDisable(false);
+                    progressBar.setProgress(0);
+                });
+                return null;
+            });
+    }
+
+    private void showHelp() {
+        responseArea.appendText("\n\nSystem: Available commands:\n" +
+            "/clear - Clear the response window\n" +
+            "/explain - Explain the selected text\n" +
+            "/help - Show this help message\n" +
+            "/llm* - Use /help llm for LLM-specific commands\n" +
+            "/new - Start a new chat session");
+    }
+
+    private void clearResponseArea() {
+        responseArea.clear();
+    }
+
+    private void startNewSession() {
+        responseArea.clear();
+        responseArea.setText("Welcome to Manorrock Assistant");
+        showHelp();
+        
+        // Dispatch /new to CLI to reset its state
+        processMessage("/new");
+    }
+
+    @FXML
+    private void handleStartOverAction() {
+        startNewSession();
+    }
+
+    private void explainSelection() {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        String clipboardContent = clipboard.getString();
+
+        if (clipboardContent != null && !clipboardContent.isEmpty()) {
+            String prompt = "Please explain the content below the line\n-----------------------------------------\n"
+                + clipboardContent;
+            responseArea.appendText("\n\nYou: " + prompt);
+            processMessage(prompt);
         } else {
-          responseArea.appendText("\n\nSystem: Temperature must be between 0.0 and 1.0");
+            responseArea.appendText("\n\nSystem: No text found in clipboard. Copy some text and try again.");
         }
-      } catch (NumberFormatException e) {
-        responseArea.appendText("\n\nSystem: Invalid temperature format. Use /llmTemperature <number>");
-      }
     }
-  }
 
-  private void showHelp() {
-    String helpMessage = "\n\nSystem: Available commands:\n" + "/clear - Clear the response window\n"
-        + "/explain - Explain the selected text\n" + "/help - Show this help message\n"
-        + "/llmApiKey <apikey> - Set API key for OpenAI or Azure\n"
-        + "/llmEndpoint myhostname:myport - Change the endpoint\n" + "/llmModel <name> - Change the model used\n"
-        + "/llmTemperature <number> - Set temperature (0.0-1.0)\n" + "/llmVendor <name> - Change vendor\n"
-        + "/new - Start a new chat session\n"
-        + "/source <file_path> - Execute commands from a file";
-    responseArea.appendText(helpMessage);
-  }
-
-  private void clearResponseArea() {
-    responseArea.clear();
-  }
-
-  private void startNewSession() {
-    history.clear();
-    responseArea.clear();
-    responseArea.setText("Welcome to Manorrock Assistant");
-    showHelp();
-  }
-
-  @FXML
-  private void handleStartOverAction() {
-    startNewSession();
-  }
-
-  private StreamingChatLanguageModel createLanguageModel() {
-    LlmConfiguration config = assistance.getLlm().getConfiguration();
-    String vendor = config.vendor();
-    
-    return switch (vendor.toUpperCase()) {
-      case "OLLAMA" -> OllamaStreamingChatModel.builder()
-          .baseUrl(config.endpoint().substring(0, config.endpoint().lastIndexOf("/api/chat")))
-          .modelName(config.model())
-          .timeout(TIMEOUT)
-          .temperature(config.temperature())
-          .build();
-      case "OPENAI" -> OpenAiStreamingChatModel.builder()
-          .apiKey(config.apiKey())
-          .modelName(config.model())
-          .timeout(TIMEOUT)
-          .temperature(config.temperature())
-          .build();
-      case "AZURE_OPENAI" -> AzureOpenAiStreamingChatModel.builder()
-          .endpoint(config.endpoint())
-          .apiKey(config.apiKey())
-          .deploymentName(config.model())
-          .timeout(TIMEOUT)
-          .temperature(config.temperature())
-          .build();
-      default -> throw new IllegalArgumentException("Unknown vendor: " + vendor);
-    };
-  }
-
-  private void processMessage(String message) {
-    try {
-      UserMessage userMessage = UserMessage.from(message);
-      history.add(userMessage);
-      if (history.size() > 50) {
-        history.removeFirst();
-      }
-
-      sendButton.setDisable(true);
-      progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
-
-      StreamingChatLanguageModel langChainModel = createLanguageModel();
-
-      StringBuilder responseBuilder = new StringBuilder();
-      final boolean[] isFirstLine = {true};
-
-      ArrayList<ChatMessage> messages = new ArrayList<>(history);
-
-      langChainModel.chat(messages, new StreamingChatResponseHandler() {
-        @Override
-        public void onPartialResponse(String token) {
-          responseBuilder.append(token);
-          Platform.runLater(() -> {
-            if (isFirstLine[0]) {
-              responseArea.appendText("\n\nAssistant: " + token);
-              isFirstLine[0] = false;
-            } else {
-              responseArea.appendText(token);
-            }
-            responseArea.positionCaret(responseArea.getText().length());
-          });
+    private void handleExplain(String command) {
+        // Check if it's a bare /explain command or has arguments
+        String[] parts = command.trim().split("\\s+", 2);
+        boolean hasFilePath = parts.length > 1 && !parts[1].trim().isEmpty();
+        
+        if (hasFilePath) {
+            // If path is provided, pass directly to CLI
+            responseArea.appendText("\n\nYou: " + command);
+            processMessage(command);
+            return;
         }
-
-        @Override
-        public void onCompleteResponse(ChatResponse response) {
-          String fullResponse = responseBuilder.toString().trim();
-          Platform.runLater(() -> {
-            sendButton.setDisable(false);
-            progressBar.setProgress(0);
-
-            // Add the assistant's response to the history
-            history.add(AiMessage.from(fullResponse));
-            if (history.size() > 50) {
-              history.removeFirst();
-            }
-          });
-        }
-
-        @Override
-        public void onError(Throwable error) {
-          Platform.runLater(() -> {
-            String errorMessage = "Error: " + error.getMessage();
-            responseArea.appendText("\n\nAssistant: " + errorMessage);
-            responseArea.positionCaret(responseArea.getText().length());
-            sendButton.setDisable(false);
-            progressBar.setProgress(0);
-          });
-        }
-      });
-    } catch (Exception e) {
-      String errorMessage;
-      if (e.getCause() instanceof java.util.concurrent.TimeoutException) {
-        errorMessage = "Request timed out after " + TIMEOUT.getSeconds() + " seconds";
-      } else {
-        errorMessage = "Error: " + e.getMessage();
-      }
-      responseArea.appendText("\n\nAssistant: " + errorMessage);
-      responseArea.positionCaret(responseArea.getText().length());
-      sendButton.setDisable(false);
-      progressBar.setProgress(0);
+        
+        // Try to get text from clipboard
+        explainSelection();
     }
-  }
-
-  private void explainSelection() {
-    Clipboard clipboard = Clipboard.getSystemClipboard();
-    String clipboardContent = clipboard.getString();
-
-    if (clipboardContent != null && !clipboardContent.isEmpty()) {
-      String prompt = "Please explain the content below the line\n-----------------------------------------\n"
-          + clipboardContent;
-      responseArea.appendText("\n\nYou: " + prompt);
-      processMessage(prompt);
-    } else {
-      responseArea.appendText("\n\nSystem: No text found in clipboard. Copy some text and try again.");
-    }
-  }
-
-  private void messageHandler(String message) {
-    responseArea.appendText("\n\nYou: " + message);
-    processMessage(message);
-  }
 }
