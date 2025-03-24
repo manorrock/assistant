@@ -9,9 +9,9 @@
     <artifactId>desktop</artifactId>
     <name>Manorrock Assistant - Desktop</name>
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <javafx.version>21</javafx.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <javafx.version>17.0.8</javafx.version>
     </properties>
     <dependencies>
         <!-- ...existing dependencies... -->
