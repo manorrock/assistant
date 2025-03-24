@@ -133,6 +133,9 @@ public class CLI implements Callable<Integer> {
     // Register the Ollama command with config supplier
     assistance.getCommandRegistry().registerCommand("ollama", new OllamaCommand(() -> config));
     
+    // Register the explain command with the message processor
+    assistance.getCommandRegistry().registerCommand("explain", new CLIExplainCommand(this::processMessage));
+    
     // Register deprecated command for model
     assistance.getCommandRegistry().registerCommand("model", 
         new DeprecatedCommand("model", "llm model", 
@@ -428,7 +431,13 @@ public class CLI implements Callable<Integer> {
     } else if (command.equals("/help")) {
       showHelp();
     } else if (command.startsWith("/explain")) {
-      explainFromClipboardOrFile(command);
+      // Use the registered explain command
+      String cmdArgs = command.length() > 8 ? command.substring(8).trim() : "";
+      Command explainCommand = assistance.getCommandRegistry().getCommand("explain");
+      if (explainCommand != null) {
+        String result = explainCommand.executeToString(cmdArgs);
+        System.out.println("System: " + result);
+      }
     } else {
       // Handle all other commands through the command registry
       String cmdLine = command.substring(1); // remove the leading '/'
@@ -558,34 +567,21 @@ public class CLI implements Callable<Integer> {
   }
 
   private void showHelp() {
-    String cliHelp = "CLI-specific commands:\n" + 
-        "/llmEndpoint <hostname:port> - Change the endpoint\n" +
-        "/llmModel <name> - Change the model used\n" +
-        "/llmVendor <name> - Change the vendor (OLLAMA, OPENAI, AZURE_OPENAI)\n" +
-        "/llmApiKey <key> - Set the API key\n" +
-        "/llmTemperature <value> - Set temperature (0.0-1.0)\n" +
-        "/explain [file_path] - Explain text from clipboard or specified file\n" +
-        "/new - Start a new chat session\n" +
-        "/help - Show this help message\n" +
-        "/exit - Exit interactive mode";
-    System.out.println(cliHelp);
-
     Command helpCommand = assistance.getCommandRegistry().getCommand("help");
     if (helpCommand != null) {
-      System.out.println("\n" + helpCommand.executeToString(""));
+      System.out.println(helpCommand.executeToString(""));
     }
     
-    // Show tool help through the tool command
-    Command toolCommand = assistance.getCommandRegistry().getCommand("tool");
-    if (toolCommand != null) {
-      System.out.println("\nTool commands:\n" + toolCommand.executeToString(""));
-    }
+    // Get the explain command description for help text
+    Command explainCommand = assistance.getCommandRegistry().getCommand("explain");
+    String explainDescription = explainCommand != null ? explainCommand.getDescription() : 
+                             "Explain text from clipboard or specified file";
     
-    // Show llm command help
-    Command llmCommand = assistance.getCommandRegistry().getCommand("llm");
-    if (llmCommand != null) {
-      System.out.println("\nLLM configuration commands:\n" + llmCommand.executeToString(""));
-    }
+    String cliHelp = 
+        "/explain [file_path] - " + explainDescription + "\n" +
+        "/new - Start a new chat session\n" +
+        "/exit - Exit interactive mode";
+    System.out.println(cliHelp);
   }
 
   /**

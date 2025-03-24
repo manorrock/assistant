@@ -6,57 +6,51 @@ Note this project was developed using AI as proof of concept to determine how fa
 
 Manorrock Assistant exposes Large Language Models in a chat like interface in a variety of different ways, e.g. as a console application, a desktop application, or as an IDE extension or plugin. More implementations are under consideration or under development.
 
-## Command Description
-
-| Command | Description |
-|---------|-------------|
-| `/clear` | Clears the response window |
-| `/endpoint <host:port>` | Changes the LLM API endpoint (legacy, use `/llmEndpoint` instead) |
-| `/explain [file_path]` | Explains text from clipboard, selection, or file |
-| `/help` | Displays available commands |
-| `/llm` | Displays or configures LLM settings |
-| `/llmApiKey <key>` | Sets the API key for OpenAI or Azure OpenAI (default: empty) |
-| `/llmEndpoint <host:port>` | Changes the LLM API endpoint (default: localhost:11434) |
-| `/llmModel <name>` | Changes the LLM model used (default: llama3.1) |
-| `/llmTemperature <number>` | Sets the model's temperature parameter (default: 0.0, range: 0.0-1.0) |
-| `/llmVendor <name>` | Changes the LLM vendor (default: OLLAMA, options: OLLAMA, OPENAI, or AZURE_OPENAI) |
-| `/model <name>` | Changes the LLM model used (legacy, use `/llmModel` instead) |
-| `/new` | Starts a new chat session |
-| `/source <file_path>` | Executes commands from a file |
-| `/tool [list|use|enable|disable]` | Lists available tools, uses a specific tool, or toggles tool integration |
-
 ## Quick Install
 
-To install the latest stable release of Manorrock Assistant, run:
+To install the latest stable release of Manorrock Assistant CLI, run:
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/manorrock/assistant/current/install.sh)"
 ```
 
-For development builds (SNAPSHOT), use:
+## Commands
 
-```shell
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/manorrock/assistant/current/install.sh) --snapshot"
-```
+| Command | Description |
+|---------|-------------|
+| `/clear` | Clears the response window |
+| `/endpoint` | Changes the LLM API endpoint (legacy, use `/llmEndpoint` instead) |
+| `/explain` | Explains text from clipboard, selection, or file |
+| `/help` | Displays available commands |
+| `/llm` | Displays or configures LLM settings |
+| `/llmApiKey` | Sets the API key for OpenAI or Azure OpenAI |
+| `/llmEndpoint` | Changes the LLM API endpoint |
+| `/llmModel` | Changes the LLM model used |
+| `/llmTemperature` | Sets the model's temperature parameter |
+| `/llmVendor` | Changes the LLM vendor |
+| `/model` | Changes the LLM model used (legacy, use `/llmModel` instead) |
+| `/new` | Starts a new chat session |
+| `/source` | Executes commands from a file |
+| `/tool` | Manages tool integrations |
 
 ## Command Support Matrix
 
-| Command | CLI | Desktop | VSCode | IntelliJ | Eclipse | NetBeans | Mobile |
-|---------|-----|---------|--------|----------|---------|----------|--------|
-| `/clear` | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
-| `/endpoint` | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `/explain` | ✅ | ✅ | ✅ | ✅ | ⚠️ | ⚠️ | ❌ |
-| `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/llm` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/llmApiKey` | ✅ | ✅ | ⚠️ | ❌ | ❌ | ❌ | ❌ |
-| `/llmEndpoint` | ✅ | ✅ | ✅ | ❌ | ✅ | ⚠️ | ✅ |
-| `/llmModel` | ✅ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ | ❌ |
-| `/llmTemperature` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/llmVendor` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `/model` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| `/new` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `/source` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `/tool` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Command | CLI | Desktop | VSCode | IntelliJ | Eclipse | NetBeans |
+|---------|-----|---------|--------|----------|---------|----------|
+| `/clear` | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
+| `/endpoint` | ❌ | ❌ | ❌ | ✅ | ⚠️ | ❌ |
+| `/explain` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/llm` | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| `/llmApiKey` | ✅ | ✅ | ⚠️ | ❌ | ✅ | ✅ |
+| `/llmEndpoint` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
+| `/llmModel` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
+| `/llmTemperature` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
+| `/llmVendor` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
+| `/model` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/new` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/source` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/tool` | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ |
 
 **Legend:**
 - ✅ Fully supported
@@ -66,24 +60,18 @@ For development builds (SNAPSHOT), use:
 ## Partial Support Notes
 
 - `/clear`: VSCode relies on CLI implementation
-- `/endpoint`: Legacy command, prefer using `/llmEndpoint` instead
-- `/explain`: Eclipse and NetBeans only support editor selection
+- `/endpoint`: Legacy command, prefer using `/llmEndpoint` instead; Eclipse supports via CLI integration
+- `/explain`: Eclipse fully supports editor selection and file content via CLI integration
 - `/llmApiKey`: VSCode requires manual configuration in settings
-- `/llmEndpoint`: NetBeans only supports basic URL configuration
-- `/llmModel`: Eclipse and NetBeans limited to Ollama models only
+- `/llmEndpoint`: VSCode, Eclipse, and NetBeans support full configuration via CLI integration
+- `/llmModel`: Eclipse supports all models via CLI integration
 - `/model`: Legacy command, prefer using `/llmModel` instead
 - `/source`: All implementations except mobile fully support executing commands from a file
-- `/tool`: CLI only, provides access to built-in and custom tool integrations
+- `/tool`: Supported in CLI, Eclipse, and NetBeans via CLI integration
 
 ## Downloads
 
-### Official Releases (Recommended)
 The latest stable release is available from our [GitHub Releases page](https://github.com/manorrock/assistant/releases/latest). We recommend using these releases for production environments.
-
-### Development Builds
-> ⚠️ **Note:** Development (SNAPSHOT) builds are intended for testing and may be unstable. For regular use, please use the official releases.
-
-Latest development builds are available from our [SNAPSHOT release page](https://github.com/manorrock/assistant/releases/tag/SNAPSHOT).
 
 ## Extensibility Options
 
@@ -95,3 +83,19 @@ The Manorrock Assistant includes a powerful tool framework that enables LLMs to 
 - Creating custom tools
 - Tool registration and discovery
 - Tool execution and results handling
+
+## For developers
+
+> ⚠️ **Note:** Development builds are intended for testing and may be unstable. For regular use, please use the official releases.
+
+### Quick Install
+
+To install the latest development version of Manorrock Assistant CLI, run:
+
+```shell
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/manorrock/assistant/current/install.sh) --snapshot"
+```
+
+### Downloads
+
+The latest development builds are available from our [SNAPSHOT release page](https://github.com/manorrock/assistant/releases/tag/SNAPSHOT).

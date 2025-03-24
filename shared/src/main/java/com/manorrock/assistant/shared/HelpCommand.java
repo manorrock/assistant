@@ -3,8 +3,6 @@ package com.manorrock.assistant.shared;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Command implementation that provides help by listing all available commands.
@@ -15,15 +13,20 @@ public class HelpCommand implements Command {
   public String executeToString(String input) {
     StringBuilder result = new StringBuilder();
     result.append("Available commands:\n");
-    result.append("/clear - Clear the response window\n");
-    result.append("/explain - Explain text from clipboard or selection\n");
-    result.append("/help - Show this help message\n");
-    result.append("/llmEndpoint <host:port> - Change LLM API endpoint\n");
-    result.append("/llmModel <name> - Change LLM model\n");
-    result.append("/llmVendor <name> - Change LLM vendor\n");
-    result.append("/model <name> - Legacy: Change model\n");
-    result.append("/new - Start a new chat session\n");
-    result.append("/source <file_path> - Execute commands from a file\n");
+    result.append("/clear - Clears the response window\n");
+    result.append("/endpoint - Changes the LLM API endpoint (legacy, use /llmEndpoint instead)\n");
+    result.append("/explain - Explains text from clipboard, selection, or file\n");
+    result.append("/help - Displays available commands\n");
+    result.append("/llm - Displays or configures LLM settings\n");
+    result.append("/llmApiKey - Sets the API key for OpenAI or Azure OpenAI\n");
+    result.append("/llmEndpoint - Changes the LLM API endpoint\n");
+    result.append("/llmModel - Changes the LLM model used\n");
+    result.append("/llmTemperature - Sets the model's temperature parameter\n");
+    result.append("/llmVendor - Changes the LLM vendor\n");
+    result.append("/model - Changes the LLM model used (legacy, use /llmModel instead)\n");
+    result.append("/new - Starts a new chat session\n");
+    result.append("/source - Executes commands from a file\n");
+    result.append("/tool - Manages tool integrations\n");
     return result.toString();
   }
 
