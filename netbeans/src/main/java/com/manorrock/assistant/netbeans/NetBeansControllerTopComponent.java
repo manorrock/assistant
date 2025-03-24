@@ -13,34 +13,18 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
 import java.util.UUID;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JProgressBar;
-import org.json.JSONObject;
-import org.json.JSONArray;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
 import org.openide.cookies.EditorCookie;
 import org.openide.loaders.DataObject;
-import com.manorrock.assistant.shared.Command;
-import com.manorrock.assistant.shared.CommandRegistry;
-import com.manorrock.assistant.shared.LlmModelCommand;
-import com.manorrock.assistant.shared.SourceCommand;
-import com.manorrock.assistant.shared.NewCommand;
-import com.manorrock.assistant.shared.DeprecatedCommand;
-import com.manorrock.assistant.shared.HelpCommand;
-import com.manorrock.assistant.core.Assistant;
-import com.manorrock.assistant.llm.LlmConfiguration;
 
 @TopComponent.Description(preferredID = "NetBeansControllerTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
@@ -53,412 +37,201 @@ import com.manorrock.assistant.llm.LlmConfiguration;
     "HINT_NetBeansControllerTopComponent=This is a Manorrock Assistant window"})
 public final class NetBeansControllerTopComponent extends TopComponent implements ActionListener, FocusListener {
 
-  
-  private JTextArea responseArea;
-  private JTextArea requestArea;
-  private JButton sendButton;
-  private JButton startOverButton;
-  private JProgressBar progressBar;
-  private String sessionId = UUID.randomUUID().toString();
-  private LinkedList<JSONObject> history = new LinkedList<>();
-  private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
-  private InputOutput io;
-  private TopComponent lastFocusedEditor;
-  private Assistant assistance;
+    private final CLIExecutor cliExecutor;
+    private JTextArea responseArea;
+    private JTextArea requestArea;
+    private JButton sendButton;
+    private JProgressBar progressBar;
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
+    private InputOutput io;
+    private TopComponent lastFocusedEditor;
 
-  public NetBeansControllerTopComponent() {
-    assistance = new Assistant();
-    assistance.getCommandRegistry().registerCommand("llmModel", 
-        new LlmModelCommand(assistance.getLlm().getConfiguration()));
-    assistance.getCommandRegistry().registerCommand("source",
-        new SourceCommand(this::messageHandler, this::handleCommand));
-    
-    // Register help command in constructor to ensure it's always available
-    assistance.getCommandRegistry().registerCommand("help", new HelpCommand());
-    
-    initComponents();
-    setName(Bundle.CTL_NetBeansControllerTopComponent());
-    setToolTipText(Bundle.HINT_NetBeansControllerTopComponent());
-    io = IOProvider.getDefault().getIO("Chat Log", false);
-    TopComponent.getRegistry().addPropertyChangeListener(evt -> {
-      if (TopComponent.Registry.PROP_ACTIVATED.equals(evt.getPropertyName())) {
-        TopComponent activated = TopComponent.getRegistry().getActivated();
-        if (activated != null && activated.getLookup().lookup(EditorCookie.class) != null) {
-          lastFocusedEditor = activated;
+    public NetBeansControllerTopComponent() {
+        cliExecutor = new CLIExecutor();
+        initComponents();
+        setName(Bundle.CTL_NetBeansControllerTopComponent());
+        setToolTipText(Bundle.HINT_NetBeansControllerTopComponent());
+        io = IOProvider.getDefault().getIO("Chat Log", false);
+        
+        if (!cliExecutor.isCliAvailable()) {
+            responseArea.setText("Manorrock Assistant CLI not found. Please visit " +
+                "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
+                "for installation instructions.");
+            sendButton.setEnabled(false);
+        } else {
+            responseArea.setText("Welcome to Manorrock Assistant\n\nType /help for a list of commands.");
         }
-      }
-    });
-  }
-
-  private void initComponents() {
-    responseArea = new JTextArea();
-    responseArea.setLineWrap(true);
-    responseArea.setWrapStyleWord(true);
-    requestArea = new JTextArea();
-    sendButton = new JButton("Send");
-    startOverButton = new JButton("Start Over");
-    progressBar = new JProgressBar(0, 100);
-
-    // Set initial message
-    responseArea.setText("Welcome to Manorrock Assistant");
-
-    // Show help message on startup
-    showHelp();
-
-    // Setup key event handler for the requestArea
-    requestArea.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyPressed(KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.VK_ENTER && !event.isShiftDown()) {
-          handleSendAction();
-          event.consume(); // Prevents the newline from being added
-        }
-      }
-    });
-
-    sendButton.addActionListener(this);
-    startOverButton.addActionListener(this);
-
-    // Layout setup (simplified)
-    setLayout(new BorderLayout());
-    add(new JScrollPane(responseArea), BorderLayout.CENTER);
-    JPanel bottomPanel = new JPanel(new BorderLayout());
-    bottomPanel.add(new JScrollPane(requestArea), BorderLayout.CENTER);
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.add(sendButton);
-    buttonPanel.add(startOverButton);
-    bottomPanel.add(buttonPanel, BorderLayout.EAST);
-    bottomPanel.add(progressBar, BorderLayout.SOUTH);
-    add(bottomPanel, BorderLayout.SOUTH);
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    if (e.getSource() == sendButton) {
-      handleSendAction();
-    } else if (e.getSource() == startOverButton) {
-      handleStartOverAction();
-    }
-  }
-
-  private void handleSendAction() {
-    String userMessage = requestArea.getText().trim();
-
-    if (!userMessage.isEmpty()) {
-      // Check if the message is a command
-      if (userMessage.startsWith("/")) {
-        handleCommand(userMessage);
-        return;
-      }
-
-      // Get current timestamp
-      String timestamp = LocalDateTime.now().format(formatter);
-
-      // Display the user's message in the response area
-      responseArea.append("\n\nYou: " + userMessage);
-
-      // Add timestamped message to the Output Window
-      io.getOut().println("[" + timestamp + " - You]\n" + userMessage);
-
-      // Clear the request area
-      requestArea.setText("");
-
-      // Process the message and display a response
-      processMessage(userMessage);
-    }
-  }
-
-  private void handleCommand(String command) {
-    // First try the new command system
-    String commandName = command.substring(1).split("\\s+")[0];
-    String arguments = command.contains(" ") ? command.substring(command.indexOf(' ')).trim() : "";
-
-    Command cmd = assistance.getCommandRegistry().getCommand(commandName);
-    if (cmd != null) {
-      String result = cmd.executeToString(arguments);
-      responseArea.append("\n\nSystem: " + result);
-      requestArea.setText("");
-      return;
-    }
-
-    // Fall back to legacy commands that haven't been migrated yet
-    if (command.startsWith("/llmEndpoint")) {
-      changeEndpoint(command);
-    } else if (command.equals("/clear")) {
-      clearResponseArea();
-    } else if (command.equals("/explain")) {
-      explainSelection();
-    } else if (command.equals("/new")) {
-      startNewSession();
-    } else {
-      responseArea.append("\n\nSystem: Unknown command. Type /help for a list of commands.");
-    }
-    requestArea.setText("");
-  }
-
-  private void startNewSession() {
-    // Clear conversation history
-    responseArea.setText("");
-    // Reset conversation state (messages, context, etc.)
-    history.clear(); 
-    sessionId = UUID.randomUUID().toString();
-    // Display confirmation message
-    responseArea.append("System: Started a new chat session.");
-    // Log to output window if available
-    if (io != null) {
-      io.getOut().println("[" + LocalDateTime.now().format(formatter) + " - System] Started a new chat session.");
-    }
-  }
-
-  private void explainSelection() {
-    // Get the last editor window that had focus
-    EditorCookie editorCookie = getLastFocusedEditorCookie();
-    if (editorCookie != null) {
-      try {
-        String selectedText = editorCookie.getOpenedPanes()[0].getSelectedText();
-        if (selectedText == null || selectedText.isEmpty()) {
-          selectedText = editorCookie.getDocument().getText(0, editorCookie.getDocument().getLength());
-        }
-        String prompt = "Please explain the content below the line\n-----------------------------------------\n"
-            + selectedText;
-        responseArea.append("\n\nYou: " + prompt); // Echo the request to the response area
-        processMessage(prompt);
-      } catch (javax.swing.text.BadLocationException e) {
-        responseArea.append("\n\nSystem: Error retrieving text from the editor.");
-      }
-    } else {
-      responseArea.append("\n\nSystem: No active editor window found.");
-    }
-  }
-
-  private EditorCookie getLastFocusedEditorCookie() {
-    if (lastFocusedEditor != null) {
-      DataObject dataObject = lastFocusedEditor.getLookup().lookup(DataObject.class);
-      if (dataObject != null) {
-        return dataObject.getLookup().lookup(EditorCookie.class);
-      }
-    }
-    return null;
-  }
-
-  private void changeEndpoint(String command) {
-    String[] parts = command.split("\\s+", 2);
-    if (parts.length < 2) {
-      responseArea.append("\n\nSystem: Invalid format. Usage: /llmEndpoint <URL>");
-      return;
-    }
-    
-    String newEndpoint = parts[1].trim();
-    if (!newEndpoint.startsWith("http://") && !newEndpoint.startsWith("https://")) {
-      newEndpoint = "http://" + newEndpoint;
-    }
-    if (!newEndpoint.endsWith("/api/chat")) {
-      newEndpoint = newEndpoint + "/api/chat";
-    }
-    
-    if (isValidUrl(newEndpoint)) {
-      LlmConfiguration currentConfig = assistance.getLlm().getConfiguration();
-      LlmConfiguration newConfig = new LlmConfiguration(
-          newEndpoint, 
-          currentConfig.model(), 
-          currentConfig.vendor(), 
-          currentConfig.apiKey(), 
-          currentConfig.temperature());
-      assistance.getLlm().setConfiguration(newConfig);
-      
-      responseArea.append("\n\nSystem: Endpoint changed to " + newEndpoint);
-      io.getOut().println("[" + LocalDateTime.now().format(formatter) + " - System]\nEndpoint changed to " + newEndpoint);
-    } else {
-      responseArea.append("\n\nSystem: Invalid URL format. Please provide a valid URL.");
-    }
-  }
-
-  private boolean isValidUrl(String urlString) {
-    try {
-      new java.net.URL(urlString);
-      return true;
-    } catch (java.net.MalformedURLException e) {
-      return false;
-    }
-  }
-
-  private void showHelp() {
-    // Get help from command registry first
-    Command helpCommand = assistance.getCommandRegistry().getCommand("help");
-    String registeredHelp = helpCommand != null ? helpCommand.executeToString("") : 
-        "Command help not available. Please restart the application.";
-
-    // Add legacy command help
-    String legacyHelp = "\n\nLegacy commands:\n" + "/llmEndpoint myhostname:myport - Change the Ollama endpoint\n"
-        + "/clear - Clear the response window\n" + "/explain - Explain the selected text";
-
-    // Combine and display both helps
-    responseArea.append("\n\n" + registeredHelp + legacyHelp);
-  }
-
-  private void clearResponseArea() {
-    responseArea.setText("");
-  }
-
-  private void handleStartOverAction() {
-    // Clear the history and reset the session ID
-    history.clear();
-    sessionId = UUID.randomUUID().toString();
-
-    // Clear the response area
-    responseArea.setText("");
-
-    // Set initial messages
-    responseArea.setText("Welcome to Manorrock Assistant");
-    io.getOut().println("Chat Log\n---------");
-
-    // Show help message
-    showHelp();
-  }
-
-  private void processMessage(String message) {
-    String timestamp = LocalDateTime.now().format(formatter);
-
-    try {
-      JSONObject messageObject = new JSONObject();
-      messageObject.put("role", "user");
-      messageObject.put("content", message);
-
-      // Add the new message to the history
-      history.add(messageObject);
-      if (history.size() > 50) {
-        history.removeFirst();
-      }
-
-      LlmConfiguration config = assistance.getLlm().getConfiguration();
-      
-      JSONObject jsonInput = new JSONObject();
-      jsonInput.put("model", config.model());
-      jsonInput.put("messages", new JSONArray(history));
-      jsonInput.put("stream", true);
-      jsonInput.put("session_id", sessionId);
-
-      HttpClient client = HttpClient.newHttpClient();
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(URI.create(config.endpoint()))
-          .header("Content-Type", "application/json")
-          .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
-          .build();
-
-      sendButton.setEnabled(false);
-      progressBar.setIndeterminate(true);
-
-      client.sendAsync(request, HttpResponse.BodyHandlers.ofLines()).thenApply(HttpResponse::body).thenAccept(lines -> {
-        StringBuilder responseBuilder = new StringBuilder();
-        final boolean[] isFirstLine = {true};
-        lines.forEach(line -> {
-          JSONObject jsonObject = new JSONObject(line);
-          if (jsonObject.has("session_id")) {
-            sessionId = jsonObject.getString("session_id");
-          }
-          if (jsonObject.has("messages")) {
-            JSONArray messages = jsonObject.getJSONArray("messages");
-            for (int i = 0; i < messages.length(); i++) {
-              JSONObject msg = messages.getJSONObject(i);
-              if ("assistant".equals(msg.getString("role"))) {
-                String content = msg.getString("content");
-                responseBuilder.append(content);
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                  if (isFirstLine[0]) {
-                    responseArea.append("\n\nAssistant: " + content);
-                    isFirstLine[0] = false;
-                  } else {
-                    responseArea.append(content);
-                  }
-                  responseArea.setCaretPosition(responseArea.getDocument().getLength());
-                });
-              }
+        
+        TopComponent.getRegistry().addPropertyChangeListener(evt -> {
+            if (TopComponent.Registry.PROP_ACTIVATED.equals(evt.getPropertyName())) {
+                TopComponent activated = TopComponent.getRegistry().getActivated();
+                if (activated != null && activated.getLookup().lookup(EditorCookie.class) != null) {
+                    lastFocusedEditor = activated;
+                }
             }
-          } else {
-            String content = jsonObject.getJSONObject("message").getString("content");
-            responseBuilder.append(content);
-            javax.swing.SwingUtilities.invokeLater(() -> {
-              if (isFirstLine[0]) {
-                responseArea.append("\n\nAssistant: " + content);
-                isFirstLine[0] = false;
-              } else {
-                responseArea.append(content);
-              }
-              responseArea.setCaretPosition(responseArea.getDocument().getLength());
+        });
+    }
+
+    private void initComponents() {
+        responseArea = new JTextArea();
+        responseArea.setLineWrap(true);
+        responseArea.setWrapStyleWord(true);
+        requestArea = new JTextArea();
+        sendButton = new JButton("Send");
+        progressBar = new JProgressBar(0, 100);
+
+        // Set initial message
+        responseArea.setText("Welcome to Manorrock Assistant");
+
+        // Show help message on startup
+        responseArea.append("\n\nType /help for a list of commands.");
+
+        // Setup key event handler for the requestArea
+        requestArea.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent event) {
+                if (event.getKeyCode() == KeyEvent.VK_ENTER && !event.isShiftDown()) {
+                    handleSendAction();
+                    event.consume(); // Prevents the newline from being added
+                }
+            }
+        });
+
+        sendButton.addActionListener(this);
+
+        // Layout setup (simplified)
+        setLayout(new BorderLayout());
+        add(new JScrollPane(responseArea), BorderLayout.CENTER);
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(new JScrollPane(requestArea), BorderLayout.CENTER);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(sendButton);
+        bottomPanel.add(buttonPanel, BorderLayout.EAST);
+        bottomPanel.add(progressBar, BorderLayout.SOUTH);
+        add(bottomPanel, BorderLayout.SOUTH);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == sendButton) {
+            handleSendAction();
+        }
+    }
+
+    private void handleSendAction() {
+        String userMessage = requestArea.getText().trim();
+
+        if (!userMessage.isEmpty()) {
+            String timestamp = LocalDateTime.now().format(formatter);
+
+            // Display the user's message in the response area
+            responseArea.append("\n\nYou: " + userMessage);
+
+            // Add timestamped message to the Output Window
+            io.getOut().println("[" + timestamp + " - You]\n" + userMessage);
+
+            // Clear the request area
+            requestArea.setText("");
+
+            // Handle /new command specially to clear UI first
+            if (userMessage.equals("/new")) {
+                // Clear the UI
+                responseArea.setText("");
+                responseArea.append("Started a new chat session.\n");
+                // Continue to send /new to CLI to reset its state
+            }
+
+            // Handle /explain command specially like VSCode does
+            if (userMessage.startsWith("/explain")) {
+                EditorCookie editorCookie = getLastFocusedEditorCookie();
+                if (editorCookie != null) {
+                    try {
+                        String selectedText = editorCookie.getOpenedPanes()[0].getSelectedText();
+                        if (selectedText == null || selectedText.isEmpty()) {
+                            selectedText = editorCookie.getDocument().getText(0, editorCookie.getDocument().getLength());
+                        }
+                        if (selectedText.trim().length() == 0) {
+                            responseArea.append("\n\nSystem: No content to explain. Please select some text or ensure the file has content.");
+                            return; // This return is correct - no content to explain
+                        }
+                        
+                        DataObject dataObj = lastFocusedEditor.getLookup().lookup(DataObject.class);
+                        String fileName = dataObj.getPrimaryFile().getNameExt();
+                        String fileInfo = selectedText.equals(editorCookie.getDocument().getText(0, editorCookie.getDocument().getLength())) ?
+                            "entire file: " + fileName :
+                            "selection from " + fileName;
+                        
+                        // Modify the message to match VSCode format exactly
+                        userMessage = "/explain\nExplaining " + fileInfo + 
+                            "\n-----------------------------------------\n" + selectedText;
+                        
+                        // Let user know what's being explained
+                        responseArea.append("\n\nExplaining " + fileInfo + "...\n");
+                    } catch (javax.swing.text.BadLocationException e) {
+                        responseArea.append("\n\nSystem: Error retrieving text from the editor.");
+                        return; // This return is correct - editor error
+                    }
+                } else {
+                    responseArea.append("\n\nSystem: Please select a snippet or open a file to use the /explain command.");
+                    return; // This return is correct - no editor
+                }
+            }
+
+            // Process message through CLI
+            processMessage(userMessage);
+        }
+    }
+
+    private void processMessage(String message) {
+        String timestamp = LocalDateTime.now().format(formatter);
+        
+        sendButton.setEnabled(false);
+        progressBar.setIndeterminate(true);
+        
+        cliExecutor.executeCommand(message)
+            .thenAccept(response -> {
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    responseArea.append("\n\nAssistant: " + response);
+                    responseArea.setCaretPosition(responseArea.getDocument().getLength());
+                    io.getOut().println("[" + timestamp + " - Assistant]\n" + response);
+                    sendButton.setEnabled(true);
+                    progressBar.setIndeterminate(false);
+                });
+            })
+            .exceptionally(e -> {
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    String errorMessage = "Error: " + e.getMessage();
+                    responseArea.append("\n\nSystem: " + errorMessage);
+                    io.getOut().println("[" + timestamp + " - Error]\n" + errorMessage);
+                    sendButton.setEnabled(true);
+                    progressBar.setIndeterminate(false);
+                });
+                return null;
             });
-          }
-        });
+    }
 
-        String response = responseBuilder.toString().trim();
-        javax.swing.SwingUtilities.invokeLater(() -> {
-          io.getOut().println("[" + timestamp + " - Assistant]\n" + response);
-          sendButton.setEnabled(true);
-          progressBar.setIndeterminate(false);
-
-          // Add the assistant's response to the history
-          JSONObject responseObject = new JSONObject();
-          responseObject.put("role", "assistant");
-          responseObject.put("content", response);
-          history.add(responseObject);
-          if (history.size() > 50) {
-            history.removeFirst();
-          }
-        });
-      }).exceptionally(e -> {
-        javax.swing.SwingUtilities.invokeLater(() -> {
-          io.getOut().println("[" + timestamp + " - Error]\n" + e.getMessage());
-          String errorMessage = "Ollama is unavailable.";
-          responseArea.append("\n\nAssistant: " + errorMessage);
-          responseArea.setCaretPosition(responseArea.getDocument().getLength());
-          sendButton.setEnabled(true);
-          progressBar.setIndeterminate(false);
-        });
+    private EditorCookie getLastFocusedEditorCookie() {
+        if (lastFocusedEditor != null) {
+            DataObject dataObject = lastFocusedEditor.getLookup().lookup(DataObject.class);
+            if (dataObject != null) {
+                return dataObject.getLookup().lookup(EditorCookie.class);
+            }
+        }
         return null;
-      });
-    } catch (Exception e) {
-      io.getOut().println("[" + timestamp + " - Error]\n" + e.getMessage());
-      String errorMessage = "Ollama is unavailable.";
-      responseArea.append("\n\nAssistant: " + errorMessage);
-      responseArea.setCaretPosition(responseArea.getDocument().getLength());
-      sendButton.setEnabled(true);
-      progressBar.setIndeterminate(false);
     }
-  }
 
-  private void messageHandler(String message) {
-    responseArea.append("\n\nYou: " + message);
-    processMessage(message);
-  }
-
-  @Override
-  public void focusGained(FocusEvent e) {
-    if (e.getComponent() instanceof TopComponent) {
-      TopComponent tc = (TopComponent) e.getComponent();
-      if (tc.getLookup().lookup(EditorCookie.class) != null) {
-        lastFocusedEditor = tc;
-      }
+    @Override
+    public void focusGained(FocusEvent e) {
+        if (e.getComponent() instanceof TopComponent) {
+            TopComponent tc = (TopComponent) e.getComponent();
+            if (tc.getLookup().lookup(EditorCookie.class) != null) {
+                lastFocusedEditor = tc;
+            }
+        }
     }
-  }
 
-  @Override
-  public void focusLost(FocusEvent e) {
-    // No action needed
-  }
-
-  @Override
-  public void componentOpened() {
-    // Register commands
-    assistance.getCommandRegistry().registerCommand("source", 
-        new SourceCommand(this::processMessage, this::handleCommand));
-    assistance.getCommandRegistry().registerCommand("new", 
-        new NewCommand(this::startNewSession));
-    
-    // Ensure the help command is registered
-    assistance.getCommandRegistry().registerCommand("help", new HelpCommand());
-    
-    // Register deprecated command for model
-    assistance.getCommandRegistry().registerCommand("model", 
-        new DeprecatedCommand("model", "llm model", 
-        assistance.getCommandRegistry().getCommand("llmModel")));
-  }
+    @Override
+    public void focusLost(FocusEvent e) {
+        // No action needed
+    }
 }
