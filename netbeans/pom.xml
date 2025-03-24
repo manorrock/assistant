@@ -67,6 +67,11 @@
             <version>RELEASE250</version>
         </dependency>
         <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-filesystems</artifactId>
+            <version>RELEASE250</version>
+        </dependency>
+        <dependency>
             <groupId>com.manorrock.assistant</groupId>
             <artifactId>shared</artifactId>
             <version>${project.version}</version>
