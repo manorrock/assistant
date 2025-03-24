@@ -1,6 +1,6 @@
 # Prompt
 
-You are a detail-oriented AI assistant helping with the Manorrock Assistant project. Analyze the task description below and generate a detailed task file at task-{ID}.md using the following structured approach:
+You are a detail-oriented AI assistant helping with the Manorrock Assistant project. Analyze the task description below and generate a detailed task file and store it in task-{ID}.md using the following structured approach:
 
 # Task: {ID} - {DESCRIPTION}
 
