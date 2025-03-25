@@ -7,7 +7,6 @@
 ## Tool Integration
 
 2. Primary Tools Integration
-   - [ ] Vector Database for Knowledge Retrieval
    - [ ] API Request Tool Integration
 
 3. Secondary Tools Integration
@@ -56,8 +55,8 @@
    - [ ] Track tool selection accuracy metrics
 
 # Next release
-- [ ] Refactor Desktop application to dispatch to the CLI version
-- [ ] Add a Bing search tool (WebSearchTool)
+- [x] Refactor Desktop application to dispatch to the CLI version
+- [x] Add a web scraper tool to scrape web pages and extract data
 - [ ] Refactor to move all commands into a separate Maven module (command)
 - [ ] Strengthen ProcessExecutionTool description to be clear on when to use it
 - [ ] Refactor to move all tools into a separate Maven module (tool)
@@ -78,12 +77,14 @@
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIProcessor with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIProcessor class. 
-- [ ] Update the WebSearchTool to add DuckDuckGo as a search provider
+- [ ] Add WebSearchTool (DuckDuckGo)
 
 # Next+2 release
 - [ ] Refactor to use the sync chat method instead of doing it asynchronously
 - [ ] Add a DatabaseTool to connect to a database and execute SQL commands
 - [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
+- [ ] Add a Bing search tool (WebSearchTool)
+- [ ] Refactor away old LLM commands and only expose the new LLM commands
 
 # Backlog
 
@@ -176,3 +177,13 @@
 - [ ] Add search analytics tracking
 - [ ] Implement search rate limiting
 - [ ] Add search result deduplication
+- [ ] Design vector database schema for knowledge storage
+- [ ] Implement vector database connection management
+- [ ] Create vector embedding generation service
+- [ ] Add vector similarity search functionality
+- [ ] Implement knowledge chunk storage and retrieval
+- [ ] Create vector database indexing optimization
+- [ ] Add vector database backup and recovery system
+- [ ] Implement vector database monitoring and metrics
+- [ ] Create vector database maintenance utilities
+- [ ] Add vector database query optimization system

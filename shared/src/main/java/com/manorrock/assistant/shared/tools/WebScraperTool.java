@@ -1,0 +1,184 @@
+package com.manorrock.assistant.shared.tools;
+
+import com.manorrock.assistant.shared.Tool;
+import com.manorrock.assistant.shared.ToolParameter;
+import com.manorrock.assistant.shared.ToolResult;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+public class WebScraperTool extends AbstractTool {
+    private static final int DEFAULT_TIMEOUT = 30;
+
+    public WebScraperTool() {
+        super("web_scraper",  // This is correct
+              "Scrapes content from web pages using CSS selectors",
+              Arrays.asList(
+                  new ToolParameter("url", "string", "Target webpage URL", true),
+                  new ToolParameter("method", "string", 
+                      "HTTP method (GET, HEAD, POST, PUT). Default: GET", false),
+                  new ToolParameter("selector", "string", 
+                      "CSS selector for targeting elements. If omitted, returns whole document", false),
+                  new ToolParameter("headers", "object", 
+                      "HTTP headers to include in request. Values must be strings", false),
+                  new ToolParameter("data", "object", 
+                      "Request body data for POST/PUT requests. Can contain any valid JSON values", false),
+                  new ToolParameter("attribute", "string", 
+                      "HTML attribute to extract from matched elements. Default: text", false),
+                  new ToolParameter("timeout", "number", 
+                      "Connection timeout in seconds. Default: 30", false),
+                  new ToolParameter("followRedirects", "boolean", 
+                      "Whether to follow redirects. Default: true", false),
+                  new ToolParameter("outputFormat", "string", 
+                      "Format of the output (html/text/json). Default: text", false)
+              ));
+    }
+
+    @Override
+    public ToolResult execute(Map<String, Object> parameters) {
+        try {
+            // Extract parameters
+            String url = getRequiredString(parameters, "url");
+            String method = getString(parameters, "method", "GET");
+            String selector = getString(parameters, "selector", "");
+            String attribute = getString(parameters, "attribute", "text");
+            int timeout = getInteger(parameters, "timeout", DEFAULT_TIMEOUT);
+            boolean followRedirects = getBoolean(parameters, "followRedirects", true);
+            String outputFormat = getString(parameters, "outputFormat", "text");
+
+            // Validate URL
+            validateUrl(url);
+
+            // Store request headers for later use
+            Map<String, String> requestHeaders = new HashMap<>();
+            requestHeaders.put("User-Agent", "Manorrock-Assistant");
+
+            // Configure connection
+            Connection connection = Jsoup.connect(url)
+                    .method(Connection.Method.valueOf(method))
+                    .timeout((int) TimeUnit.SECONDS.toMillis(timeout))
+                    .followRedirects(followRedirects)
+                    .userAgent("Manorrock-Assistant");
+
+            // Add custom headers
+            if (parameters.containsKey("headers")) {
+                @SuppressWarnings("unchecked")
+                Map<String, String> headers = (Map<String, String>) parameters.get("headers");
+                headers.forEach(connection::header);
+                requestHeaders.putAll(headers);
+            }
+
+            // Add request body for POST/PUT
+            if (parameters.containsKey("data") && (method.equals("POST") || method.equals("PUT"))) {
+                connection.requestBody(parameters.get("data").toString());
+            }
+
+            // Execute request and parse
+            Connection.Response response = connection.execute();
+            Document document = response.parse();
+
+            // Extract content
+            String content;
+            if (!selector.isEmpty()) {
+                Elements elements = document.select(selector);
+                if (elements.isEmpty()) {
+                    return ToolResult.failure("No elements found matching selector: " + selector);
+                }
+                content = extractContent(elements, attribute, outputFormat);
+            } else {
+                content = formatOutput(document, outputFormat);
+            }
+
+            // Build result data
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("url", response.url().toString());
+            resultData.put("rawUrl", url);
+            resultData.put("method", method);
+            resultData.put("statusCode", response.statusCode());
+            resultData.put("content", content);
+            resultData.put("requestHeaders", requestHeaders);
+            resultData.put("responseHeaders", response.headers());
+
+            return ToolResult.success(resultData, "Successfully retrieved document");
+
+        } catch (Exception e) {
+            return ToolResult.failure(e.getMessage());
+        }
+    }
+
+    // ... keep existing helper methods but remove JSON-specific code ...
+    private void validateUrl(String url) throws Exception {
+        new URL(url);
+    }
+
+    private String extractContent(Elements elements, String attribute, String outputFormat) {
+        if (attribute.equals("text")) {
+            return formatOutput(elements, outputFormat);
+        }
+        return elements.stream()
+                .map(e -> e.attr(attribute))
+                .reduce((a, b) -> a + "\n" + b)
+                .orElse("");
+    }
+
+    private String formatOutput(Object content, String format) {
+        switch (format) {
+            case "html":
+                return content instanceof Elements ? 
+                       ((Elements) content).outerHtml() : 
+                       ((Document) content).outerHtml();
+            case "json":
+                return formatAsJson(content);
+            default: // text
+                return content instanceof Elements ? 
+                       ((Elements) content).text() : 
+                       ((Document) content).text();
+        }
+    }
+
+    private String formatAsJson(Object content) {
+        Map<String, Object> json = new HashMap<>();
+        if (content instanceof Elements elements) {
+            json.put("count", elements.size());
+            json.put("elements", elements.stream()
+                    .map(Element::outerHtml)
+                    .toArray());
+        } else if (content instanceof Document document) {
+            json.put("title", document.title());
+            json.put("content", document.text());
+        }
+        return json.toString();
+    }
+
+    private String getRequiredString(Map<String, Object> params, String name) {
+        Object value = params.get(name);
+        if (value == null) {
+            throw new IllegalArgumentException("Missing required parameter: " + name);
+        }
+        return value.toString();
+    }
+
+    private String getString(Map<String, Object> params, String name, String defaultValue) {
+        Object value = params.get(name);
+        return value != null ? value.toString() : defaultValue;
+    }
+
+    private int getInteger(Map<String, Object> params, String name, int defaultValue) {
+        Object value = params.get(name);
+        return value != null ? Integer.parseInt(value.toString()) : defaultValue;
+    }
+
+    private boolean getBoolean(Map<String, Object> params, String name, boolean defaultValue) {
+        Object value = params.get(name);
+        return value != null ? Boolean.parseBoolean(value.toString()) : defaultValue;
+    }
+}
