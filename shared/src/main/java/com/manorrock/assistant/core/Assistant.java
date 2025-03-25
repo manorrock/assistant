@@ -25,11 +25,11 @@
  */
 package com.manorrock.assistant.core;
 
+import com.manorrock.assistant.api.CommandRegistry;
 import com.manorrock.assistant.llm.Llm;
 import com.manorrock.assistant.llm.LlmConfiguration;
 import com.manorrock.assistant.llm.LlmRequest;
 import com.manorrock.assistant.llm.LlmResponse;
-import com.manorrock.assistant.shared.CommandRegistry;
 
 /**
  * The Assistant class is the reusable component of the Assistant application.

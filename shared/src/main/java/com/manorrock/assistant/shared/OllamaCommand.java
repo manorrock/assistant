@@ -1,5 +1,6 @@
 package com.manorrock.assistant.shared;
 
+import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.llm.LlmConfiguration;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

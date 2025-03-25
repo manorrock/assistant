@@ -1,10 +1,11 @@
 package com.manorrock.assistant.cli;
 
-import com.manorrock.assistant.shared.Command;
-import com.manorrock.assistant.shared.HelpCommand;
+
 
 import dev.langchain4j.data.message.ChatMessage;
 
+import com.manorrock.assistant.api.Command;
+import com.manorrock.assistant.command.HelpCommand;
 import com.manorrock.assistant.core.Assistant;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

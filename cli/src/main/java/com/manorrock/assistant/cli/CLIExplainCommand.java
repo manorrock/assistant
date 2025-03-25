@@ -1,6 +1,6 @@
 package com.manorrock.assistant.cli;
 
-import com.manorrock.assistant.shared.Command;
+import com.manorrock.assistant.api.Command;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
