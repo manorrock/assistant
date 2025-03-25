@@ -7,7 +7,6 @@
 ## Tool Integration
 
 3. Secondary Tools Integration
-   - [ ] Web Browsing/Scraping
    - [ ] GitHub Integration
    - [ ] Structured Data Extraction
 
@@ -56,7 +55,7 @@
 - [x] Refactor IntelliJ plugin to dispatch to the CLI version
 - [x] Refactor Desktop application to dispatch to the CLI version
 - [x] Add a web scraper tool to scrape web pages and extract data
-- [ ] Refactor to move all non-UI commands into a separate Maven module (command)
+- [x] Refactor to move all non-UI commands into a separate Maven module (command)
 - [ ] Strengthen ProcessExecutionTool description to be clear on when to use it
 - [ ] Refactor to move all tools into a separate Maven module (tool)
 - [ ] Add a tool to scaffold a Maven project using Maven archetypes
@@ -208,3 +207,18 @@
 - [ ] Implement API versioning support
 - [ ] Add API request timeout handling
 - [ ] Create API error handling and recovery system
+- [ ] Implement WebScraperTool configuration options for authentication
+- [ ] Add capability to render JavaScript in web scraping operations
+- [ ] Create structured data extraction patterns for common websites
+- [ ] Implement web content caching system for scraped pages
+- [ ] Add intelligent throttling for web scraping operations
+- [ ] Create web scraping session management
+- [ ] Add proxy support for web browsing operations
+- [ ] Implement headless browser integration for complex web interactions
+- [ ] Add cookie and session state management for web browsing
+- [ ] Create visual selector tool for defining scraping targets
+- [ ] Implement site-specific scraping rule templates
+- [ ] Add content transformation pipelines for scraped data
+- [ ] Implement robots.txt compliance checking for ethical scraping
+- [ ] Create scraping monitoring and analytics dashboard
+- [ ] Add support for handling captchas during web scraping

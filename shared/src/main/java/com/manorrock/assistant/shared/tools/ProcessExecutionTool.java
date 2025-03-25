@@ -6,7 +6,6 @@ import com.manorrock.assistant.shared.ToolResult;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,11 +21,17 @@ import org.json.JSONObject;
 public class ProcessExecutionTool implements Tool {
     
     private static final String NAME = "process_execution";
-    private static final String DESCRIPTION = "Executes a command on the local system and returns the output. Can be configured to run with specific environment variables, working directory, and timeout. Not meant for shell execution.";
+    private static final String DESCRIPTION = "Executes a command on the local system and returns the output. "
+        + "IMPORTANT: Use this tool ONLY for directly executing specific binaries or commands WITHOUT shell features "
+        + "(like pipes, redirections, or shell builtins). "
+        + "GOOD examples: Running 'java', 'git', 'python', or other executables directly. "
+        + "DO NOT use for: Shell commands with pipes (|), redirections (>, >>), environment variable expansion ($VAR), "
+        + "or shell built-ins. For those cases, use shell_execution instead. "
+        + "Can be configured with environment variables, working directory (must exist), and timeout.";
     private static final List<ToolParameter> PARAMETERS = Arrays.asList(
         new ToolParameter("command", "string", "The command to execute", true),
         new ToolParameter("args", "string", "Command arguments", false),
-        new ToolParameter("workingDirectory", "string", "The working directory to execute the command in. Default is the current directory.", false),
+        new ToolParameter("workingDirectory", "string", "The working directory to execute the command in. Must exist. Default is the current directory.", false),
         new ToolParameter("environmentVariables", "object", "Map of environment variables to set for the process.", false),
         new ToolParameter("timeoutSeconds", "number", "Maximum time in seconds to wait for the command to complete. Default is 60 seconds.", false)
     );
@@ -59,6 +64,12 @@ public class ProcessExecutionTool implements Tool {
             String workingDirectory = (String) parameters.getOrDefault("workingDirectory", System.getProperty("user.dir"));
             long timeoutSeconds = parameters.containsKey("timeoutSeconds") ? 
                     ((Number) parameters.get("timeoutSeconds")).longValue() : 60L;
+            
+            // Validate working directory exists
+            File workDir = new File(workingDirectory);
+            if (!workDir.exists() || !workDir.isDirectory()) {
+                return ToolResult.failure("Working directory '" + workingDirectory + "' does not exist or is not a directory");
+            }
             
             // Build command list with proper shell handling
             List<String> commandAndArgs = new ArrayList<>();
