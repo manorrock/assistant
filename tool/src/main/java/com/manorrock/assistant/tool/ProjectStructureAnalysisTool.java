@@ -1,8 +1,8 @@
-package com.manorrock.assistant.shared.tools;
+package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.shared.ToolExecutionException;
-import com.manorrock.assistant.shared.ToolParameter;
-import com.manorrock.assistant.shared.ToolResult;
+import com.manorrock.assistant.api.ToolExecutionException;
+import com.manorrock.assistant.api.ToolParameter;
+import com.manorrock.assistant.api.ToolResult;
 
 import java.io.IOException;
 import java.nio.file.Files;

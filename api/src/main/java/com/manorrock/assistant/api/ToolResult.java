@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.api;
 
 import java.util.HashMap;
 import java.util.Map;

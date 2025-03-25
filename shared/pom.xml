@@ -15,12 +15,15 @@
     <name>Manorrock Assistant - Shared</name>
     <description>Shared module for common utilities</description>
 
-    <properties>
-        <jsoup.version>1.16.2</jsoup.version>
-    </properties>
 
     <dependencies>
         <!-- Add your dependencies here -->
+
+        <dependency>
+            <groupId>com.manorrock.assistant</groupId>
+            <artifactId>tool</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -31,11 +34,6 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
             <version>1.0.0-beta2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20231013</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -53,9 +51,9 @@
             <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
-            <version>${jsoup.version}</version>
+            <groupId>com.manorrock.assistant</groupId>
+            <artifactId>api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.manorrock.assistant</groupId>

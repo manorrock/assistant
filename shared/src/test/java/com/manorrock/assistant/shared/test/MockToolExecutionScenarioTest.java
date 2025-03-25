@@ -1,7 +1,8 @@
 package com.manorrock.assistant.shared.test;
 
-import com.manorrock.assistant.shared.ToolParameter;
-import com.manorrock.assistant.shared.ToolResult;
+import com.manorrock.assistant.api.ToolParameter;
+import com.manorrock.assistant.api.ToolResult;
+
 import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;

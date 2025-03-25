@@ -1,8 +1,9 @@
-package com.manorrock.assistant.shared.tools;
+package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.shared.Tool;
-import com.manorrock.assistant.shared.ToolParameter;
-import com.manorrock.assistant.shared.ToolResult;
+import com.manorrock.assistant.api.Tool;
+import com.manorrock.assistant.api.ToolParameter;
+import com.manorrock.assistant.api.ToolResult;
+
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

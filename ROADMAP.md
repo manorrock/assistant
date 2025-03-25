@@ -56,7 +56,7 @@
 - [x] Refactor Desktop application to dispatch to the CLI version
 - [x] Add a web scraper tool to scrape web pages and extract data
 - [x] Refactor to move all non-UI commands into a separate Maven module (command)
-- [ ] Strengthen ProcessExecutionTool description to be clear on when to use it
+- [x] Strengthen ProcessExecutionTool description to be clear on when to use it
 - [ ] Refactor to move all tools into a separate Maven module (tool)
 - [ ] Add a tool to scaffold a Maven project using Maven archetypes
 - [ ] Refactor all implementations to use a shared Assistant Executor (CLIExecutor)

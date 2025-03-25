@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.api;
 
 /**
  * Exception thrown when a tool execution fails.
