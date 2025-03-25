@@ -169,16 +169,25 @@ public class CLI implements Callable<Integer> {
   private void initializeToolManager() {
     toolManager = new DefaultToolManager();
     
+    // Add debug logging
+    System.out.println("Initializing tool manager...");
+    
     // Register default tools
     registerTool(new FileReadTool());
     registerTool(new DirectoryListTool());
-    registerTool(new ShellExecutionTool());  // Add this line
+    registerTool(new ShellExecutionTool());
     registerTool(new ProcessExecutionTool());
     registerTool(new ProjectStructureAnalysisTool());
     registerTool(new DependencyAnalysisTool());
     
     // Discover and register custom tools
     discoverAndRegisterCustomTools();
+    
+    // Log registered tools
+    System.out.println("Registered tools: " + 
+        toolManager.getAvailableTools().stream()
+            .map(Tool::getName)
+            .collect(Collectors.joining(", ")));
   }
   
   /**
@@ -925,6 +934,7 @@ public class CLI implements Callable<Integer> {
    * @throws IllegalArgumentException if arguments are invalid
    */
   private Map<String, Object> mapToolArguments(String toolName, String requestArgs) {
+    // Check if tool exists by trying to find it in available tools
     Tool tool = toolManager.getAvailableTools().stream()
         .filter(t -> t.getName().equals(toolName))
         .findFirst()
@@ -983,10 +993,8 @@ public class CLI implements Callable<Integer> {
                     if (value instanceof Map) {
                         mappedArgs.put(paramName, value);
                     } else if (value instanceof String && ((String) value).trim().isEmpty()) {
-                        // Handle empty string case for maps by providing an empty map
                         mappedArgs.put(paramName, new HashMap<>());
                     } else {
-                        // Try to parse as JSON if it's a string
                         try {
                             JSONObject jsonObj = new JSONObject(value.toString());
                             mappedArgs.put(paramName, jsonObj.toMap());
@@ -1000,10 +1008,8 @@ public class CLI implements Callable<Integer> {
                     if (value instanceof List) {
                         mappedArgs.put(paramName, value);
                     } else if (value instanceof String && ((String) value).trim().isEmpty()) {
-                        // Handle empty string case for lists by providing an empty list
                         mappedArgs.put(paramName, new ArrayList<>());
                     } else {
-                        // Try to parse as JSON if it's a string
                         try {
                             JSONArray jsonArray = new JSONArray(value.toString());
                             List<Object> list = new ArrayList<>();

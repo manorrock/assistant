@@ -10,6 +10,7 @@ import com.manorrock.assistant.shared.tools.DirectoryListTool;
 import com.manorrock.assistant.shared.tools.ProcessExecutionTool;
 import com.manorrock.assistant.shared.tools.ProjectStructureAnalysisTool;
 import com.manorrock.assistant.shared.tools.DependencyAnalysisTool;
+import com.manorrock.assistant.shared.tools.WebScraperTool;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -72,6 +73,9 @@ public class CliToolRegistry {
         // Project analysis tools
         registerTool(new ProjectStructureAnalysisTool());
         registerTool(new DependencyAnalysisTool());
+        
+        // Web tools
+        registerTool(new WebScraperTool());
         
         LOGGER.info("Registered " + registeredTools.size() + " default tools");
     }
@@ -222,7 +226,6 @@ public class CliToolRegistry {
         // 1. Scan the directory for JAR files or scripts
         // 2. Load those as tools
         // 3. Register them with the tool manager
-        
         LOGGER.info("Scanning directory for tools: " + directory);
         return 0;
     }
