@@ -6,9 +6,6 @@
 
 ## Tool Integration
 
-2. Primary Tools Integration
-   - [ ] API Request Tool Integration
-
 3. Secondary Tools Integration
    - [ ] Web Browsing/Scraping
    - [ ] GitHub Integration
@@ -55,9 +52,11 @@
    - [ ] Track tool selection accuracy metrics
 
 # Next release
+- [x] Refactor Eclipse plugin to dispatch to the CLI version
+- [x] Refactor IntelliJ plugin to dispatch to the CLI version
 - [x] Refactor Desktop application to dispatch to the CLI version
 - [x] Add a web scraper tool to scrape web pages and extract data
-- [ ] Refactor to move all commands into a separate Maven module (command)
+- [ ] Refactor to move all non-UI commands into a separate Maven module (command)
 - [ ] Strengthen ProcessExecutionTool description to be clear on when to use it
 - [ ] Refactor to move all tools into a separate Maven module (tool)
 - [ ] Add a tool to scaffold a Maven project using Maven archetypes
@@ -85,6 +84,14 @@
 - [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
 - [ ] Add a Bing search tool (WebSearchTool)
 - [ ] Refactor away old LLM commands and only expose the new LLM commands
+- [ ] Add a WorkflowTool to create, manage and execute workflows using a simple DSL structured as JSON
+- [ ] Update IntelliJ gradle build to use the version from the top-levvel pom.xml file
+- [ ] Add /assistant comamnd that will execute a prompt by:
+      - Creating workflow
+      - Executing the workflow
+      - Returning the result of the workflow (prompt)
+- [ ] Refactor to use Manorrock standard trigger workflow
+- [ ] Support the ability to select Yes or No for a given tool request invocation
 
 # Backlog
 
@@ -93,7 +100,6 @@
       instead of the SNAPSHOT release and update the README.md to accomodate for that
 - [ ] Create a unified error code system for all command operations
 - [ ] Add internationalization support for error messages
-- [ ] Update IntelliJ gradle build to use the version from the top-levvel pom.xml file
 - [ ] Create response internationalization framework for message localization
 - [ ] Implement response compression for network transfers
 - [ ] Add response signature/verification for secure commands
@@ -120,7 +126,7 @@
 - [ ] Add error pattern detection for proactive issue resolution
 - [ ] Remove unused code
 - [ ] Change release workflow to only keep the last 3 release and the SNAPSHOT artifacts
-- [ ] Refactor to use Manorrock standard trigger and release workflows
+- [ ] Refactor to use Manorrock standard release workflow
 - [ ] Add MSI to required workflows
 - [ ] Add a job to the build workflow to remove the SNAPSHOT release 
       prior to running any of the platform specific jobs that will 
@@ -187,3 +193,18 @@
 - [ ] Implement vector database monitoring and metrics
 - [ ] Create vector database maintenance utilities
 - [ ] Add vector database query optimization system
+- [ ] Create base APIRequestTool interface and implementation
+- [ ] Add support for HTTP methods (GET, POST, PUT, DELETE, PATCH)
+- [ ] Implement request header management system
+- [ ] Add request body handling for different content types
+- [ ] Implement response parsing for common formats (JSON, XML, Text)
+- [ ] Add API authentication support (Basic, Bearer, OAuth)
+- [ ] Implement API rate limiting and throttling
+- [ ] Create API request caching mechanism
+- [ ] Add API request retry logic with backoff
+- [ ] Implement API response validation
+- [ ] Add API request logging and monitoring
+- [ ] Create API documentation generator
+- [ ] Implement API versioning support
+- [ ] Add API request timeout handling
+- [ ] Create API error handling and recovery system

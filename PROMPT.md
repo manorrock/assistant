@@ -14,6 +14,7 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
    - Shared module (shared/) - contains common code and APIs used by all modules
    - CLI implementation (cli/) - uses Maven and Java
    - VSCode extension (vscode/) - uses TypeScript/JavaScript
+   - Command module (command/) - contains non-UI command implementations used across modules
 
 2. Component Analysis:
    - Identify affected modules in multi-module project
@@ -25,6 +26,7 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
    - Document common test scenarios
    - Identify cross-platform command patterns for consistency
    - Analyze existing implementations of similar features across platforms
+   - Identify module dependencies and update requirements
 
 3. Implementation Requirements:
    - File-by-file changes with validated paths relative to project root
@@ -35,9 +37,11 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
    - Platform-specific adaptations
    - Consider editor-specific APIs when implementing IDE features
    - Handle platform-specific build system requirements (Maven vs Gradle)
+   - Update Maven/Gradle dependencies as needed for module changes
 
 4. Documentation Requirements:
    - Update README.md where applicable
+   - Document module structure changes when refactoring
 
 5. Testing Requirements:
    - Do NOT include test cases in the task file
@@ -56,6 +60,7 @@ You are a detail-oriented AI assistant helping with the Manorrock Assistant proj
    - Utilize and update existing code if available
    - Note platform-specific considerations (e.g., Kotlin vs Java, different APIs)
    - Address build system considerations (e.g., Maven vs Gradle)
+   - Include package refactoring steps when moving code between modules
 
 ## Handling Removal Tasks
 
@@ -97,6 +102,18 @@ When implementing changes that affect build processes:
 3. Test builds in isolation before integration
 4. Use appropriate platform-specific build commands and configurations
 5. Handle dependency resolution carefully between modules
+6. Update module dependencies when refactoring code across modules
+
+## Module Refactoring Guidelines
+
+When moving code between modules:
+1. Analyze all dependencies before moving code
+2. Update package declarations consistently
+3. Modify import statements in all affected files
+4. Update build configuration files (pom.xml, build.gradle.kts)
+5. Maintain backward compatibility where possible
+6. Validate builds after each significant change
+7. Consider transitive dependencies and their impacts
 
 All file paths MUST:
 - Exist in the project

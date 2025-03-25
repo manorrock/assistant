@@ -70,16 +70,36 @@ public class WebScraperTool extends AbstractTool {
                     .userAgent("Manorrock-Assistant");
 
             // Add custom headers
-            if (parameters.containsKey("headers")) {
-                @SuppressWarnings("unchecked")
-                Map<String, String> headers = (Map<String, String>) parameters.get("headers");
-                headers.forEach(connection::header);
-                requestHeaders.putAll(headers);
+            if (parameters.containsKey("headers") && parameters.get("headers") != null) {
+                Object headersObj = parameters.get("headers");
+                if (headersObj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, String> headers = (Map<String, String>) headersObj;
+                    headers.forEach((key, value) -> {
+                        connection.header(key, value);
+                        requestHeaders.put(key, value);
+                    });
+                } else if (headersObj instanceof String && !((String) headersObj).isEmpty()) {
+                    // If headers is a non-empty string but not a map, it's an error
+                    return ToolResult.failure("Headers parameter must be a map of key-value pairs");
+                }
+                // If it's an empty string, just ignore it
             }
 
             // Add request body for POST/PUT
-            if (parameters.containsKey("data") && (method.equals("POST") || method.equals("PUT"))) {
-                connection.requestBody(parameters.get("data").toString());
+            if (parameters.containsKey("data") && parameters.get("data") != null && 
+                (method.equals("POST") || method.equals("PUT"))) {
+                Object dataObj = parameters.get("data");
+                if (dataObj instanceof Map || dataObj instanceof List) {
+                    connection.requestBody(dataObj.toString());
+                } else if (dataObj instanceof String) {
+                    if (!((String) dataObj).isEmpty()) {
+                        connection.requestBody((String) dataObj);
+                    }
+                    // If it's an empty string, just ignore it
+                } else {
+                    connection.requestBody(dataObj.toString());
+                }
             }
 
             // Execute request and parse
@@ -174,7 +194,22 @@ public class WebScraperTool extends AbstractTool {
 
     private int getInteger(Map<String, Object> params, String name, int defaultValue) {
         Object value = params.get(name);
-        return value != null ? Integer.parseInt(value.toString()) : defaultValue;
+        if (value == null) {
+            return defaultValue;
+        }
+        
+        // Handle floating-point numbers by converting to double first, then to int
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        } else {
+            // For string values, try to parse as double first to handle decimal values
+            try {
+                return (int) Double.parseDouble(value.toString());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(
+                    "Invalid integer value for parameter '" + name + "': " + value);
+            }
+        }
     }
 
     private boolean getBoolean(Map<String, Object> params, String name, boolean defaultValue) {

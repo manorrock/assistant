@@ -1,7 +1,7 @@
 package com.manorrock.assistant.cli;
 
-import com.manorrock.assistant.shared.Command;
-import com.manorrock.assistant.shared.NewCommand;
+import com.manorrock.assistant.api.Command;
+import com.manorrock.assistant.command.NewCommand;
 import com.manorrock.assistant.core.Assistant;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

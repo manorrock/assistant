@@ -1,16 +1,16 @@
 package com.manorrock.assistant.cli;
 
-import com.manorrock.assistant.shared.Command;
-import com.manorrock.assistant.shared.DefaultToolManager;
-import com.manorrock.assistant.shared.DeprecatedCommand;
-import com.manorrock.assistant.shared.HelpCommand;
-import com.manorrock.assistant.llm.LlmConfiguration;
+import com.manorrock.assistant.api.Command;
+import com.manorrock.assistant.api.CommandRegistry;
+import com.manorrock.assistant.command.DeprecatedCommand;
+import com.manorrock.assistant.command.HelpCommand;
+import com.manorrock.assistant.command.NewCommand;
+import com.manorrock.assistant.command.SourceCommand;
 import com.manorrock.assistant.shared.LlmModelCommand;
-import com.manorrock.assistant.shared.NewCommand;
 import com.manorrock.assistant.shared.OllamaCommand;
-import com.manorrock.assistant.shared.SourceCommand;
-import com.manorrock.assistant.shared.ToolManager;
+import com.manorrock.assistant.shared.DefaultToolManager;
 import com.manorrock.assistant.core.Assistant;
+import com.manorrock.assistant.llm.LlmConfiguration;
 
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
@@ -71,15 +71,25 @@ import com.manorrock.assistant.shared.tools.generic.JsonBasedTool;
 import com.manorrock.assistant.shared.tools.generic.ScriptBasedTool;
 import com.manorrock.assistant.shared.ToolCommand;
 import com.manorrock.assistant.shared.ToolExecutionException;
+import com.manorrock.assistant.shared.ToolManager;
 import java.util.stream.Collectors;
 import java.util.HashMap;
+import com.manorrock.assistant.shared.tools.WebScraperTool;
+import com.manorrock.assistant.shared.tools.FileWriteTool;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
+import java.util.logging.ConsoleHandler;
 
 @picocli.CommandLine.Command(name = "assistant-cli", mixinStandardHelpOptions = true, versionProvider = CLI.PropertiesVersionProvider.class, description = "CLI version of the Manorrock Assistant")
 public class CLI implements Callable<Integer> {
 
+  private static final Logger LOGGER = Logger.getLogger(CLI.class.getName());
+  private static final Duration TIMEOUT = Duration.ofMinutes(5);
+  
   private LlmConfiguration config;
   private ToolManager toolManager;
-  // Remove the separate registeredTools list, we'll use toolManager.getAvailableTools() instead
   private boolean useToolIntegration = false;
   private Assistant assistance;
 
@@ -88,6 +98,9 @@ public class CLI implements Callable<Integer> {
 
   @Option(names = {"-i", "--interactive"}, description = "Start in interactive mode")
   private boolean interactive = false;
+  
+  @Option(names = {"--debug"}, description = "Enable debug logging")
+  private boolean debug = false;
 
   @Parameters(paramLabel = "MESSAGE", description = "Message to send", arity = "0..1")
   private String message;
@@ -95,19 +108,45 @@ public class CLI implements Callable<Integer> {
   private LinkedList<ChatMessage> history = new LinkedList<>();
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
   private Path stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "cli-state");
-  private static final Duration TIMEOUT = Duration.ofMinutes(5);
 
   public CLI() {
     assistance = new Assistant();
   }
 
   public static void main(String[] args) {
+    // Configure default logging to only show warnings and errors
+    configureLogging(Level.WARNING);
+    
     int exitCode = new CommandLine(new CLI()).execute(args);
     System.exit(exitCode);
+  }
+  
+  /**
+   * Configure logging with the specified level.
+   *
+   * @param level The logging level to set
+   */
+  private static void configureLogging(Level level) {
+    // Set root logger level
+    Logger rootLogger = LogManager.getLogManager().getLogger("");
+    rootLogger.setLevel(level);
+    
+    // Set console handler level
+    for (Handler handler : rootLogger.getHandlers()) {
+      if (handler instanceof ConsoleHandler) {
+        handler.setLevel(level);
+      }
+    }
   }
 
   @Override
   public Integer call() throws Exception {
+    // Set debug mode if requested
+    if (debug) {
+      configureLogging(Level.INFO);
+      LOGGER.info("Debug logging enabled");
+    }
+    
     loadState();
     if (config == null) {
       config = LlmConfiguration.defaultConfig();
@@ -169,22 +208,24 @@ public class CLI implements Callable<Integer> {
   private void initializeToolManager() {
     toolManager = new DefaultToolManager();
     
-    // Add debug logging
-    System.out.println("Initializing tool manager...");
+    // Add debug logging - this will only show if debug flag is enabled
+    LOGGER.info("Initializing tool manager...");
     
     // Register default tools
     registerTool(new FileReadTool());
+    registerTool(new FileWriteTool());  // Added from CliToolRegistry
     registerTool(new DirectoryListTool());
     registerTool(new ShellExecutionTool());
     registerTool(new ProcessExecutionTool());
     registerTool(new ProjectStructureAnalysisTool());
     registerTool(new DependencyAnalysisTool());
+    registerTool(new WebScraperTool());  // Added from CliToolRegistry
     
     // Discover and register custom tools
     discoverAndRegisterCustomTools();
     
-    // Log registered tools
-    System.out.println("Registered tools: " + 
+    // Log registered tools - only visible in debug mode
+    LOGGER.info("Registered tools: " + 
         toolManager.getAvailableTools().stream()
             .map(Tool::getName)
             .collect(Collectors.joining(", ")));
@@ -198,34 +239,49 @@ public class CLI implements Callable<Integer> {
    */
   private boolean registerTool(Tool tool) {
     try {
-      // Use the toolManager for validation before registration
+      // Validate tool before registration
+      validateTool(tool);
+      
+      // Use the toolManager for registration
       toolManager.registerTool(tool);
+      LOGGER.info("Registered tool: " + tool.getName());
       return true;
     } catch (Exception e) {
-      System.err.println("Failed to register tool: " + 
-              (tool != null ? tool.getName() : "null") + " - " + e.getMessage());
+      LOGGER.log(Level.WARNING, "Failed to register tool: " + 
+              (tool != null ? tool.getName() : "null") + " - " + e.getMessage(), e);
       return false;
     }
   }
   
   /**
-   * Execute a tool with the given name and parameters.
-   * This method is used by the ToolCommand.
-   *
-   * @param toolName Name of the tool to execute
-   * @param parameters Parameters to pass to the tool
-   * @return Result of the tool execution
+   * Validate a tool before registration.
+   * 
+   * @param tool The tool to validate
+   * @throws IllegalArgumentException If the tool is invalid
    */
-  private ToolResult executeToolWithParams(String toolName, Map<String, Object> parameters) {
-    try {
-      return toolManager.executeTool(toolName, parameters);
-    } catch (ToolExecutionException e) {
-      return ToolResult.failure(e.getMessage());
+  private void validateTool(Tool tool) {
+    if (tool == null) {
+        throw new IllegalArgumentException("Tool cannot be null");
+    }
+    
+    if (tool.getName() == null || tool.getName().trim().isEmpty()) {
+        throw new IllegalArgumentException("Tool name cannot be null or empty");
+    }
+    
+    if (tool.getDescription() == null || tool.getDescription().trim().isEmpty()) {
+        throw new IllegalArgumentException("Tool description cannot be null or empty");
+    }
+    
+    if (tool.getParameters() == null) {
+        throw new IllegalArgumentException("Tool parameters cannot be null");
+    }
+    
+    // Check for duplicate tool names - use the tool manager's available tools
+    if (toolManager.findTool(tool.getName()).isPresent()) {
+        throw new IllegalArgumentException("Tool with name '" + tool.getName() + "' is already registered");
     }
   }
-
-  // Remove the validateTool method - validation should be handled by the ToolManager
-
+  
   /**
    * Discover and register tools from custom directories.
    * 
@@ -239,7 +295,7 @@ public class CLI implements Callable<Integer> {
     for (Tool tool : serviceLoader) {
       if (registerTool(tool)) {
         count++;
-        System.out.println("Discovered and registered tool via ServiceLoader: " + tool.getName());
+        LOGGER.info("Discovered and registered tool via ServiceLoader: " + tool.getName());
       }
     }
     
@@ -267,16 +323,16 @@ public class CLI implements Callable<Integer> {
         int dirCount = loadToolsFromDirectory(dir);
         count += dirCount;
         if (dirCount > 0) {
-          System.out.println("Discovered and registered " + dirCount + " tools from " + toolDir);
+          LOGGER.info("Discovered and registered " + dirCount + " tools from " + toolDir);
         }
       } else {
         // Create the directory if it doesn't exist
         if (!dir.exists() && toolDir.equals(defaultToolDir)) {
           try {
             Files.createDirectories(dir.toPath());
-            System.out.println("Created tool directory: " + toolDir);
+            LOGGER.info("Created tool directory: " + toolDir);
           } catch (IOException e) {
-            System.err.println("Failed to create tool directory: " + toolDir + " - " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Failed to create tool directory: " + toolDir, e);
           }
         }
       }
@@ -303,7 +359,7 @@ public class CLI implements Callable<Integer> {
         try {
           count += loadToolsFromJar(jarFile);
         } catch (Exception e) {
-          System.err.println("Error loading tools from JAR: " + jarFile.getName() + " - " + e.getMessage());
+          LOGGER.log(Level.FINE, "Error loading tools from JAR: " + jarFile.getName(), e);
         }
       }
     }
@@ -317,7 +373,7 @@ public class CLI implements Callable<Integer> {
             count++;
           }
         } catch (Exception e) {
-          System.err.println("Error loading tool from JSON: " + jsonFile.getName() + " - " + e.getMessage());
+          LOGGER.log(Level.WARNING, "Error loading tool from JSON: " + jsonFile.getName(), e);
         }
       }
     }
@@ -337,7 +393,7 @@ public class CLI implements Callable<Integer> {
               count++;
             }
           } catch (Exception e) {
-            System.err.println("Error loading script tool: " + scriptFile.getName() + " - " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Error loading script tool: " + scriptFile.getName(), e);
           }
         }
       }
@@ -363,7 +419,7 @@ public class CLI implements Callable<Integer> {
       for (Tool tool : serviceLoader) {
         if (registerTool(tool)) {
           count++;
-          System.out.println("Registered tool from JAR " + jarFile.getName() + ": " + tool.getName());
+          LOGGER.info("Registered tool from JAR " + jarFile.getName() + ": " + tool.getName());
         }
       }
     }
@@ -1034,6 +1090,27 @@ public class CLI implements Callable<Integer> {
     });
     
     return mappedArgs;
+  }
+
+  /**
+   * Execute a tool with the given name and parameters.
+   * This method is used by the ToolCommand.
+   *
+   * @param toolName Name of the tool to execute
+   * @param parameters Parameters to pass to the tool
+   * @return Result of the tool execution
+   */
+  private ToolResult executeToolWithParams(String toolName, Map<String, Object> parameters) {
+    try {
+      return toolManager.executeTool(toolName, parameters);
+    } catch (ToolExecutionException e) {
+      // Only log at FINE level, so it shows in debug mode but not in error output
+      LOGGER.log(Level.FINE, "Tool execution failed: " + e.getMessage(), e);
+      return ToolResult.failure(e.getMessage());
+    } catch (IllegalArgumentException e) {
+      LOGGER.log(Level.FINE, "Invalid tool or parameters: " + e.getMessage(), e);
+      return ToolResult.failure(e.getMessage());
+    }
   }
 
   private void startInteractiveMode() {

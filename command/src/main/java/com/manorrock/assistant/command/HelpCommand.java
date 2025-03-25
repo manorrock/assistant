@@ -1,5 +1,6 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.command;
 
+import com.manorrock.assistant.api.Command;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
