@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.api;
 
 /**
  * Represents a parameter for a tool.

@@ -1,7 +1,10 @@
 package com.manorrock.assistant.shared.tools;
 
-import com.manorrock.assistant.shared.ToolResult;
 import org.junit.jupiter.api.Test;
+
+import com.manorrock.assistant.api.ToolResult;
+import com.manorrock.assistant.tool.EchoTool;
+
 import java.util.Collections;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.api;
 
 /**
  * Represents the lifecycle states of a tool.

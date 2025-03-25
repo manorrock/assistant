@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.manorrock.assistant.api.Tool;
+import com.manorrock.assistant.api.ToolParameter;
+
 /**
  * Utility class for serializing and deserializing tool-related objects.
  * This ensures consistent formats between Java and TypeScript implementations.

@@ -1,10 +1,12 @@
 package com.manorrock.assistant.cli;
 
+import com.manorrock.assistant.api.Tool;
+import com.manorrock.assistant.api.ToolManager;
+import com.manorrock.assistant.api.ToolParameter;
+import com.manorrock.assistant.api.ToolResult;
+import com.manorrock.assistant.api.ToolLifecycle;
 import com.manorrock.assistant.shared.DefaultToolManager;
-import com.manorrock.assistant.shared.Tool;
-import com.manorrock.assistant.shared.ToolManager;
-import com.manorrock.assistant.shared.ToolParameter;
-import com.manorrock.assistant.shared.ToolResult;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -132,12 +134,12 @@ public class CliToolRegistryTest {
             }
 
             @Override
-            public com.manorrock.assistant.shared.ToolLifecycle getLifecycle() {
-                return com.manorrock.assistant.shared.ToolLifecycle.READY;
+            public ToolLifecycle getLifecycle() {
+                return ToolLifecycle.READY;
             }
 
             @Override
-            public void setLifecycle(com.manorrock.assistant.shared.ToolLifecycle lifecycle) {
+            public void setLifecycle(ToolLifecycle lifecycle) {
                 // No-op
             }
         };
@@ -196,12 +198,12 @@ public class CliToolRegistryTest {
             }
 
             @Override
-            public com.manorrock.assistant.shared.ToolLifecycle getLifecycle() {
-                return com.manorrock.assistant.shared.ToolLifecycle.READY;
+            public ToolLifecycle getLifecycle() {
+                return ToolLifecycle.READY;
             }
 
             @Override
-            public void setLifecycle(com.manorrock.assistant.shared.ToolLifecycle lifecycle) {
+            public void setLifecycle(ToolLifecycle lifecycle) {
                 // No-op for mock
             }
         };

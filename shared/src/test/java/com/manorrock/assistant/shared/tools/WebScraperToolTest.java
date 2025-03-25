@@ -1,8 +1,10 @@
 package com.manorrock.assistant.shared.tools;
 
-import com.manorrock.assistant.shared.ToolResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.manorrock.assistant.api.ToolResult;
+import com.manorrock.assistant.tool.WebScraperTool;
 
 import java.util.Collections;
 import java.util.HashMap;

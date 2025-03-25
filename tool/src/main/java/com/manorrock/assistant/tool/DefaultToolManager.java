@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.tool;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,6 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.manorrock.assistant.api.Tool;
+import com.manorrock.assistant.api.ToolExecutionException;
+import com.manorrock.assistant.api.ToolLifecycle;
+import com.manorrock.assistant.api.ToolManager;
+import com.manorrock.assistant.api.ToolParameter;
+import com.manorrock.assistant.api.ToolResult;
 
 /**
  * Default implementation of the ToolManager interface.
