@@ -197,13 +197,13 @@ public class CLI implements Callable<Integer> {
     
     // Register default tools
     registerTool(new FileReadTool());
-    registerTool(new FileWriteTool());  // Added from CliToolRegistry
+    registerTool(new FileWriteTool());
     registerTool(new DirectoryListTool());
     registerTool(new ShellExecutionTool());
     registerTool(new ProcessExecutionTool());
     registerTool(new ProjectStructureAnalysisTool());
     registerTool(new DependencyAnalysisTool());
-    registerTool(new WebScraperTool());  // Added from CliToolRegistry
+    registerTool(new WebScraperTool());
     registerTool(new MavenArchetypeTool());
     
     // Discover and register custom tools
