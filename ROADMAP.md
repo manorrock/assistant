@@ -55,7 +55,7 @@
 - [ ] Add a /plan create command to create a structured plan for a given PROMPT
 - [x] Refactor Eclipse plugin to be a flat structure in com.manorrock.asistant.eclipse package
 - [ ] Add a /plan execute command to execute a given plan
-- [ ] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
+- [x] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
 - [ ] Add command category system for organizing and grouping related commands
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
