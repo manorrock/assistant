@@ -15,7 +15,6 @@
     <module>netbeans</module>
     <module>shared</module>
     <module>tool</module>
-    <module>windows</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
