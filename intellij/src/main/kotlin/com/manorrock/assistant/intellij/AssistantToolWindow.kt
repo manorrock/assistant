@@ -32,7 +32,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.function.Consumer
 
-class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
+class AssistantToolWindow : ToolWindowFactory, ActionListener {
     private lateinit var responseArea: JTextArea
     private lateinit var requestArea: JTextArea
     private lateinit var sendButton: JButton

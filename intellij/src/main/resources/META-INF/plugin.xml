@@ -26,7 +26,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow id="Assistant" 
                 anchor="right" 
-                factoryClass="com.manorrock.assistant.intellij.IntelliJControllerTopComponent"
+                factoryClass="com.manorrock.assistant.intellij.AssistantToolWindow"
                 secondary="false"
                 icon="AllIcons.General.Modified"/>
   </extensions>
