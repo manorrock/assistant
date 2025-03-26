@@ -7,7 +7,6 @@
 ## Tool Integration
 
 3. Secondary Tools Integration
-   - [ ] GitHub Integration
    - [ ] Structured Data Extraction
 
 4. Tertiary Tools Integration
@@ -52,36 +51,36 @@
 
 # Next release
 - [x] Refactor NetBeansControllerTopComponent to AssistantTopComponent
-- [ ] Add a /plan create command to create a structured plan for a given PROMPT
 - [x] Refactor Eclipse plugin to be a flat structure in com.manorrock.asistant.eclipse package
-- [ ] Add a /plan execute command to execute a given plan
 - [x] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
-- [ ] Add command category system for organizing and grouping related commands
+- [x] Refactor away old LLM commands and only expose the new LLM commands
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 
+- [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
+- [ ] Refactor to use Manorrock standard trigger workflow
+- [ ] Refactor to use Manorrock standard release workflow
+- [ ] Refactor to get rid of the com.manorrock.assistant.core package altogether
+- [ ] Add publishing of VSCode extension to release workflow
+
+# Next+1 release
+- [ ] Add a /plan create command to create a structured plan for a given PROMPT
+- [ ] Add a /plan execute command to execute a given plan
+- [ ] Add command category system for organizing and grouping related commands
 - [ ] Add a Spring Boot application to expose the Assistant as an MCP server
 - [ ] Refactor to use the sync chat method instead of doing it asynchronously
 - [ ] Add WebSearchTool (DuckDuckGo)
-
-# Next+1 release
-- [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
 - [ ] Add a DatabaseTool to connect to a database and execute SQL commands
-- [ ] Refactor to use Manorrock standard trigger workflow
 - [ ] Add a Bing search tool (WebSearchTool)
-- [ ] Refactor away old LLM commands and only expose the new LLM commands
 - [ ] Add a WorkflowTool to create, manage and execute workflows using a simple DSL structured as JSON
 - [ ] Update IntelliJ gradle build to use the version from the top-levvel pom.xml file
+
+# Next+2 release
 - [ ] Add /assistant command that will execute a prompt by:
       - Creating workflow
       - Executing the workflow
       - Returning the result of the workflow (prompt)
-- [ ] Refactor to use Manorrock standard release workflow
 - [ ] Support the ability to select Yes or No for a given tool request invocation
-
-# Next+2 release
-- [ ] Refactor to get rid of the com.manorrock.assistant.core package altogether
-- [ ] Add publishing of VSCode extension to release workflow
 - [ ] Refactor to rename impl module to remote and adjust the package names accordingly
 - [ ] Add a MCPTool to access any MCP server and execute tools exposed by the server
 - [ ] Refactor to rename shared module to impl and adjust the package names accordingly
@@ -216,3 +215,4 @@
 - [ ] Implement robots.txt compliance checking for ethical scraping
 - [ ] Create scraping monitoring and analytics dashboard
 - [ ] Add support for handling captchas during web scraping
+- [ ] Deliver a GitHubTool for GitHub integration

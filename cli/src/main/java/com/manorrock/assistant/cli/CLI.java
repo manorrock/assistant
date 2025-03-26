@@ -34,13 +34,11 @@ import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
-import com.manorrock.assistant.command.DeprecatedCommand;
 import com.manorrock.assistant.command.HelpCommand;
 import com.manorrock.assistant.command.NewCommand;
 import com.manorrock.assistant.command.SourceCommand;
 import com.manorrock.assistant.core.Assistant;
 import com.manorrock.assistant.llm.LlmConfiguration;
-import com.manorrock.assistant.shared.LlmModelCommand;
 import com.manorrock.assistant.shared.OllamaCommand;
 import com.manorrock.assistant.shared.ToolCommand;
 import com.manorrock.assistant.tool.*;
@@ -146,8 +144,8 @@ public class CLI implements Callable<Integer> {
     initializeToolManager();
     
     assistance.getCommandRegistry().registerCommand("help", new HelpCommand());
-    assistance.getCommandRegistry().registerCommand("llmModel", new LlmModelCommand(config));
-    // Register the LlmCommand
+    
+    // Register ONLY the consolidated LLM command - no individual LLM subcommands
     assistance.getCommandRegistry().registerCommand("llm", 
         new com.manorrock.assistant.shared.LlmCommand(
             () -> config, 
@@ -155,6 +153,7 @@ public class CLI implements Callable<Integer> {
                 config = newConfig;
                 saveState();
             }));
+        
     assistance.getCommandRegistry().registerCommand("source",
         new SourceCommand(this::handleSendAction, this::handleCommand));
     assistance.getCommandRegistry().registerCommand("new", new NewCommand(this::startNewSession));
@@ -164,11 +163,6 @@ public class CLI implements Callable<Integer> {
     
     // Register the explain command with the message processor
     assistance.getCommandRegistry().registerCommand("explain", new CLIExplainCommand(this::processMessage));
-    
-    // Register deprecated command for model
-    assistance.getCommandRegistry().registerCommand("model", 
-        new DeprecatedCommand("model", "llm model", 
-        assistance.getCommandRegistry().getCommand("llmModel")));
     
     // Register the tool command with integration support - use toolManager directly
     assistance.getCommandRegistry().registerCommand("tool", new ToolCommand(
@@ -466,55 +460,30 @@ public class CLI implements Callable<Integer> {
   }
 
   protected void handleCommand(String command) {
-    if (command.startsWith("/llmEndpoint ")) {
-      changeEndpoint(command);
-    } else if (command.startsWith("/llmModel")) {
-      String cmdLine = command.substring(9); // remove '/llmModel'
-      LlmModelCommand modelCommand = assistance.getCommandRegistry().getCommand("llmModel", LlmModelCommand.class);
-      if (modelCommand != null) {
-        String result = modelCommand.executeToString(cmdLine);
-        System.out.println("System: " + result);
-        saveState();
-      } else {
-        System.out.println("System: LLM model command not available");
-      }
-    } else if (command.startsWith("/llmVendor ")) {
-      changeVendor(command);
-    } else if (command.startsWith("/llmApiKey ")) {
-      changeApiKey(command);
-    } else if (command.startsWith("/llmTemperature ")) {
-      changeModelTemperature(command);
-    } else if (command.equals("/help")) {
-      showHelp();
-    } else if (command.startsWith("/explain")) {
-      // Use the registered explain command
-      String cmdArgs = command.length() > 8 ? command.substring(8).trim() : "";
-      Command explainCommand = assistance.getCommandRegistry().getCommand("explain");
-      if (explainCommand != null) {
-        String result = explainCommand.executeToString(cmdArgs);
-        System.out.println("System: " + result);
-      }
+    // Route all commands through the command registry
+    String cmdLine = command.substring(1); // remove the leading '/'
+    int spaceIndex = cmdLine.indexOf(' ');
+
+    String cmdName;
+    String cmdArgs;
+    if (spaceIndex > 0) {
+      cmdName = cmdLine.substring(0, spaceIndex);
+      cmdArgs = cmdLine.substring(spaceIndex + 1).trim();
     } else {
-      // Handle all other commands through the command registry
-      String cmdLine = command.substring(1); // remove the leading '/'
-      int spaceIndex = cmdLine.indexOf(' ');
+      cmdName = cmdLine;
+      cmdArgs = "";
+    }
 
-      String cmdName;
-      String cmdArgs;
-      if (spaceIndex > 0) {
-        cmdName = cmdLine.substring(0, spaceIndex);
-        cmdArgs = cmdLine.substring(spaceIndex + 1).trim();
-      } else {
-        cmdName = cmdLine;
-        cmdArgs = "";
-      }
-
-      Command cmd = assistance.getCommandRegistry().getCommand(cmdName);
-      if (cmd != null) {
-        System.out.println("System: " + cmd.executeToString(cmdArgs));
-      } else {
-        System.out.println("System: Unknown command. Type /help for a list of commands.");
-      }
+    Command cmd = assistance.getCommandRegistry().getCommand(cmdName);
+    if (cmd != null) {
+      System.out.println("System: " + cmd.executeToString(cmdArgs));
+    } else {
+      System.out.println("System: Unknown command. Type /help for a list of commands.");
+    }
+    
+    // Save state if we've potentially modified LLM configuration
+    if (cmdName.equals("llm")) {
+      saveState();
     }
   }
 
@@ -579,47 +548,6 @@ public class CLI implements Callable<Integer> {
     }
 
     return content;
-  }
-
-  private void changeEndpoint(String command) {
-    String newEndpoint = command.substring(12).trim();
-    if (!newEndpoint.startsWith("http://") && !newEndpoint.startsWith("https://")) {
-      newEndpoint = "http://" + newEndpoint;
-    }
-    newEndpoint = newEndpoint + "/api/chat";
-    config = new LlmConfiguration(newEndpoint, config.model(), config.vendor(), config.apiKey(), config.temperature());
-    System.out.println("System: Endpoint changed to " + newEndpoint);
-    saveState();
-  }
-
-  private void changeVendor(String command) {
-    String newVendor = command.substring(11).trim().toUpperCase();
-    config = new LlmConfiguration(config.endpoint(), config.model(), newVendor, config.apiKey(), config.temperature());
-    System.out.println("System: Vendor changed to " + newVendor);
-    saveState();
-  }
-
-  private void changeApiKey(String command) {
-    String newApiKey = command.substring(11).trim();
-    config = new LlmConfiguration(config.endpoint(), config.model(), config.vendor(), newApiKey, config.temperature());
-    System.out.println("System: API key updated");
-    saveState();
-  }
-
-  private void changeModelTemperature(String command) {
-    try {
-      double newTemperature = Double.parseDouble(command.substring(15).trim());
-      if (newTemperature < 0.0 || newTemperature > 1.0) {
-        System.out.println("System: Temperature must be between 0.0 and 1.0");
-        return;
-      }
-      config = new LlmConfiguration(config.endpoint(), config.model(), config.vendor(), config.apiKey(),
-          newTemperature);
-      System.out.println("System: Temperature set to " + newTemperature);
-      saveState();
-    } catch (NumberFormatException e) {
-      System.out.println("System: Invalid temperature format. Use /llmTemperature <number>");
-    }
   }
 
   private void showHelp() {
