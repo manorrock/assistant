@@ -9,7 +9,15 @@ import java.util.function.Supplier;
 import java.util.function.Consumer;
 
 /**
- * Command to interact with LLM configuration.
+ * Consolidated command to interact with LLM configuration.
+ * This command replaces the individual commands:
+ * - /llmModel
+ * - /llmApiKey
+ * - /llmEndpoint
+ * - /llmVendor
+ * - /llmTemperature
+ * - /endpoint (legacy)
+ * - /model (legacy)
  */
 public class LlmCommand implements Command {
 
@@ -30,7 +38,17 @@ public class LlmCommand implements Command {
 
     @Override
     public String getDescription() {
-        return "Display and manage LLM configuration";
+        return """
+               Display and manage LLM configuration.
+               
+               Usage:
+                 /llm                     - Show current configuration
+                 /llm vendor <name>       - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
+                 /llm model <name>        - Set LLM model name
+                 /llm endpoint <url>      - Set LLM API endpoint
+                 /llm apikey <key>        - Set API key for authentication
+                 /llm temperature <value> - Set temperature parameter (0.0-1.0)
+               """;
     }
 
     @Override

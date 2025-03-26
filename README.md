@@ -19,16 +19,9 @@ To install the latest stable release of Manorrock Assistant CLI, run:
 | Command | Description |
 |---------|-------------|
 | `/clear` | Clears the response window |
-| `/endpoint` | Changes the LLM API endpoint (legacy, use `/llmEndpoint` instead) |
 | `/explain` | Explains text from clipboard, selection, or file |
 | `/help` | Displays available commands |
-| `/llm` | Displays or configures LLM settings |
-| `/llmApiKey` | Sets the API key for OpenAI or Azure OpenAI |
-| `/llmEndpoint` | Changes the LLM API endpoint |
-| `/llmModel` | Changes the LLM model used |
-| `/llmTemperature` | Sets the model's temperature parameter |
-| `/llmVendor` | Changes the LLM vendor |
-| `/model` | Changes the LLM model used (legacy, use `/llmModel` instead) |
+| `/llm` | Displays and configures LLM settings |
 | `/new` | Starts a new chat session |
 | `/source` | Executes commands from a file |
 | `/tool` | Manages tool integrations |
@@ -38,16 +31,9 @@ To install the latest stable release of Manorrock Assistant CLI, run:
 | Command | CLI | Desktop | VSCode | IntelliJ | Eclipse | NetBeans |
 |---------|-----|---------|--------|----------|---------|----------|
 | `/clear` | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
-| `/endpoint` | ❌ | ❌ | ❌ | ✅ | ⚠️ | ❌ |
 | `/explain` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/llm` | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| `/llmApiKey` | ✅ | ✅ | ⚠️ | ❌ | ✅ | ✅ |
-| `/llmEndpoint` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| `/llmModel` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
-| `/llmTemperature` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
-| `/llmVendor` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
-| `/model` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `/llm` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
 | `/new` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/source` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `/tool` | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ |
@@ -60,12 +46,8 @@ To install the latest stable release of Manorrock Assistant CLI, run:
 ## Partial Support Notes
 
 - `/clear`: VSCode relies on CLI implementation
-- `/endpoint`: Legacy command, prefer using `/llmEndpoint` instead; Eclipse supports via CLI integration
 - `/explain`: Eclipse fully supports editor selection and file content via CLI integration
-- `/llmApiKey`: VSCode requires manual configuration in settings
-- `/llmEndpoint`: VSCode, Eclipse, and NetBeans support full configuration via CLI integration
-- `/llmModel`: Eclipse supports all models via CLI integration
-- `/model`: Legacy command, prefer using `/llmModel` instead
+- `/llm`: VSCode and IntelliJ require manual configuration for some LLM settings
 - `/source`: All implementations except mobile fully support executing commands from a file
 - `/tool`: Supported in CLI, Eclipse, and NetBeans via CLI integration
 
