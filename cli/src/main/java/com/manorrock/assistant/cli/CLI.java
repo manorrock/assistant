@@ -210,6 +210,7 @@ public class CLI implements Callable<Integer> {
     registerTool(new ProjectStructureAnalysisTool());
     registerTool(new DependencyAnalysisTool());
     registerTool(new WebScraperTool());  // Added from CliToolRegistry
+    registerTool(new MavenArchetypeTool());
     
     // Discover and register custom tools
     discoverAndRegisterCustomTools();
