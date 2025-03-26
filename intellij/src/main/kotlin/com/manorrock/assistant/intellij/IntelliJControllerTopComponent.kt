@@ -15,9 +15,6 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.manorrock.assistant.impl.AssistantImpl
-import com.manorrock.assistant.shared.*
-import com.manorrock.assistant.llm.LlmConfiguration
-import com.manorrock.assistant.core.Assistant
 import org.jetbrains.annotations.NotNull
 import javax.swing.*
 import java.awt.*
