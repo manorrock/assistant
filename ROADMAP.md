@@ -54,16 +54,29 @@
 - [x] Refactor Eclipse plugin to be a flat structure in com.manorrock.asistant.eclipse package
 - [x] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
 - [x] Refactor away old LLM commands and only expose the new LLM commands
+- [x] Refactor to use Manorrock standard trigger workflow
+- [ ] Refactor to use Manorrock standard release workflow
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 
 - [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
-- [ ] Refactor to use Manorrock standard trigger workflow
-- [ ] Refactor to use Manorrock standard release workflow
 - [ ] Refactor to get rid of the com.manorrock.assistant.core package altogether
-- [ ] Add publishing of VSCode extension to release workflow
+- [ ] Create a `file_create` tool with the following requirements:
+  - It must be able to create a new file or directory at the specified path
+  - The path can include nested directories, and the tool should be able to create all necessary parent    
+    directories if they do not exist
+  - If a file already exists at the specified path, the tool should overwrite if requested
+  - The tool should return an object with a "status" property indicating whether the operation was 
+    successful, along with any relevant error messages.
 
 # Next+1 release
+- [ ] Add unit tests for the shell_execution tool
+   - Add various tests for the command parameter
+   - Add various tests for the shell parameter
+   - Add various tests for the working_directory parameter
+   - Add various tests for the environmentVariables parameter
+   - Add various tests for the timeoutSeconds parameter
+- [ ] Add publishing of VSCode extension to release workflow
 - [ ] Add a /plan create command to create a structured plan for a given PROMPT
 - [ ] Add a /plan execute command to execute a given plan
 - [ ] Add command category system for organizing and grouping related commands
@@ -72,6 +85,8 @@
 - [ ] Add WebSearchTool (DuckDuckGo)
 - [ ] Add a DatabaseTool to connect to a database and execute SQL commands
 - [ ] Add a Bing search tool (WebSearchTool)
+
+# Next+2 release
 - [ ] Add a WorkflowTool to create, manage and execute workflows using a simple DSL structured as JSON
 - [ ] Update IntelliJ gradle build to use the version from the top-levvel pom.xml file
 
@@ -89,12 +104,15 @@
       upload their SNAPSHOT artifacts
 - [ ] Refactor command module into the impl module
 - [ ] Add a JSON input / output mode to the CLI
+
+# Next+3 release
 - [ ] Refactor to rename mobile module to phone and adjust the package names accordingly
 - [ ] Add Google support to WebSearchTool
 
 # Backlog
 
 - [ ] Create a CommandExecutionContext class to pass state and parameters to commands
+- [ ] Incorporate https://github.com/stephanj/MCPJavaFileSystem as a tool
 - [ ] Create a unified error code system for all command operations
 - [ ] Add internationalization support for error messages
 - [ ] Create response internationalization framework for message localization
