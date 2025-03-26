@@ -14,11 +14,11 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import java.awt.GraphicsEnvironment;
 
-public class NetBeansControllerTopComponentTest {
+public class AssistantTopComponentTest {
 
   private static boolean isHeadless;
   private static final int UI_DELAY = 1000; // 1 second delay for human visibility
-  private NetBeansControllerTopComponent component;
+  private AssistantTopComponent component;
   private JFrame frame;
 
   @BeforeClass
@@ -40,13 +40,13 @@ public class NetBeansControllerTopComponentTest {
   @Before
   public void setUp() throws Exception {
     if (isHeadless) {
-      component = new NetBeansControllerTopComponent();
+      component = new AssistantTopComponent();
       return;
     }
 
     try {
       javax.swing.SwingUtilities.invokeAndWait(() -> {
-        component = new NetBeansControllerTopComponent();
+        component = new AssistantTopComponent();
         frame = new JFrame("Manorrock Assistant Test");
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setSize(800, 600);

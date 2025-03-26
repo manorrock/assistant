@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.manorrock.assistant</groupId>
   <artifactId>project</artifactId>
-  <version>25.3.5-SNAPSHOT</version>
+  <version>25.3.7-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Manorrock Assistant - Project</name>
   <modules>

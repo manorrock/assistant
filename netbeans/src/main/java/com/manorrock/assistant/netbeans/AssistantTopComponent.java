@@ -28,16 +28,16 @@ import org.openide.loaders.DataObject;
 
 import com.manorrock.assistant.impl.AssistantImpl;
 
-@TopComponent.Description(preferredID = "NetBeansControllerTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
+@TopComponent.Description(preferredID = "AssistantTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
-@ActionID(category = "Window", id = "com.example.NetBeansControllerTopComponent")
-@ActionRegistration(displayName = "#CTL_NetBeansControllerAction")
+@ActionID(category = "Window", id = "com.manorrock.assistant.netbeans.AssistantTopComponent")
+@ActionRegistration(displayName = "#CTL_AssistantAction")
 @ActionReferences({@ActionReference(path = "Menu/Window", position = 0)})
-@TopComponent.OpenActionRegistration(displayName = "#CTL_NetBeansControllerAction", preferredID = "NetBeansControllerTopComponent")
-@Messages({"CTL_NetBeansControllerAction=Manorrock Assistant",
-    "CTL_NetBeansControllerTopComponent=Manorrock Assistant Window",
-    "HINT_NetBeansControllerTopComponent=This is a Manorrock Assistant window"})
-public final class NetBeansControllerTopComponent extends TopComponent implements ActionListener, FocusListener {
+@TopComponent.OpenActionRegistration(displayName = "#CTL_AssistantAction", preferredID = "AssistantTopComponent")
+@Messages({"CTL_AssistantAction=Manorrock Assistant",
+    "CTL_AssistantTopComponent=Manorrock Assistant Window",
+    "HINT_AssistantTopComponent=This is a Manorrock Assistant window"})
+public final class AssistantTopComponent extends TopComponent implements ActionListener, FocusListener {
 
     private final AssistantImpl assistant;
     private JTextArea responseArea;
@@ -48,11 +48,11 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     private InputOutput io;
     private TopComponent lastFocusedEditor;
 
-    public NetBeansControllerTopComponent() {
+    public AssistantTopComponent() {
         assistant = new AssistantImpl();
         initComponents();
-        setName(Bundle.CTL_NetBeansControllerTopComponent());
-        setToolTipText(Bundle.HINT_NetBeansControllerTopComponent());
+        setName(Bundle.CTL_AssistantTopComponent());
+        setToolTipText(Bundle.HINT_AssistantTopComponent());
         io = IOProvider.getDefault().getIO("Chat Log", false);
         
         if (!assistant.isCliAvailable()) {
