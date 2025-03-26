@@ -4,8 +4,8 @@
    <extension
          point="org.eclipse.ui.views">
       <view
-            class="com.manorrock.assistant.eclipse.views.AssistantView"
-            id="com.manorrock.assistant.eclipse.views.AssistantView"
+            class="com.manorrock.assistant.eclipse.AssistantView"
+            id="com.manorrock.assistant.eclipse.AssistantView"
             name="Manorrock Assistant"
             restorable="true">
       </view>
@@ -15,7 +15,7 @@
       <perspectiveExtension
             targetID="*">
          <view
-               id="com.manorrock.assistant.eclipse.views.AssistantView"
+               id="com.manorrock.assistant.eclipse.AssistantView"
                relationship="stack"
                relative="org.eclipse.ui.console.ConsoleView"
                visible="true">
@@ -28,11 +28,11 @@
             locationURI="menu:window?after=showView">
          <command
                commandId="org.eclipse.ui.views.showView"
-               label="Show Assistant View"
+               label="Manorrock Assistant"
                style="push">
             <parameter
                   name="org.eclipse.ui.views.showView.viewId"
-                  value="com.manorrock.assistant.eclipse.views.AssistantView">
+                  value="com.manorrock.assistant.eclipse.AssistantView">
             </parameter>
          </command>
       </menuContribution>

@@ -29,8 +29,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import com.manorrock.assistant.eclipse.perspectives.PerspectiveListener;
-
 /**
  * The activator class controls the plug-in life cycle
  */

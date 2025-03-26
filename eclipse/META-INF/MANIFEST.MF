@@ -12,13 +12,7 @@ Bundle-ClassPath: .,
  lib/json-20250107.jar,
  lib/impl-25.3.5-SNAPSHOT.jar
 Export-Package: .,
- com.manorrock.assistant.eclipse;uses:="org.osgi.framework,org.eclipse.ui.plugin",
- com.manorrock.assistant.eclipse.perspectives;uses:="org.eclipse.ui",
- com.manorrock.assistant.eclipse.views;
-  uses:="org.eclipse.ui,
-   org.eclipse.swt.widgets,
-   org.eclipse.jface.viewers,
-   org.eclipse.ui.part"
+ com.manorrock.assistant.eclipse;uses:="org.osgi.framework,org.eclipse.ui.plugin"
 Import-Package: java.lang,
  java.lang.invoke,
  java.net,

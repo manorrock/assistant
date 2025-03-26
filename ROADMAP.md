@@ -51,9 +51,9 @@
    - [ ] Track tool selection accuracy metrics
 
 # Next release
-- [ ] Refactor NetBeansControllerTopComponent to AssistantTopComponent
+- [x] Refactor NetBeansControllerTopComponent to AssistantTopComponent
 - [ ] Add a /plan create command to create a structured plan for a given PROMPT
-- [ ] Refactor Eclipse plugin to be a flat structure in com.manorrock.asistant.eclipse package
+- [x] Refactor Eclipse plugin to be a flat structure in com.manorrock.asistant.eclipse package
 - [ ] Add a /plan execute command to execute a given plan
 - [ ] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
 - [ ] Add command category system for organizing and grouping related commands
@@ -72,7 +72,7 @@
 - [ ] Refactor away old LLM commands and only expose the new LLM commands
 - [ ] Add a WorkflowTool to create, manage and execute workflows using a simple DSL structured as JSON
 - [ ] Update IntelliJ gradle build to use the version from the top-levvel pom.xml file
-- [ ] Add /assistant comamnd that will execute a prompt by:
+- [ ] Add /assistant command that will execute a prompt by:
       - Creating workflow
       - Executing the workflow
       - Returning the result of the workflow (prompt)
@@ -80,12 +80,22 @@
 - [ ] Support the ability to select Yes or No for a given tool request invocation
 
 # Next+2 release
+- [ ] Refactor to get rid of the com.manorrock.assistant.core package altogether
+- [ ] Add publishing of VSCode extension to release workflow
+- [ ] Refactor to rename impl module to remote and adjust the package names accordingly
+- [ ] Add a MCPTool to access any MCP server and execute tools exposed by the server
+- [ ] Refactor to rename shared module to impl and adjust the package names accordingly
+- [ ] Add a job to the build workflow to remove the SNAPSHOT release 
+      prior to running any of the platform specific jobs that will 
+      upload their SNAPSHOT artifacts
+- [ ] Refactor command module into the impl module
+- [ ] Add a JSON input / output mode to the CLI
+- [ ] Refactor to rename mobile module to phone and adjust the package names accordingly
+- [ ] Add Google support to WebSearchTool
 
 # Backlog
 
 - [ ] Create a CommandExecutionContext class to pass state and parameters to commands
-- [ ] Update install.sh to download the latest release from the GitHub repository
-      instead of the SNAPSHOT release and update the README.md to accomodate for that
 - [ ] Create a unified error code system for all command operations
 - [ ] Add internationalization support for error messages
 - [ ] Create response internationalization framework for message localization
@@ -114,11 +124,6 @@
 - [ ] Add error pattern detection for proactive issue resolution
 - [ ] Remove unused code
 - [ ] Change release workflow to only keep the last 3 release and the SNAPSHOT artifacts
-- [ ] Refactor to use Manorrock standard release workflow
-- [ ] Add MSI to required workflows
-- [ ] Add a job to the build workflow to remove the SNAPSHOT release 
-      prior to running any of the platform specific jobs that will 
-      upload their SNAPSHOT artifacts
 - [ ] Refactor NetBeans plugin to include a simple Main class
       that will be used to run the plugin in a standalone mode
 - [ ] Remove all tests that are not related to the /help command
