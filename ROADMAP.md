@@ -51,19 +51,6 @@
    - [ ] Track tool selection accuracy metrics
 
 # Next release
-- [x] Refactor Eclipse plugin to dispatch to the CLI version
-- [x] Refactor IntelliJ plugin to dispatch to the CLI version
-- [x] Refactor Desktop application to dispatch to the CLI version
-- [x] Add a web scraper tool to scrape web pages and extract data
-- [x] Refactor to move all non-UI commands into a separate Maven module (command)
-- [x] Strengthen ProcessExecutionTool description to be clear on when to use it
-- [x] Refactor to move all tools into a separate Maven module (tool)
-- [x] Add a tool to scaffold a Maven project using Maven archetypes
-- [x] Refactor all implementations to use the AssistantImpl instead of their own CLIExecutor
-- [ ] Add building of a Windows installer (MSI) to the build process similar to the
-      one used for the MacOS installer (DMG)
-
-# Next+1 release
 - [ ] Refactor NetBeansControllerTopComponent to AssistantTopComponent
 - [ ] Add a /plan create command to create a structured plan for a given PROMPT
 - [ ] Refactor Eclipse plugin to be a flat structure in com.manorrock.asistant.eclipse package
@@ -71,13 +58,13 @@
 - [ ] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
 - [ ] Add command category system for organizing and grouping related commands
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
-      CLIProcessor with setters and getters for instance variables and make the CLI call method
-      call the process method of the CLIProcessor class. 
+      CLIAssistant with setters and getters for instance variables and make the CLI call method
+      call the process method of the CLIAssistant class. 
 - [ ] Add a Spring Boot application to expose the Assistant as an MCP server
 - [ ] Refactor to use the sync chat method instead of doing it asynchronously
 - [ ] Add WebSearchTool (DuckDuckGo)
 
-# Next+2 release
+# Next+1 release
 - [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
 - [ ] Add a DatabaseTool to connect to a database and execute SQL commands
 - [ ] Refactor to use Manorrock standard trigger workflow
@@ -91,6 +78,8 @@
       - Returning the result of the workflow (prompt)
 - [ ] Refactor to use Manorrock standard release workflow
 - [ ] Support the ability to select Yes or No for a given tool request invocation
+
+# Next+2 release
 
 # Backlog
 
