@@ -29,7 +29,7 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-import com.manorrock.assistant.eclipse.CLIExecutor;
+import com.manorrock.assistant.impl.AssistantImpl;
 
 public class AssistantView extends ViewPart implements ISelectionListener {
     public static final String ID = "com.manorrock.assistant.eclipse.views.AssistantView";
@@ -43,7 +43,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private MessageConsole console;
     private MessageConsoleStream consoleStream;
-    private CLIExecutor cliExecutor;
+    private AssistantImpl assistant;
     
     @Override
     public void createPartControl(Composite parent) {
@@ -51,8 +51,8 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         console = findConsole("Manorrock Assistant Log");
         consoleStream = console.newMessageStream();
         
-        // Initialize CLI executor
-        cliExecutor = new CLIExecutor();
+        // Initialize AssistantImpl
+        assistant = new AssistantImpl();
         
         // Set up UI layout
         GridLayout layout = new GridLayout();
@@ -88,7 +88,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         progressBar.setVisible(false);
         
         // Set initial message based on CLI availability
-        if (!cliExecutor.isCliAvailable()) {
+        if (!assistant.isCliAvailable()) {
             responseArea.setText("Manorrock Assistant CLI not found. Please visit " +
                 "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
                 "for installation instructions.");
@@ -254,7 +254,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         sendButton.setEnabled(false);
         progressBar.setVisible(true);
 
-        cliExecutor.executeCommand(message)
+        assistant.executeCommand(message)
             .thenAccept(response -> {
                 Display.getDefault().asyncExec(() -> {
                     responseArea.append("\n\nAssistant: " + response);

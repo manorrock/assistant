@@ -14,6 +14,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
+import com.manorrock.assistant.impl.AssistantImpl
 import com.manorrock.assistant.shared.*
 import com.manorrock.assistant.llm.LlmConfiguration
 import com.manorrock.assistant.core.Assistant
@@ -40,7 +41,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
     private lateinit var sendButton: JButton
     private lateinit var progressBar: JProgressBar
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")
-    private val cliExecutor: CLIExecutor = CLIExecutor()
+    private val assistant: AssistantImpl = AssistantImpl()
     
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val panel = JPanel(BorderLayout())
@@ -53,7 +54,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         progressBar = JProgressBar(0, 100)
 
         // Check if CLI is available
-        if (!cliExecutor.isCliAvailable()) {
+        if (!assistant.isCliAvailable()) {
             responseArea.text = "Manorrock Assistant CLI not found. Please visit " +
                 "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
                 "for installation instructions."
@@ -138,7 +139,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         responseArea.append("\n\nFetching available commands...")
         
         // First request help from the CLI
-        cliExecutor.executeCommand("/help")
+        assistant.executeCommand("/help")
             .thenAccept { cliHelpResponse ->
                 javax.swing.SwingUtilities.invokeLater {
                     // Clear the "Fetching..." message
@@ -271,7 +272,7 @@ class IntelliJControllerTopComponent : ToolWindowFactory, ActionListener {
         sendButton.isEnabled = false
         progressBar.isIndeterminate = true
 
-        cliExecutor.executeCommand(message)
+        assistant.executeCommand(message)
             .thenAccept { response ->
                 javax.swing.SwingUtilities.invokeLater {
                     // Handle empty responses gracefully

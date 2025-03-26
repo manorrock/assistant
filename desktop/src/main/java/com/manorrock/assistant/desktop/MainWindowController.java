@@ -13,6 +13,8 @@ import java.util.regex.Pattern;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.manorrock.assistant.impl.AssistantImpl;
+
 public class MainWindowController {
 
     @FXML
@@ -30,11 +32,11 @@ public class MainWindowController {
     @FXML
     private ProgressBar progressBar;
 
-    private final CLIExecutor cliExecutor;
+    private final AssistantImpl assistant;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
 
     public MainWindowController() {
-        this.cliExecutor = new CLIExecutor();
+        this.assistant = new AssistantImpl();
     }
 
     @FXML
@@ -42,7 +44,7 @@ public class MainWindowController {
         responseArea.setText("Welcome to Manorrock Assistant");
         progressBar.setProgress(0);
         
-        if (!cliExecutor.isCliAvailable()) {
+        if (!assistant.isCliAvailable()) {
             responseArea.setText("Manorrock Assistant CLI not found. Please visit " +
                 "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
                 "for installation instructions.");
@@ -95,7 +97,7 @@ public class MainWindowController {
         sendButton.setDisable(true);
         progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
 
-        cliExecutor.executeCommand(message)
+        assistant.executeCommand(message)
             .thenAccept(response -> {
                 Platform.runLater(() -> {
                     responseArea.appendText("\n\n[" + timestamp + " - Assistant]\n" + response);

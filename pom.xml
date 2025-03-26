@@ -11,6 +11,7 @@
     <module>command</module>
     <module>desktop</module>
     <module>eclipse</module>
+    <module>impl</module>
     <module>netbeans</module>
     <module>shared</module>
     <module>tool</module>

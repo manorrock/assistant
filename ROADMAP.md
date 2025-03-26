@@ -59,7 +59,7 @@
 - [x] Strengthen ProcessExecutionTool description to be clear on when to use it
 - [x] Refactor to move all tools into a separate Maven module (tool)
 - [x] Add a tool to scaffold a Maven project using Maven archetypes
-- [ ] Refactor all implementations to use a shared Assistant Executor (CLIExecutor)
+- [x] Refactor all implementations to use the AssistantImpl instead of their own CLIExecutor
 - [ ] Add building of a Windows installer (MSI) to the build process similar to the
       one used for the MacOS installer (DMG)
 

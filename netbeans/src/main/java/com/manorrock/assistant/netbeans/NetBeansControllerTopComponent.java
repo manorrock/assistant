@@ -26,6 +26,8 @@ import org.openide.windows.InputOutput;
 import org.openide.cookies.EditorCookie;
 import org.openide.loaders.DataObject;
 
+import com.manorrock.assistant.impl.AssistantImpl;
+
 @TopComponent.Description(preferredID = "NetBeansControllerTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
 @ActionID(category = "Window", id = "com.example.NetBeansControllerTopComponent")
@@ -37,7 +39,7 @@ import org.openide.loaders.DataObject;
     "HINT_NetBeansControllerTopComponent=This is a Manorrock Assistant window"})
 public final class NetBeansControllerTopComponent extends TopComponent implements ActionListener, FocusListener {
 
-    private final CLIExecutor cliExecutor;
+    private final AssistantImpl assistant;
     private JTextArea responseArea;
     private JTextArea requestArea;
     private JButton sendButton;
@@ -47,13 +49,13 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
     private TopComponent lastFocusedEditor;
 
     public NetBeansControllerTopComponent() {
-        cliExecutor = new CLIExecutor();
+        assistant = new AssistantImpl();
         initComponents();
         setName(Bundle.CTL_NetBeansControllerTopComponent());
         setToolTipText(Bundle.HINT_NetBeansControllerTopComponent());
         io = IOProvider.getDefault().getIO("Chat Log", false);
         
-        if (!cliExecutor.isCliAvailable()) {
+        if (!assistant.isCliAvailable()) {
             responseArea.setText("Manorrock Assistant CLI not found. Please visit " +
                 "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
                 "for installation instructions.");
@@ -213,7 +215,7 @@ public final class NetBeansControllerTopComponent extends TopComponent implement
         sendButton.setEnabled(false);
         progressBar.setIndeterminate(true);
         
-        cliExecutor.executeCommand(message)
+        assistant.executeCommand(message)
             .thenAccept(response -> {
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     responseArea.append("\n\nAssistant: " + response);
