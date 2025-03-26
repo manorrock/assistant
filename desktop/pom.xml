@@ -14,7 +14,12 @@
         <javafx.version>17.0.8</javafx.version>
     </properties>
     <dependencies>
-        <!-- ...existing dependencies... -->
+        <!-- Add dependency for AssistantImpl -->
+        <dependency>
+            <groupId>com.manorrock.assistant</groupId>
+            <artifactId>impl</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>

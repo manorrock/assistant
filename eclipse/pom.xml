@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>com.manorrock.assistant</groupId>
-            <artifactId>shared</artifactId>
+            <artifactId>impl</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
