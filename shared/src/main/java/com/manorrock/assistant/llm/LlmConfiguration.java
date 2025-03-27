@@ -81,6 +81,6 @@ public class LlmConfiguration {
   }
 
   public static LlmConfiguration defaultConfig() {
-    return new LlmConfiguration("http://localhost:11434/api/chat", "llama3.1", "OLLAMA", "", 0.0);
+    return new LlmConfiguration("http://localhost:11434/api/chat", "llama3.1", "OLLAMA", "", 0.75);
   }
 }
