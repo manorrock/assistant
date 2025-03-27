@@ -21,7 +21,7 @@ jobs:
           distribution: 'temurin'
           
       - name: Build artifacts
-        run: mvn -B -DskipTests -DskipITs package
+        run: mvn -B -ntp -DskipTests -DskipITs package
         
       - name: CLI Smoke Tests
         run: |

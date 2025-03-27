@@ -36,7 +36,7 @@ jobs:
       - name: Update version in pom.xml files
         run: |
           VERSION=${{ github.event.inputs.version }}
-          mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
+          mvn -ntp versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
 
       - name: Commit version changes
         run: |
@@ -44,7 +44,7 @@ jobs:
           git commit -m "Release version ${{ github.event.inputs.version }}"
 
       - name: Build with Maven
-        run: mvn clean install -DskipTests
+        run: mvn -ntp clean install -DskipTests
 
       - name: Create GitHub Release
         id: create_release
@@ -66,6 +66,16 @@ jobs:
           asset_path: ./cli/target/cli.jar
           asset_name: Manorrock-Assistant.jar
           asset_content_type: application/java-archive
+
+      - name: Upload VSCode Extension
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./vscode/*.vsix
+          asset_name: Manorrock-Assistant.vsix
+          asset_content_type: application/octet-stream
 
       - name: Remove artifacts from previous releases (only for 'current' branch)
         if: github.event.inputs.branch == 'current'
@@ -110,7 +120,7 @@ jobs:
           NEXT_VERSION="$MAJOR.$MINOR.$NEW_PATCH-SNAPSHOT"
           
           # Update to next development version
-          mvn versions:set -DnewVersion=$NEXT_VERSION -DgenerateBackupPoms=false
+          mvn -ntp versions:set -DnewVersion=$NEXT_VERSION -DgenerateBackupPoms=false
           
           git add -A
           git commit -m "Prepare for next development version $NEXT_VERSION"
