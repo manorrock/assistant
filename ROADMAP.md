@@ -55,12 +55,15 @@
 - [x] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
 - [x] Refactor away old LLM commands and only expose the new LLM commands
 - [x] Refactor to use Manorrock standard trigger workflow
+- [x] Refactor to use the sync chat method instead of doing it asynchronously
 - [ ] Refactor to use Manorrock standard release workflow
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 
 - [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
 - [ ] Refactor to get rid of the com.manorrock.assistant.core package altogether
+
+# Next+1 release
 - [ ] Create a `file_create` tool with the following requirements:
   - It must be able to create a new file or directory at the specified path
   - The path can include nested directories, and the tool should be able to create all necessary parent    
@@ -68,8 +71,6 @@
   - If a file already exists at the specified path, the tool should overwrite if requested
   - The tool should return an object with a "status" property indicating whether the operation was 
     successful, along with any relevant error messages.
-
-# Next+1 release
 - [ ] Add unit tests for the shell_execution tool
    - Add various tests for the command parameter
    - Add various tests for the shell parameter
@@ -81,7 +82,6 @@
 - [ ] Add a /plan execute command to execute a given plan
 - [ ] Add command category system for organizing and grouping related commands
 - [ ] Add a Spring Boot application to expose the Assistant as an MCP server
-- [ ] Refactor to use the sync chat method instead of doing it asynchronously
 - [ ] Add WebSearchTool (DuckDuckGo)
 - [ ] Add a DatabaseTool to connect to a database and execute SQL commands
 - [ ] Add a Bing search tool (WebSearchTool)
