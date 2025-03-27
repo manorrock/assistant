@@ -38,7 +38,7 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          CURRENT_VERSION=$(mvn -ntp help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "Current version: $CURRENT_VERSION"
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           # Strip -SNAPSHOT suffix if present

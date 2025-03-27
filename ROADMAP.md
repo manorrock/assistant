@@ -6,9 +6,6 @@
 
 ## Tool Integration
 
-3. Secondary Tools Integration
-   - [ ] Structured Data Extraction
-
 4. Tertiary Tools Integration
    - [ ] Database Connectors
    - [ ] Image Generation/Processing
@@ -56,14 +53,15 @@
 - [x] Refactor away old LLM commands and only expose the new LLM commands
 - [x] Refactor to use Manorrock standard trigger workflow
 - [x] Refactor to use the sync chat method instead of doing it asynchronously
+- [ ] Add publishing of VSCode extension to release workflow
 - [ ] Refactor to use Manorrock standard release workflow
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 
 - [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
-- [ ] Refactor to get rid of the com.manorrock.assistant.core package altogether
 
 # Next+1 release
+- [ ] Refactor to get rid of the com.manorrock.assistant.core package altogether
 - [ ] Create a `file_create` tool with the following requirements:
   - It must be able to create a new file or directory at the specified path
   - The path can include nested directories, and the tool should be able to create all necessary parent    
@@ -77,7 +75,6 @@
    - Add various tests for the working_directory parameter
    - Add various tests for the environmentVariables parameter
    - Add various tests for the timeoutSeconds parameter
-- [ ] Add publishing of VSCode extension to release workflow
 - [ ] Add a /plan create command to create a structured plan for a given PROMPT
 - [ ] Add a /plan execute command to execute a given plan
 - [ ] Add command category system for organizing and grouping related commands
@@ -234,3 +231,7 @@
 - [ ] Create scraping monitoring and analytics dashboard
 - [ ] Add support for handling captchas during web scraping
 - [ ] Deliver a GitHubTool for GitHub integration
+
+3. Secondary Tools Integration
+   - [ ] Structured Data Extraction
+
