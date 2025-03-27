@@ -19,11 +19,6 @@ public class HelpCommand implements Command {
     result.append("/explain - Explains text from clipboard, selection, or file\n");
     result.append("/help - Displays available commands\n");
     result.append("/llm - Displays or configures LLM settings\n");
-    result.append("/llmApiKey - Sets the API key for OpenAI or Azure OpenAI\n");
-    result.append("/llmEndpoint - Changes the LLM API endpoint\n");
-    result.append("/llmModel - Changes the LLM model used\n");
-    result.append("/llmTemperature - Sets the model's temperature parameter\n");
-    result.append("/llmVendor - Changes the LLM vendor\n");
     result.append("/model - Changes the LLM model used (legacy, use /llmModel instead)\n");
     result.append("/new - Starts a new chat session\n");
     result.append("/source - Executes commands from a file\n");

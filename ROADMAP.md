@@ -53,7 +53,7 @@
 - [x] Refactor away old LLM commands and only expose the new LLM commands
 - [x] Refactor to use Manorrock standard trigger workflow
 - [x] Refactor to use the sync chat method instead of doing it asynchronously
-- [ ] Add publishing of VSCode extension to release workflow
+- [x] Add publishing of VSCode extension to release workflow
 - [ ] Refactor to use Manorrock standard release workflow
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
@@ -86,8 +86,6 @@
 # Next+2 release
 - [ ] Add a WorkflowTool to create, manage and execute workflows using a simple DSL structured as JSON
 - [ ] Update IntelliJ gradle build to use the version from the top-levvel pom.xml file
-
-# Next+2 release
 - [ ] Add /assistant command that will execute a prompt by:
       - Creating workflow
       - Executing the workflow

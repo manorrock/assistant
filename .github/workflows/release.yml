@@ -1,15 +1,9 @@
-name: Release Workflow
+name: release
 
 on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to release from (default: current)'
-        required: false
-        default: 'current'
-      version:
-        description: 'Version to release (e.g., 1.0.0)'
-        required: true
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   release:
@@ -18,7 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
           fetch-depth: 0
 
       - name: Set up JDK 21
@@ -26,37 +19,30 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'maven'
 
       - name: Configure Git user
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config user.name "Manorrock.com"
+          git config user.email "info@manorrock.com"
 
-      - name: Update version in pom.xml files
-        run: |
-          VERSION=${{ github.event.inputs.version }}
-          mvn -ntp versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
-
-      - name: Commit version changes
-        run: |
-          git add -A
-          git commit -m "Release version ${{ github.event.inputs.version }}"
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       - name: Build with Maven
-        run: mvn -ntp clean install -DskipTests
+        run: mvn -DskipTests -ntp -P vscode clean install 
 
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.event.inputs.version }}
-          name: Release v${{ github.event.inputs.version }}
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
-        
+       
       - name: Upload CLI JAR
         uses: actions/upload-release-asset@v1
         env:
@@ -77,18 +63,44 @@ jobs:
           asset_name: Manorrock-Assistant.vsix
           asset_content_type: application/octet-stream
 
-      - name: Remove artifacts from previous releases (only for 'current' branch)
-        if: github.event.inputs.branch == 'current'
+      - name: Remove artifacts from older releases
         run: |
-          # Get list of releases except the current one
+          # Get all releases sorted by creation date (newest first)
           RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases" | \
-            jq -r '.[] | select(.tag_name != "v${{ github.event.inputs.version }}") | .id')
+            jq -r 'sort_by(-.created_at) | .[] | "\(.id)|\(.tag_name)"')
           
-          # For each previous release, delete only its assets (artifacts)
-          for RELEASE_ID in $RELEASES; do
-            echo "Processing release $RELEASE_ID"
-            # Get assets for this release
+          # Current release ID
+          CURRENT_TAG="v${{ env.VERSION }}"
+          
+          # Counter to track how many recent releases we've seen
+          COUNT=0
+          
+          # Process each release
+          echo "$RELEASES" | while IFS="|" read -r RELEASE_ID RELEASE_TAG; do
+            # Skip the current release
+            if [ "$RELEASE_TAG" = "$CURRENT_TAG" ]; then
+              echo "Skipping current release: $RELEASE_TAG"
+              continue
+            fi
+            
+            # Always preserve SNAPSHOT releases
+            if [[ "$RELEASE_TAG" == *"SNAPSHOT"* ]]; then
+              echo "Preserving SNAPSHOT release: $RELEASE_TAG"
+              continue
+            fi
+            
+            # Increment counter for non-SNAPSHOT releases
+            COUNT=$((COUNT + 1))
+            
+            # Keep the 3 most recent releases (excluding current and SNAPSHOT)
+            if [ $COUNT -le 3 ]; then
+              echo "Preserving recent release: $RELEASE_TAG"
+              continue
+            fi
+            
+            # For older releases, delete their assets
+            echo "Processing older release: $RELEASE_TAG (ID: $RELEASE_ID)"
             ASSETS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets" | \
               jq -r '.[] | .id')
@@ -101,27 +113,3 @@ jobs:
             done
           done
 
-      - name: Create tag
-        run: |
-          git tag -a v${{ github.event.inputs.version }} -m "Release v${{ github.event.inputs.version }}"
-          git push origin v${{ github.event.inputs.version }}
-
-      - name: Prepare for next development version
-        if: github.event.inputs.branch == 'current'
-        run: |
-          # Extract major, minor, patch from version
-          VERSION=${{ github.event.inputs.version }}
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          PATCH=$(echo $VERSION | cut -d. -f3)
-          
-          # Increment patch version for next development
-          NEW_PATCH=$((PATCH + 1))
-          NEXT_VERSION="$MAJOR.$MINOR.$NEW_PATCH-SNAPSHOT"
-          
-          # Update to next development version
-          mvn -ntp versions:set -DnewVersion=$NEXT_VERSION -DgenerateBackupPoms=false
-          
-          git add -A
-          git commit -m "Prepare for next development version $NEXT_VERSION"
-          git push origin ${{ github.event.inputs.branch }}
