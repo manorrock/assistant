@@ -11,7 +11,9 @@
     <module>desktop</module>
     <module>eclipse</module>
     <module>impl</module>
+    <module>intellij</module>
     <module>netbeans</module>
+    <module>vscode</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,18 +35,4 @@
       </plugins>
     </pluginManagement>
   </build>
-  <profiles>
-    <profile>
-      <id>intellij</id>
-      <modules>
-        <module>intellij</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>vscode</id>
-      <modules>
-        <module>vscode</module>
-      </modules>
-    </profile>
-  </profiles>
 </project>
