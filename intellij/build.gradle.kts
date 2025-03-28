@@ -59,34 +59,7 @@ tasks {
     token.set(System.getenv("PUBLISH_TOKEN"))
   }
 
-  // Simple file copy task instead of Maven build
-  register("copySharedJar") {
-    description = "Copies the shared JAR if it exists"
-    group = "build"
-    
-    // This is configuration-cache safe
-    val sharedJar = file("../shared/target/shared-${projectVersion}.jar")
-    val targetDir = file("build/dependencies")
-    val targetFile = file("$targetDir/shared-${projectVersion}.jar")
-    
-    // Use standard inputs/outputs for proper incremental build
-    inputs.file(sharedJar)
-    outputs.file(targetFile)
-    
-    doLast {
-      if (sharedJar.exists()) {
-        targetDir.mkdirs()
-        sharedJar.copyTo(targetFile, overwrite = true)
-        logger.lifecycle("Copied shared JAR: $sharedJar")
-      } else {
-        logger.warn("WARNING: Shared JAR not found: $sharedJar")
-        logger.warn("Please build the shared module manually with 'mvn install -am -pl shared' from the Manorrock Assistant project root.")
-      }
-    }
-  }
-
   // Make compile task depend on shared jar copy
   named("compileJava") {
-    dependsOn("copySharedJar")
   }
 }
