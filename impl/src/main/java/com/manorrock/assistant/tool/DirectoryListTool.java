@@ -1,6 +1,5 @@
 package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
@@ -38,7 +37,7 @@ public class DirectoryListTool extends AbstractTool {
     }
     
     @Override
-    public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+    protected ToolResult executeInternal(Map<String, Object> parameters) throws Exception {
         String dirPath = parameters.get("path").toString();
         String pattern = parameters.containsKey("pattern") ? parameters.get("pattern").toString() : "*";
         boolean includeDirs = !parameters.containsKey("includeDirs") || 
@@ -54,39 +53,32 @@ public class DirectoryListTool extends AbstractTool {
                         (Boolean) parameters.get("recursive") : 
                         Boolean.parseBoolean(parameters.get("recursive").toString()));
         
-        try {
-            Path dir = Paths.get(dirPath);
-            
-            if (!Files.exists(dir)) {
-                return ToolResult.failure("Directory does not exist: " + dirPath);
-            }
-            
-            if (!Files.isDirectory(dir)) {
-                return ToolResult.failure("Path is not a directory: " + dirPath);
-            }
-            
-            if (!Files.isReadable(dir)) {
-                return ToolResult.failure("Directory is not readable: " + dirPath);
-            }
-            
-            List<Map<String, Object>> result = new ArrayList<>();
-            if (recursive) {
-                listRecursively(dir, pattern, includeDirs, includeFiles, result, dir);
-            } else {
-                listDirectory(dir, pattern, includeDirs, includeFiles, result);
-            }
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("directory", dirPath);
-            response.put("entries", result);
-            
-            return ToolResult.success(response);
-            
-        } catch (IOException e) {
-            throw new ToolExecutionException("Failed to list directory: " + e.getMessage(), e);
-        } catch (SecurityException e) {
-            throw new ToolExecutionException("Security violation listing directory: " + e.getMessage(), e);
+        Path dir = Paths.get(dirPath);
+        
+        if (!Files.exists(dir)) {
+            return ToolResult.failure("Directory does not exist: " + dirPath);
         }
+        
+        if (!Files.isDirectory(dir)) {
+            return ToolResult.failure("Path is not a directory: " + dirPath);
+        }
+        
+        if (!Files.isReadable(dir)) {
+            return ToolResult.failure("Directory is not readable: " + dirPath);
+        }
+        
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (recursive) {
+            listRecursively(dir, pattern, includeDirs, includeFiles, result, dir);
+        } else {
+            listDirectory(dir, pattern, includeDirs, includeFiles, result);
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("directory", dirPath);
+        response.put("entries", result);
+        
+        return ToolResult.success(response);
     }
     
     private void listDirectory(Path dir, String pattern, boolean includeDirs, boolean includeFiles, 

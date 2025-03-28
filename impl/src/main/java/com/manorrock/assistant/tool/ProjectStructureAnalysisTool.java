@@ -1,6 +1,5 @@
 package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
@@ -58,42 +57,30 @@ public class ProjectStructureAnalysisTool extends AbstractTool {
     }
     
     @Override
-    public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+    protected ToolResult executeInternal(Map<String, Object> parameters) throws Exception {
         String projectPath = parameters.get("projectPath").toString();
         int maxDepth = 10;
         
         if (parameters.containsKey("maxDepth")) {
-            Object depthParam = parameters.get("maxDepth");
-            if (depthParam instanceof Number) {
-                maxDepth = ((Number) depthParam).intValue();
+            Object maxDepthObj = parameters.get("maxDepth");
+            if (maxDepthObj instanceof Number) {
+                maxDepth = ((Number) maxDepthObj).intValue();
             } else {
-                try {
-                    maxDepth = Integer.parseInt(depthParam.toString());
-                } catch (NumberFormatException e) {
-                    return ToolResult.failure("Invalid maxDepth parameter: " + depthParam);
-                }
+                maxDepth = Integer.parseInt(maxDepthObj.toString());
             }
         }
         
-        try {
-            Path rootPath = Paths.get(projectPath);
-            
-            if (!Files.exists(rootPath)) {
-                return ToolResult.failure("Project directory does not exist: " + projectPath);
-            }
-            
-            if (!Files.isDirectory(rootPath)) {
-                return ToolResult.failure("Path is not a directory: " + projectPath);
-            }
-            
-            Map<String, Object> result = analyzeProject(rootPath, maxDepth);
-            return ToolResult.success(result);
-            
-        } catch (IOException e) {
-            throw new ToolExecutionException("Failed to analyze project: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new ToolExecutionException("Unexpected error during project analysis: " + e.getMessage(), e);
+        Path rootPath = Paths.get(projectPath);
+        if (!Files.exists(rootPath)) {
+            return ToolResult.failure("Project path does not exist: " + projectPath);
         }
+        
+        if (!Files.isDirectory(rootPath)) {
+            return ToolResult.failure("Path is not a directory: " + projectPath);
+        }
+        
+        Map<String, Object> analysisResult = analyzeProject(rootPath, maxDepth);
+        return ToolResult.success(analysisResult, "Project structure analysis completed successfully");
     }
     
     private Map<String, Object> analyzeProject(Path rootPath, int maxDepth) throws IOException {
@@ -119,20 +106,19 @@ public class ProjectStructureAnalysisTool extends AbstractTool {
                 // Check if it's a build file
                 if (BUILD_FILES.containsKey(fileName)) {
                     Map<String, String> buildFile = new HashMap<>();
+                    buildFile.put("name", fileName);
                     buildFile.put("path", relativePath);
                     buildFile.put("type", BUILD_FILES.get(fileName));
                     buildFiles.add(buildFile);
                 }
                 
                 // Check if it's a config file
-                for (Map.Entry<String, String> entry : CONFIG_FILES.entrySet()) {
-                    if (fileName.equals(entry.getKey()) || fileName.endsWith(entry.getKey())) {
-                        Map<String, String> configFile = new HashMap<>();
-                        configFile.put("path", relativePath);
-                        configFile.put("type", entry.getValue());
-                        configFiles.add(configFile);
-                        break;
-                    }
+                if (CONFIG_FILES.containsKey(fileName)) {
+                    Map<String, String> configFile = new HashMap<>();
+                    configFile.put("name", fileName);
+                    configFile.put("path", relativePath);
+                    configFile.put("type", CONFIG_FILES.get(fileName));
+                    configFiles.add(configFile);
                 }
                 
                 // Identify source file language
@@ -140,17 +126,12 @@ public class ProjectStructureAnalysisTool extends AbstractTool {
                 if (language != null) {
                     sourceFiles.put(language, sourceFiles.getOrDefault(language, 0) + 1);
                     
-                    // Add to source directories
-                    Path parentDir = path.getParent().relativize(rootPath);
-                    String dirPath = parentDir.toString();
-                    if (dirPath.isEmpty()) {
-                        dirPath = ".";
-                    }
-                    
-                    List<String> dirs = sourceDirectories.getOrDefault(language, new ArrayList<>());
-                    if (!dirs.contains(dirPath)) {
-                        dirs.add(dirPath);
-                        sourceDirectories.put(language, dirs);
+                    // Track source directories
+                    Path parent = path.getParent();
+                    String parentRelative = rootPath.relativize(parent).toString();
+                    sourceDirectories.computeIfAbsent(language, k -> new ArrayList<>());
+                    if (!sourceDirectories.get(language).contains(parentRelative)) {
+                        sourceDirectories.get(language).add(parentRelative);
                     }
                 }
             });
@@ -174,8 +155,13 @@ public class ProjectStructureAnalysisTool extends AbstractTool {
         
         // Analyze dependencies if possible
         if (!buildFiles.isEmpty()) {
-            Map<String, Object> dependencies = analyzeDependencies(rootPath, buildFiles);
-            if (!dependencies.isEmpty()) {
+            try {
+                Map<String, Object> dependencies = analyzeDependencies(rootPath, buildFiles);
+                result.put("dependencies", dependencies);
+            } catch (Exception e) {
+                // Dependencies analysis is optional, so just record the error
+                Map<String, Object> dependencies = new HashMap<>();
+                dependencies.put("error", "Failed to analyze dependencies: " + e.getMessage());
                 result.put("dependencies", dependencies);
             }
         }
@@ -199,52 +185,44 @@ public class ProjectStructureAnalysisTool extends AbstractTool {
         } else if (lowerFileName.endsWith(".ts")) {
             return "TypeScript";
         } else if (lowerFileName.endsWith(".jsx")) {
-            return "React";
+            return "React JSX";
         } else if (lowerFileName.endsWith(".tsx")) {
-            return "React TypeScript";
-        } else if (lowerFileName.endsWith(".py")) {
-            return "Python";
-        } else if (lowerFileName.endsWith(".rb")) {
-            return "Ruby";
-        } else if (lowerFileName.endsWith(".c") || lowerFileName.endsWith(".h")) {
-            return "C";
-        } else if (lowerFileName.endsWith(".cpp") || lowerFileName.endsWith(".hpp") || 
-                  lowerFileName.endsWith(".cc") || lowerFileName.endsWith(".cxx")) {
-            return "C++";
-        } else if (lowerFileName.endsWith(".cs")) {
-            return "C#";
-        } else if (lowerFileName.endsWith(".go")) {
-            return "Go";
-        } else if (lowerFileName.endsWith(".rs")) {
-            return "Rust";
-        } else if (lowerFileName.endsWith(".swift")) {
-            return "Swift";
-        } else if (lowerFileName.endsWith(".php")) {
-            return "PHP";
+            return "React TSX";
         } else if (lowerFileName.endsWith(".html") || lowerFileName.endsWith(".htm")) {
             return "HTML";
         } else if (lowerFileName.endsWith(".css")) {
             return "CSS";
-        } else if (lowerFileName.endsWith(".scss")) {
-            return "SCSS";
+        } else if (lowerFileName.endsWith(".scss") || lowerFileName.endsWith(".sass")) {
+            return "SASS";
         } else if (lowerFileName.endsWith(".less")) {
-            return "Less";
+            return "LESS";
+        } else if (lowerFileName.endsWith(".py")) {
+            return "Python";
+        } else if (lowerFileName.endsWith(".rb")) {
+            return "Ruby";
+        } else if (lowerFileName.endsWith(".php")) {
+            return "PHP";
+        } else if (lowerFileName.endsWith(".go")) {
+            return "Go";
+        } else if (lowerFileName.endsWith(".rs")) {
+            return "Rust";
+        } else if (lowerFileName.endsWith(".c") || lowerFileName.endsWith(".h")) {
+            return "C";
+        } else if (lowerFileName.endsWith(".cpp") || lowerFileName.endsWith(".hpp") || 
+                   lowerFileName.endsWith(".cc") || lowerFileName.endsWith(".hh")) {
+            return "C++";
+        } else if (lowerFileName.endsWith(".cs")) {
+            return "C#";
+        } else if (lowerFileName.endsWith(".swift")) {
+            return "Swift";
+        } else if (lowerFileName.endsWith(".m") || lowerFileName.endsWith(".mm")) {
+            return "Objective-C";
         } else if (lowerFileName.endsWith(".json")) {
             return "JSON";
         } else if (lowerFileName.endsWith(".xml")) {
             return "XML";
-        } else if (lowerFileName.endsWith(".yaml") || lowerFileName.endsWith(".yml")) {
+        } else if (lowerFileName.endsWith(".yml") || lowerFileName.endsWith(".yaml")) {
             return "YAML";
-        } else if (lowerFileName.endsWith(".md") || lowerFileName.endsWith(".markdown")) {
-            return "Markdown";
-        } else if (lowerFileName.endsWith(".sh")) {
-            return "Shell";
-        } else if (lowerFileName.endsWith(".bat") || lowerFileName.endsWith(".cmd")) {
-            return "Batch";
-        } else if (lowerFileName.endsWith(".ps1")) {
-            return "PowerShell";
-        } else if (lowerFileName.endsWith(".sql")) {
-            return "SQL";
         }
         
         return null;
@@ -253,31 +231,33 @@ public class ProjectStructureAnalysisTool extends AbstractTool {
     private String identifyProjectType(List<Map<String, String>> buildFiles, List<String> directories) {
         // Check for build files first
         for (Map<String, String> buildFile : buildFiles) {
-            String type = buildFile.get("type");
-            if ("Maven".equals(type)) {
-                return "Maven Java Project";
-            } else if (type.startsWith("Gradle")) {
-                return "Gradle Java Project";
-            } else if ("Node.js".equals(type)) {
+            String name = buildFile.get("name");
+            if ("pom.xml".equals(name)) {
+                return "Maven Project";
+            } else if ("build.gradle".equals(name) || "build.gradle.kts".equals(name)) {
+                return "Gradle Project";
+            } else if ("package.json".equals(name)) {
                 return "Node.js Project";
-            } else if ("Rust".equals(type)) {
+            } else if ("Cargo.toml".equals(name)) {
                 return "Rust Project";
+            } else if ("Makefile".equals(name)) {
+                return "Make Project";
             }
         }
         
         // Check directories if build files didn't give us a clear answer
         if (directories.contains("src/main/java")) {
             return "Java Project";
-        } else if (directories.contains("app/src/main/java")) {
-            return "Android Project";
-        } else if (directories.contains("src/test/java")) {
-            return "Java Project";
-        } else if (directories.contains("node_modules")) {
-            return "Node.js Project";
-        } else if (directories.contains("target")) {
-            return "Maven Project";
-        } else if (directories.contains("build")) {
-            return "Build-tool Project";
+        } else if (directories.contains("src/main/kotlin")) {
+            return "Kotlin Project";
+        } else if (directories.contains("src/main/scala")) {
+            return "Scala Project";
+        } else if (directories.contains("src") && directories.contains("lib")) {
+            return "Generic Project";
+        } else if (directories.contains("app") && directories.contains("config")) {
+            return "Rails Project";
+        } else if (directories.contains("src") && directories.contains("public")) {
+            return "Web Project";
         }
         
         return "Unknown Project Type";
@@ -294,28 +274,28 @@ public class ProjectStructureAnalysisTool extends AbstractTool {
             String type = buildFile.get("type");
             String path = buildFile.get("path");
             
+            dependencies.put("buildSystem", type);
+            dependencies.put("definitionFile", path);
+            
+            // Check for common dependency-related files
             if ("Maven".equals(type)) {
-                dependencies.put("type", "Maven");
-                dependencies.put("file", path);
-            } else if (type.startsWith("Gradle")) {
-                dependencies.put("type", "Gradle");
-                dependencies.put("file", path);
+                Path dependencyTree = rootPath.resolve("target/dependency-tree.txt");
+                if (Files.exists(dependencyTree)) {
+                    dependencies.put("dependencyTreeAvailable", true);
+                }
+            } else if ("Gradle".equals(type)) {
+                Path dependenciesDir = rootPath.resolve("build/reports/dependencies");
+                if (Files.exists(dependenciesDir)) {
+                    dependencies.put("dependencyReportsAvailable", true);
+                }
             } else if ("Node.js".equals(type)) {
-                Path packageLockPath = rootPath.resolve("package-lock.json");
-                if (Files.exists(packageLockPath)) {
-                    dependencies.put("type", "NPM");
-                    dependencies.put("file", "package.json");
+                Path packageLockJson = rootPath.resolve("package-lock.json");
+                Path yarnLock = rootPath.resolve("yarn.lock");
+                
+                if (Files.exists(packageLockJson)) {
                     dependencies.put("lockFile", "package-lock.json");
-                } else {
-                    Path yarnLockPath = rootPath.resolve("yarn.lock");
-                    if (Files.exists(yarnLockPath)) {
-                        dependencies.put("type", "Yarn");
-                        dependencies.put("file", "package.json");
-                        dependencies.put("lockFile", "yarn.lock");
-                    } else {
-                        dependencies.put("type", "Node.js");
-                        dependencies.put("file", "package.json");
-                    }
+                } else if (Files.exists(yarnLock)) {
+                    dependencies.put("lockFile", "yarn.lock");
                 }
             }
         }

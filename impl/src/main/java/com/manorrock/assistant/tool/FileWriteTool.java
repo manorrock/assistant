@@ -1,6 +1,5 @@
 package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
@@ -36,7 +35,7 @@ public class FileWriteTool extends AbstractTool {
     }
     
     @Override
-    public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+    protected ToolResult executeInternal(Map<String, Object> parameters) throws Exception {
         String filePath = parameters.get("path").toString();
         String content = parameters.get("content").toString();
         boolean append = parameters.containsKey("append") && 
@@ -44,30 +43,23 @@ public class FileWriteTool extends AbstractTool {
                         (Boolean) parameters.get("append") : 
                         Boolean.parseBoolean(parameters.get("append").toString()));
         
-        try {
-            Path path = Paths.get(filePath);
-            Path parent = path.getParent();
-            
-            // Create parent directories if they don't exist
-            if (parent != null && !Files.exists(parent)) {
-                Files.createDirectories(parent);
-            }
-            
-            // Write to the file
-            StandardOpenOption[] writeOptions = append && Files.exists(path) ? 
-                    new StandardOpenOption[]{StandardOpenOption.APPEND} : 
-                    new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
-            Files.writeString(path, content, StandardCharsets.UTF_8, writeOptions);
-            
-            Map<String, Object> data = new HashMap<>();
-            data.put("path", path.toString());
-            data.put("bytesWritten", content.getBytes(StandardCharsets.UTF_8).length);
-            return ToolResult.success(data, "File written successfully");
-            
-        } catch (IOException e) {
-            return ToolResult.failure("Failed to write file: " + e.getMessage());
-        } catch (SecurityException e) {
-            throw new ToolExecutionException("Security violation writing to file: " + e.getMessage(), e);
+        Path path = Paths.get(filePath);
+        Path parent = path.getParent();
+        
+        // Create parent directories if they don't exist
+        if (parent != null && !Files.exists(parent)) {
+            Files.createDirectories(parent);
         }
+        
+        // Write to the file
+        StandardOpenOption[] writeOptions = append && Files.exists(path) ? 
+                new StandardOpenOption[]{StandardOpenOption.APPEND} : 
+                new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
+        Files.writeString(path, content, StandardCharsets.UTF_8, writeOptions);
+        
+        Map<String, Object> data = new HashMap<>();
+        data.put("path", path.toString());
+        data.put("bytesWritten", content.getBytes(StandardCharsets.UTF_8).length);
+        return ToolResult.success(data, "File written successfully");
     }
 }

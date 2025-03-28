@@ -1,6 +1,5 @@
 package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
@@ -47,7 +46,7 @@ public class MavenArchetypeTool extends AbstractTool {
     }
     
     @Override
-    public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+    protected ToolResult executeInternal(Map<String, Object> parameters) throws Exception {
         String command = parameters.containsKey("command") ? (String) parameters.get("command") : "";
         
         if ("scaffold".equalsIgnoreCase(command)) {
@@ -61,40 +60,36 @@ public class MavenArchetypeTool extends AbstractTool {
      * Lists available Maven archetypes.
      * 
      * @return A ToolResult containing the list of available archetypes
-     * @throws ToolExecutionException If an error occurs during execution
+     * @throws IOException If an error occurs during execution
      */
-    private ToolResult executeListArchetypes() throws ToolExecutionException {
-        try {
-            // Build the Maven command to list archetypes
-            List<String> command = new ArrayList<>();
-            command.add("mvn");
-            command.add("archetype:generate");
-            command.add("-Dcatalog=internal");
-            command.add("-DarchetypeCatalog=internal");
-            command.add("-DinteractiveMode=false");
-            command.add("-B");
-            
-            // Execute the command
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-            processBuilder.redirectErrorStream(true);
-            
-            Process process = processBuilder.start();
-            
-            // Capture the output
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            List<String> output = reader.lines().collect(Collectors.toList());
-            
-            // Parse output to extract archetype information
-            List<Map<String, String>> archetypes = parseArchetypeOutput(output);
-            
-            Map<String, Object> result = new HashMap<>();
-            result.put("archetypes", archetypes);
-            result.put("count", archetypes.size());
-            
-            return ToolResult.success(result);
-        } catch (IOException e) {
-            throw new ToolExecutionException("Failed to list Maven archetypes: " + e.getMessage(), e);
-        }
+    private ToolResult executeListArchetypes() throws IOException {
+        // Build the Maven command to list archetypes
+        List<String> command = new ArrayList<>();
+        command.add("mvn");
+        command.add("archetype:generate");
+        command.add("-Dcatalog=internal");
+        command.add("-DarchetypeCatalog=internal");
+        command.add("-DinteractiveMode=false");
+        command.add("-B");
+        
+        // Execute the command
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.redirectErrorStream(true);
+        
+        Process process = processBuilder.start();
+        
+        // Capture the output
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        List<String> output = reader.lines().collect(Collectors.toList());
+        
+        // Parse output to extract archetype information
+        List<Map<String, String>> archetypes = parseArchetypeOutput(output);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("archetypes", archetypes);
+        result.put("count", archetypes.size());
+        
+        return ToolResult.success(result);
     }
     
     /**
@@ -110,25 +105,16 @@ public class MavenArchetypeTool extends AbstractTool {
         for (String line : output) {
             if (line.contains(":") && line.contains("maven-archetype")) {
                 try {
-                    String trimmed = line.trim();
-                    if (trimmed.contains("[INFO]")) {
-                        trimmed = trimmed.substring(trimmed.indexOf("[INFO]") + 6).trim();
-                    }
-                    
-                    String[] parts = trimmed.split(":");
+                    String[] parts = line.trim().split(":");
                     if (parts.length >= 3) {
                         Map<String, String> archetype = new HashMap<>();
                         archetype.put("groupId", parts[0]);
                         archetype.put("artifactId", parts[1]);
                         archetype.put("version", parts[2]);
-                        if (parts.length > 3) {
-                            // Some descriptions might be available
-                            archetype.put("description", parts[3]);
-                        }
                         archetypes.add(archetype);
                     }
                 } catch (Exception e) {
-                    // Skip this line if parsing fails
+                    // Skip malformed lines
                 }
             }
         }
@@ -141,9 +127,10 @@ public class MavenArchetypeTool extends AbstractTool {
      * 
      * @param parameters The parameters for project creation
      * @return A ToolResult indicating success or failure
-     * @throws ToolExecutionException If an error occurs during execution
+     * @throws IOException If IO errors occur
+     * @throws InterruptedException If the process is interrupted
      */
-    private ToolResult executeScaffold(Map<String, Object> parameters) throws ToolExecutionException {
+    private ToolResult executeScaffold(Map<String, Object> parameters) throws IOException, InterruptedException {
         // Extract required parameters
         if (!parameters.containsKey("archetypeGroupId") || !parameters.containsKey("archetypeArtifactId") ||
             !parameters.containsKey("archetypeVersion") || !parameters.containsKey("groupId") || 
@@ -165,87 +152,82 @@ public class MavenArchetypeTool extends AbstractTool {
                 (String) parameters.get("outputDirectory") : System.getProperty("user.dir");
         boolean interactive = parameters.containsKey("interactive") && (boolean) parameters.get("interactive");
         
-        try {
-            // Create the output directory if it doesn't exist
-            Path outputPath = Paths.get(outputDirectory);
-            if (!Files.exists(outputPath)) {
-                Files.createDirectories(outputPath);
+        // Create the output directory if it doesn't exist
+        Path outputPath = Paths.get(outputDirectory);
+        if (!Files.exists(outputPath)) {
+            Files.createDirectories(outputPath);
+        }
+        
+        // Build the Maven command
+        List<String> command = new ArrayList<>();
+        command.add("mvn");
+        command.add("archetype:generate");
+        command.add("-DarchetypeGroupId=" + archetypeGroupId);
+        command.add("-DarchetypeArtifactId=" + archetypeArtifactId);
+        command.add("-DarchetypeVersion=" + archetypeVersion);
+        command.add("-DgroupId=" + groupId);
+        command.add("-DartifactId=" + artifactId);
+        command.add("-Dversion=" + version);
+        command.add("-Dpackage=" + packageName);
+        
+        // Add additional properties if provided
+        if (parameters.containsKey("additionalProperties") && parameters.get("additionalProperties") instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> additionalProps = (Map<String, Object>) parameters.get("additionalProperties");
+            for (Map.Entry<String, Object> entry : additionalProps.entrySet()) {
+                command.add("-D" + entry.getKey() + "=" + entry.getValue().toString());
             }
+        }
+        
+        // Set batch mode unless interactive is true
+        if (!interactive) {
+            command.add("-B");
+        }
+        
+        // Execute the command
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.directory(new File(outputDirectory));
+        processBuilder.redirectErrorStream(true);
+        
+        Process process = processBuilder.start();
+        
+        // Capture the output
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        List<String> output = reader.lines().collect(Collectors.toList());
+        
+        int exitCode = process.waitFor();
+        
+        // Prepare result
+        Map<String, Object> result = new HashMap<>();
+        result.put("exitCode", exitCode);
+        result.put("output", String.join("\n", output));
+        
+        // Check project creation success
+        Path projectPath = Paths.get(outputDirectory, artifactId);
+        boolean projectCreated = Files.exists(projectPath) && Files.isDirectory(projectPath);
+        result.put("projectCreated", projectCreated);
+        
+        // Include project structure if created
+        if (projectCreated) {
+            result.put("projectDirectory", projectPath.toString());
+            result.put("pomExists", Files.exists(projectPath.resolve("pom.xml")));
             
-            // Build the Maven command
-            List<String> command = new ArrayList<>();
-            command.add("mvn");
-            command.add("archetype:generate");
-            command.add("-DarchetypeGroupId=" + archetypeGroupId);
-            command.add("-DarchetypeArtifactId=" + archetypeArtifactId);
-            command.add("-DarchetypeVersion=" + archetypeVersion);
-            command.add("-DgroupId=" + groupId);
-            command.add("-DartifactId=" + artifactId);
-            command.add("-Dversion=" + version);
-            command.add("-Dpackage=" + packageName);
-            
-            // Add additional properties if provided
-            if (parameters.containsKey("additionalProperties") && parameters.get("additionalProperties") instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> additionalProps = (Map<String, Object>) parameters.get("additionalProperties");
-                for (Map.Entry<String, Object> entry : additionalProps.entrySet()) {
-                    command.add("-D" + entry.getKey() + "=" + entry.getValue());
-                }
-            }
-            
-            // Set batch mode unless interactive is true
-            if (!interactive) {
-                command.add("-B");
-            }
-            
-            // Execute the command
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-            processBuilder.directory(new File(outputDirectory));
-            processBuilder.redirectErrorStream(true);
-            
-            Process process = processBuilder.start();
-            
-            // Capture the output
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            List<String> output = reader.lines().collect(Collectors.toList());
-            
-            int exitCode = process.waitFor();
-            
-            // Prepare result
-            Map<String, Object> result = new HashMap<>();
-            result.put("exitCode", exitCode);
-            result.put("output", String.join("\n", output));
-            
-            // Check project creation success
-            Path projectPath = Paths.get(outputDirectory, artifactId);
-            boolean projectCreated = Files.exists(projectPath) && Files.isDirectory(projectPath);
-            result.put("projectCreated", projectCreated);
-            
-            // Include project structure if created
-            if (projectCreated) {
-                result.put("projectDirectory", projectPath.toString());
-                result.put("pomExists", Files.exists(projectPath.resolve("pom.xml")));
-                
-                // Add project metadata
-                Map<String, String> projectMetadata = new HashMap<>();
-                projectMetadata.put("groupId", groupId);
-                projectMetadata.put("artifactId", artifactId);
-                projectMetadata.put("version", version);
-                projectMetadata.put("package", packageName);
-                result.put("projectMetadata", projectMetadata);
-            }
-            
-            if (exitCode == 0 && projectCreated) {
-                return ToolResult.success(result);
-            } else {
-                // Create a combined result with both error message and data
-                Map<String, Object> errorResult = new HashMap<>(result);
-                errorResult.put("error", "Maven archetype generation failed with exit code: " + exitCode);
-                return ToolResult.failure("Maven archetype generation failed with exit code: " + exitCode);
-            }
-            
-        } catch (IOException | InterruptedException e) {
-            throw new ToolExecutionException("Failed to execute Maven archetype: " + e.getMessage(), e);
+            // Add project metadata
+            Map<String, String> projectMetadata = new HashMap<>();
+            projectMetadata.put("groupId", groupId);
+            projectMetadata.put("artifactId", artifactId);
+            projectMetadata.put("version", version);
+            projectMetadata.put("package", packageName);
+            result.put("projectMetadata", projectMetadata);
+        }
+        
+        if (exitCode == 0 && projectCreated) {
+            return ToolResult.success(result);
+        } else {
+            // Create a combined result with both error message and data
+            Map<String, Object> errorResult = new HashMap<>(result);
+            errorResult.put("error", "Maven archetype generation failed with exit code: " + exitCode);
+            return ToolResult.failure("Maven archetype generation failed: " + exitCode);
         }
     }
     

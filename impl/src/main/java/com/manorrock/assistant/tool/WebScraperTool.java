@@ -45,95 +45,90 @@ public class WebScraperTool extends AbstractTool {
     }
 
     @Override
-    public ToolResult execute(Map<String, Object> parameters) {
-        try {
-            // Extract parameters
-            String url = getRequiredString(parameters, "url");
-            String method = getString(parameters, "method", "GET");
-            String selector = getString(parameters, "selector", "");
-            String attribute = getString(parameters, "attribute", "text");
-            int timeout = getInteger(parameters, "timeout", DEFAULT_TIMEOUT);
-            boolean followRedirects = getBoolean(parameters, "followRedirects", true);
-            String outputFormat = getString(parameters, "outputFormat", "text");
+    protected ToolResult executeInternal(Map<String, Object> parameters) throws Exception {
+        // Extract parameters
+        String url = getRequiredString(parameters, "url");
+        String method = getString(parameters, "method", "GET");
+        String selector = getString(parameters, "selector", "");
+        String attribute = getString(parameters, "attribute", "text");
+        int timeout = getInteger(parameters, "timeout", DEFAULT_TIMEOUT);
+        boolean followRedirects = getBoolean(parameters, "followRedirects", true);
+        String outputFormat = getString(parameters, "outputFormat", "text");
 
-            // Validate URL
-            validateUrl(url);
+        // Validate URL
+        validateUrl(url);
 
-            // Store request headers for later use
-            Map<String, String> requestHeaders = new HashMap<>();
-            requestHeaders.put("User-Agent", "Manorrock-Assistant");
+        // Store request headers for later use
+        Map<String, String> requestHeaders = new HashMap<>();
+        requestHeaders.put("User-Agent", "Manorrock-Assistant");
 
-            // Configure connection
-            Connection connection = Jsoup.connect(url)
-                    .method(Connection.Method.valueOf(method))
-                    .timeout((int) TimeUnit.SECONDS.toMillis(timeout))
-                    .followRedirects(followRedirects)
-                    .userAgent("Manorrock-Assistant");
+        // Configure connection
+        Connection connection = Jsoup.connect(url)
+                .method(Connection.Method.valueOf(method))
+                .timeout((int) TimeUnit.SECONDS.toMillis(timeout))
+                .followRedirects(followRedirects)
+                .userAgent("Manorrock-Assistant");
 
-            // Add custom headers
-            if (parameters.containsKey("headers") && parameters.get("headers") != null) {
-                Object headersObj = parameters.get("headers");
-                if (headersObj instanceof Map) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, String> headers = (Map<String, String>) headersObj;
-                    headers.forEach((key, value) -> {
-                        connection.header(key, value);
-                        requestHeaders.put(key, value);
-                    });
-                } else if (headersObj instanceof String && !((String) headersObj).isEmpty()) {
-                    // If headers is a non-empty string but not a map, it's an error
-                    return ToolResult.failure("Headers parameter must be a map of key-value pairs");
+        // Add custom headers
+        if (parameters.containsKey("headers") && parameters.get("headers") != null) {
+            Object headersObj = parameters.get("headers");
+            if (headersObj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, String> headers = (Map<String, String>) headersObj;
+                headers.forEach((key, value) -> {
+                    connection.header(key, value);
+                    requestHeaders.put(key, value);
+                });
+            } else if (headersObj instanceof String && !((String) headersObj).isEmpty()) {
+                // If headers is a non-empty string but not a map, it's an error
+                return ToolResult.failure("Headers parameter must be a map of key-value pairs");
+            }
+            // If it's an empty string, just ignore it
+        }
+
+        // Add request body for POST/PUT
+        if (parameters.containsKey("data") && parameters.get("data") != null && 
+            (method.equals("POST") || method.equals("PUT"))) {
+            Object dataObj = parameters.get("data");
+            if (dataObj instanceof Map || dataObj instanceof List) {
+                connection.requestBody(dataObj.toString());
+            } else if (dataObj instanceof String) {
+                if (!((String) dataObj).isEmpty()) {
+                    connection.requestBody((String) dataObj);
                 }
                 // If it's an empty string, just ignore it
-            }
-
-            // Add request body for POST/PUT
-            if (parameters.containsKey("data") && parameters.get("data") != null && 
-                (method.equals("POST") || method.equals("PUT"))) {
-                Object dataObj = parameters.get("data");
-                if (dataObj instanceof Map || dataObj instanceof List) {
-                    connection.requestBody(dataObj.toString());
-                } else if (dataObj instanceof String) {
-                    if (!((String) dataObj).isEmpty()) {
-                        connection.requestBody((String) dataObj);
-                    }
-                    // If it's an empty string, just ignore it
-                } else {
-                    connection.requestBody(dataObj.toString());
-                }
-            }
-
-            // Execute request and parse
-            Connection.Response response = connection.execute();
-            Document document = response.parse();
-
-            // Extract content
-            String content;
-            if (!selector.isEmpty()) {
-                Elements elements = document.select(selector);
-                if (elements.isEmpty()) {
-                    return ToolResult.failure("No elements found matching selector: " + selector);
-                }
-                content = extractContent(elements, attribute, outputFormat);
             } else {
-                content = formatOutput(document, outputFormat);
+                connection.requestBody(dataObj.toString());
             }
-
-            // Build result data
-            Map<String, Object> resultData = new HashMap<>();
-            resultData.put("url", response.url().toString());
-            resultData.put("rawUrl", url);
-            resultData.put("method", method);
-            resultData.put("statusCode", response.statusCode());
-            resultData.put("content", content);
-            resultData.put("requestHeaders", requestHeaders);
-            resultData.put("responseHeaders", response.headers());
-
-            return ToolResult.success(resultData, "Successfully retrieved document");
-
-        } catch (Exception e) {
-            return ToolResult.failure(e.getMessage());
         }
+
+        // Execute request and parse
+        Connection.Response response = connection.execute();
+        Document document = response.parse();
+
+        // Extract content
+        String content;
+        if (!selector.isEmpty()) {
+            Elements elements = document.select(selector);
+            if (elements.isEmpty()) {
+                return ToolResult.failure("No elements found matching selector: " + selector);
+            }
+            content = extractContent(elements, attribute, outputFormat);
+        } else {
+            content = formatOutput(document, outputFormat);
+        }
+
+        // Build result data
+        Map<String, Object> resultData = new HashMap<>();
+        resultData.put("url", response.url().toString());
+        resultData.put("rawUrl", url);
+        resultData.put("method", method);
+        resultData.put("statusCode", response.statusCode());
+        resultData.put("content", content);
+        resultData.put("requestHeaders", requestHeaders);
+        resultData.put("responseHeaders", response.headers());
+
+        return ToolResult.success(resultData, "Successfully retrieved document");
     }
 
     // ... keep existing helper methods but remove JSON-specific code ...

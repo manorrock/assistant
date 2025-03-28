@@ -1,7 +1,6 @@
 package com.manorrock.assistant;
 
 import com.manorrock.assistant.api.Tool;
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolLifecycle;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
@@ -42,7 +41,7 @@ class CrossPlatformToolTest {
 
     @Test
     @DisplayName("File operations should work on all platforms")
-    void testFileOperationsCrossPlatform() throws Exception, ToolExecutionException {
+    void testFileOperationsCrossPlatform() throws Exception {
         // Create a test file
         Path testFile = tempDir.resolve("test.txt");
         String testContent = "Test content\nLine 2";
@@ -59,7 +58,7 @@ class CrossPlatformToolTest {
     @Test
     @EnabledOnOs(OS.WINDOWS)
     @DisplayName("Windows-specific process execution")
-    void testWindowsProcessExecution() throws ToolExecutionException {
+    void testWindowsProcessExecution() {
         Map<String, Object> params = new HashMap<>();
         params.put("command", "cmd.exe");
         params.put("args", "/c echo Hello Windows");
@@ -72,7 +71,7 @@ class CrossPlatformToolTest {
     @Test
     @EnabledOnOs({OS.LINUX, OS.MAC})
     @DisplayName("Unix-like process execution")
-    void testUnixProcessExecution() throws ToolExecutionException {
+    void testUnixProcessExecution() {
         Map<String, Object> params = new HashMap<>();
         params.put("command", "echo");
         params.put("args", "Hello Unix");
@@ -84,7 +83,7 @@ class CrossPlatformToolTest {
 
     @Test
     @DisplayName("Path handling should be platform-aware")
-    void testPlatformSpecificPathHandling() throws ToolExecutionException {
+    void testPlatformSpecificPathHandling() {
         String platformPath = new File(tempDir.toString(), "test.txt").getPath();
         
         // MockTool just to test path handling
@@ -122,7 +121,7 @@ class CrossPlatformToolTest {
 
     @Test
     @DisplayName("Tool parameters should handle Unicode across platforms")
-    void testUnicodeParameterHandling() throws ToolExecutionException {
+    void testUnicodeParameterHandling() {
         MockTool mockTool = new MockTool("unicodeTest", "Test Unicode handling");
         toolManager.registerTool(mockTool);
 
@@ -138,7 +137,7 @@ class CrossPlatformToolTest {
     @Disabled
     @Test
     @DisplayName("Environment variables should be accessible across platforms")
-    void testEnvironmentVariableAccess() throws ToolExecutionException {
+    void testEnvironmentVariableAccess() {
         Map<String, Object> params = new HashMap<>();
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             params.put("command", "cmd.exe");

@@ -1,6 +1,5 @@
 package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
@@ -38,71 +37,64 @@ public class FileInfoTool extends AbstractTool {
     }
     
     @Override
-    public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+    protected ToolResult executeInternal(Map<String, Object> parameters) throws Exception {
         String filePath = parameters.get("path").toString();
         
-        try {
-            Path path = Paths.get(filePath);
-            
-            if (!Files.exists(path)) {
-                return ToolResult.failure("File does not exist: " + filePath);
-            }
-            
-            Map<String, Object> info = new HashMap<>();
-            info.put("name", path.getFileName().toString());
-            info.put("path", path.toString());
-            info.put("absolutePath", path.toAbsolutePath().toString());
-            info.put("exists", Files.exists(path));
-            info.put("isDirectory", Files.isDirectory(path));
-            info.put("isRegularFile", Files.isRegularFile(path));
-            info.put("isSymbolicLink", Files.isSymbolicLink(path));
-            info.put("isHidden", Files.isHidden(path));
-            info.put("isReadable", Files.isReadable(path));
-            info.put("isWritable", Files.isWritable(path));
-            info.put("isExecutable", Files.isExecutable(path));
-            
-            if (Files.isRegularFile(path)) {
-                info.put("size", Files.size(path));
-            }
-            
-            // Read basic attributes
-            BasicFileAttributes basicAttrs = Files.readAttributes(path, BasicFileAttributes.class);
-            info.put("creationTime", basicAttrs.creationTime().toMillis());
-            info.put("lastModifiedTime", basicAttrs.lastModifiedTime().toMillis());
-            info.put("lastAccessTime", basicAttrs.lastAccessTime().toMillis());
-            
-            // Try to get owner information
-            try {
-                FileOwnerAttributeView ownerView = Files.getFileAttributeView(path, FileOwnerAttributeView.class);
-                if (ownerView != null && ownerView.getOwner() != null) {
-                    info.put("owner", ownerView.getOwner().getName());
-                }
-            } catch (UnsupportedOperationException e) {
-                // File system doesn't support owner attributes
-            }
-            
-            // Try to get POSIX attributes for Unix-like systems
-            try {
-                PosixFileAttributeView posixView = Files.getFileAttributeView(path, PosixFileAttributeView.class);
-                if (posixView != null) {
-                    PosixFileAttributes posixAttrs = posixView.readAttributes();
-                    info.put("group", posixAttrs.group().getName());
-                    
-                    // Format permissions in Unix format (rwxrwxrwx)
-                    Set<PosixFilePermission> permissions = posixAttrs.permissions();
-                    info.put("permissions", formatPermissions(permissions));
-                }
-            } catch (UnsupportedOperationException e) {
-                // Not a POSIX-compatible file system
-            }
-            
-            return ToolResult.success(info);
-            
-        } catch (IOException e) {
-            throw new ToolExecutionException("Failed to get file information: " + e.getMessage(), e);
-        } catch (SecurityException e) {
-            throw new ToolExecutionException("Security violation accessing file: " + e.getMessage(), e);
+        Path path = Paths.get(filePath);
+        
+        if (!Files.exists(path)) {
+            return ToolResult.failure("File does not exist: " + filePath);
         }
+        
+        Map<String, Object> info = new HashMap<>();
+        info.put("name", path.getFileName().toString());
+        info.put("path", path.toString());
+        info.put("absolutePath", path.toAbsolutePath().toString());
+        info.put("exists", Files.exists(path));
+        info.put("isDirectory", Files.isDirectory(path));
+        info.put("isRegularFile", Files.isRegularFile(path));
+        info.put("isSymbolicLink", Files.isSymbolicLink(path));
+        info.put("isHidden", Files.isHidden(path));
+        info.put("isReadable", Files.isReadable(path));
+        info.put("isWritable", Files.isWritable(path));
+        info.put("isExecutable", Files.isExecutable(path));
+        
+        if (Files.isRegularFile(path)) {
+            info.put("size", Files.size(path));
+        }
+        
+        // Read basic attributes
+        BasicFileAttributes basicAttrs = Files.readAttributes(path, BasicFileAttributes.class);
+        info.put("creationTime", basicAttrs.creationTime().toMillis());
+        info.put("lastModifiedTime", basicAttrs.lastModifiedTime().toMillis());
+        info.put("lastAccessTime", basicAttrs.lastAccessTime().toMillis());
+        
+        // Try to get owner information
+        try {
+            FileOwnerAttributeView ownerView = Files.getFileAttributeView(path, FileOwnerAttributeView.class);
+            if (ownerView != null && ownerView.getOwner() != null) {
+                info.put("owner", ownerView.getOwner().getName());
+            }
+        } catch (UnsupportedOperationException e) {
+            // File system doesn't support owner attributes
+        }
+        
+        // Try to get POSIX attributes for Unix-like systems
+        try {
+            PosixFileAttributeView posixView = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+            if (posixView != null) {
+                PosixFileAttributes posixAttrs = posixView.readAttributes();
+                info.put("group", posixAttrs.group().getName());
+                
+                // Format permissions in Unix format (rwxrwxrwx)
+                Set<PosixFilePermission> permissions = posixAttrs.permissions();
+                info.put("permissions", formatPermissions(permissions));
+            }
+        } catch (UnsupportedOperationException e) {
+            // Not a POSIX-compatible file system
+        }
+        
+        return ToolResult.success(info);
     }
     
     private String formatPermissions(Set<PosixFilePermission> permissions) {

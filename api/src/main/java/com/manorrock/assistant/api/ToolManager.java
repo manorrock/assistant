@@ -46,11 +46,10 @@ public interface ToolManager {
      * @param toolName the name of the tool to execute
      * @param parameters the parameters to pass to the tool
      * @return the result of the tool execution
-     * @throws ToolExecutionException if the tool execution fails
-     * @throws IllegalArgumentException if the tool is not found
+     * @throws IllegalArgumentException if the tool is not found or parameters are invalid
      */
     ToolResult executeTool(String toolName, Map<String, Object> parameters) 
-            throws ToolExecutionException, IllegalArgumentException;
+            throws IllegalArgumentException;
     
     /**
      * Generates a description of all available tools in a format suitable for LLM consumption.

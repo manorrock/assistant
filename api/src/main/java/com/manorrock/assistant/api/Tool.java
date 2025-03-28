@@ -33,12 +33,12 @@ public interface Tool {
     
     /**
      * Execute the tool with the provided parameters.
+     * Any exceptions should be caught and returned as a failure ToolResult.
      * 
      * @param parameters a map of parameter names to their values
-     * @return the result of the tool execution
-     * @throws ToolExecutionException if the tool execution fails
+     * @return the result of the tool execution, with success or failure status
      */
-    ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException;
+    ToolResult execute(Map<String, Object> parameters);
     
     /**
      * Initialize the tool. Called after registration.
