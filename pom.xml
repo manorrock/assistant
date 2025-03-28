@@ -8,7 +8,6 @@
   <modules>
     <module>api</module>
     <module>cli</module>
-    <module>command</module>
     <module>desktop</module>
     <module>eclipse</module>
     <module>impl</module>
