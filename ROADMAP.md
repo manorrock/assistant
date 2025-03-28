@@ -6,16 +6,6 @@
 
 ## Tool Integration
 
-4. Tertiary Tools Integration
-   - [ ] Database Connectors
-   - [ ] Image Generation/Processing
-   - [ ] Audio Processing
-   - [ ] Calendar Integration
-   - [ ] Email Client
-   - [ ] Note-taking Systems
-   - [ ] Task Management
-   - [ ] Document Generation
-
 5. Documentation and Testing
    - [ ] Security audit implementation
 
@@ -47,18 +37,6 @@
    - [ ] Track tool selection accuracy metrics
 
 # Next release
-- [x] Refactor NetBeansControllerTopComponent to AssistantTopComponent
-- [x] Refactor Eclipse plugin to be a flat structure in com.manorrock.asistant.eclipse package
-- [x] Refactor IntelliJControllerTopComponent.kt to AssistantToolWindow.kt
-- [x] Refactor away old LLM commands and only expose the new LLM commands
-- [x] Refactor to use Manorrock standard trigger workflow
-- [x] Refactor to use the sync chat method instead of doing it asynchronously
-- [x] Add publishing of VSCode extension to release workflow
-- [x] Refactor to use Manorrock standard release workflow
-- [x] Refactor command module into the impl module
-- [x] Refactor shared module into impl module
-
-# Next+1 release
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 
@@ -82,10 +60,10 @@
 - [ ] Add command category system for organizing and grouping related commands
 - [ ] Add a Spring Boot application to expose the Assistant as an MCP server
 - [ ] Add WebSearchTool (DuckDuckGo)
+
+# Next+1 release
 - [ ] Add a DatabaseTool to connect to a database and execute SQL commands
 - [ ] Add a Bing search tool (WebSearchTool)
-
-# Next+2 release
 - [ ] Add a WorkflowTool to create, manage and execute workflows using a simple DSL structured as JSON
 - [ ] Update IntelliJ gradle build to use the version from the top-levvel pom.xml file
 - [ ] Add /assistant command that will execute a prompt by:
@@ -99,10 +77,9 @@
 - [ ] Add a job to the build workflow to remove the SNAPSHOT release 
       prior to running any of the platform specific jobs that will 
       upload their SNAPSHOT artifacts
-- [ ] Refactor command module into the impl module
-- [ ] Add a JSON input / output mode to the CLI
 
-# Next+3 release
+# Next+2 release
+- [ ] Add a JSON input / output mode to the CLI
 - [ ] Refactor to rename mobile module to phone and adjust the package names accordingly
 - [ ] Add Google support to WebSearchTool
 
@@ -235,3 +212,12 @@
 3. Secondary Tools Integration
    - [ ] Structured Data Extraction
 
+4. Tertiary Tools Integration
+   - [ ] Database Connectors
+   - [ ] Image Generation/Processing
+   - [ ] Audio Processing
+   - [ ] Calendar Integration
+   - [ ] Email Client
+   - [ ] Note-taking Systems
+   - [ ] Task Management
+   - [ ] Document Generation
