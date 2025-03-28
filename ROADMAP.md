@@ -55,7 +55,8 @@
 - [x] Refactor to use the sync chat method instead of doing it asynchronously
 - [x] Add publishing of VSCode extension to release workflow
 - [x] Refactor to use Manorrock standard release workflow
-- [ ] Refactor command module into the impl module
+- [x] Refactor command module into the impl module
+- [x] Refactor shared module into impl module
 
 # Next+1 release
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
