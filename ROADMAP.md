@@ -54,13 +54,14 @@
 - [x] Refactor to use Manorrock standard trigger workflow
 - [x] Refactor to use the sync chat method instead of doing it asynchronously
 - [x] Add publishing of VSCode extension to release workflow
-- [ ] Refactor to use Manorrock standard release workflow
+- [x] Refactor to use Manorrock standard release workflow
+- [ ] Refactor command module into the impl module
+
+# Next+1 release
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 
 - [ ] Refactor to push up input and output handling all the way to the CLIProcessor process method
-
-# Next+1 release
 - [ ] Refactor to get rid of the com.manorrock.assistant.core package altogether
 - [ ] Create a `file_create` tool with the following requirements:
   - It must be able to create a new file or directory at the specified path

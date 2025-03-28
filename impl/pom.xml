@@ -13,6 +13,14 @@
     <description>The default implementation of the Manorrock Assistant</description>
     
     <dependencies>
+        <!-- compile -->
+        <dependency>
+            <groupId>com.manorrock.assistant</groupId>
+            <artifactId>api</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- test -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
