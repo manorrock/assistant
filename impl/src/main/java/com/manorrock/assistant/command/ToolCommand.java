@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.command;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

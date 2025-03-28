@@ -5,7 +5,7 @@ import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 import com.manorrock.assistant.api.ToolLifecycle;
-import com.manorrock.assistant.shared.DefaultToolManager;
+import com.manorrock.assistant.tool.DefaultToolManager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

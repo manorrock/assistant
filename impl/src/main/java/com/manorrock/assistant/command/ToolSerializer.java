@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.command;
 
 import java.util.ArrayList;
 import java.util.HashMap;
