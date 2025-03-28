@@ -1,14 +1,14 @@
-package com.manorrock.assistant.shared.integration;
+package com.manorrock.assistant;
 
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolLifecycle;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
-import com.manorrock.assistant.shared.DefaultToolManager;
+import com.manorrock.assistant.tool.DefaultToolManager;
 import com.manorrock.assistant.tool.FileReadTool;
 import com.manorrock.assistant.tool.ProcessExecutionTool;
-import com.manorrock.assistant.shared.tools.test.MockTool;
+import com.manorrock.assistant.tool.MockTool;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

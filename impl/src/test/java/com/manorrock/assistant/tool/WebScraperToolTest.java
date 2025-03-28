@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared.tools;
+package com.manorrock.assistant.tool;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared;
+package com.manorrock.assistant.command;
 
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.llm.LlmConfiguration;

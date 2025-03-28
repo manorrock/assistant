@@ -1,4 +1,4 @@
-package com.manorrock.assistant.shared.test;
+package com.manorrock.assistant.tool;
 
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;

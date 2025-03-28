@@ -37,11 +37,11 @@ import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
 import com.manorrock.assistant.command.HelpCommand;
 import com.manorrock.assistant.command.NewCommand;
+import com.manorrock.assistant.command.OllamaCommand;
 import com.manorrock.assistant.command.SourceCommand;
+import com.manorrock.assistant.command.ToolCommand;
 import com.manorrock.assistant.core.Assistant;
 import com.manorrock.assistant.llm.LlmConfiguration;
-import com.manorrock.assistant.shared.OllamaCommand;
-import com.manorrock.assistant.shared.ToolCommand;
 import com.manorrock.assistant.tool.DefaultToolManager;
 import com.manorrock.assistant.tool.DependencyAnalysisTool;
 import com.manorrock.assistant.tool.DirectoryListTool;
@@ -156,7 +156,7 @@ public class CLI implements Callable<Integer> {
     
     // Register ONLY the consolidated LLM command - no individual LLM subcommands
     assistance.getCommandRegistry().registerCommand("llm", 
-        new com.manorrock.assistant.shared.LlmCommand(
+        new com.manorrock.assistant.command.LlmCommand(
             () -> config, 
             newConfig -> { 
                 config = newConfig;

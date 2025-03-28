@@ -55,11 +55,6 @@
             <artifactId>langchain4j-azure-open-ai</artifactId>
             <version>1.0.0-beta2</version>
         </dependency>
-        <dependency>
-            <groupId>com.manorrock.assistant</groupId>
-            <artifactId>shared</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
     <build>
         <finalName>manorrock-assistant-desktop</finalName>
