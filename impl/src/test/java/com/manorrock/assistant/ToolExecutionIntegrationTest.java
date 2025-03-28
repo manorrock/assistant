@@ -1,7 +1,6 @@
 package com.manorrock.assistant;
 
 import com.manorrock.assistant.api.Tool;
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolLifecycle;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
@@ -67,7 +66,7 @@ class ToolExecutionIntegrationTest {
         
         @Test
         @DisplayName("Successfully execute tool with valid parameters")
-        void testExecuteToolWithValidParams() throws ToolExecutionException {
+        void testExecuteToolWithValidParams() {
             Map<String, Object> params = new HashMap<>();
             params.put("requiredParam", "test");
             params.put("optionalParam", 42);
@@ -82,21 +81,27 @@ class ToolExecutionIntegrationTest {
         
         @Test
         @DisplayName("Fail execution when missing required parameter")
-        void testExecuteToolMissingRequiredParam() throws ToolExecutionException {
+        void testExecuteToolMissingRequiredParam() {
             Map<String, Object> params = new HashMap<>();
             params.put("optionalParam", 42);
             
-            assertThrows(Exception.class, () -> toolManager.executeTool("test_tool", params));
+            // Check for failure result instead of expecting an exception
+            ToolResult result = toolManager.executeTool("test_tool", params);
+            assertFalse(result.isSuccess());
+            assertTrue(result.getMessage().contains("Missing required parameters"));
         }
         
         @Test
         @DisplayName("Handle tool execution failure")
-        void testExecuteToolFailure() throws ToolExecutionException {
+        void testExecuteToolFailure() {
             mockTool.setShouldFailExecution(true);
             Map<String, Object> params = new HashMap<>();
             params.put("requiredParam", "test");
             
-            assertThrows(Exception.class, () -> toolManager.executeTool("test_tool", params));
+            // Check for failure result instead of expecting an exception
+            ToolResult result = toolManager.executeTool("test_tool", params);
+            assertFalse(result.isSuccess());
+            assertTrue(result.getMessage().contains("Tool execution failed"));
             assertEquals(ToolLifecycle.ERROR, mockTool.getLifecycle());
         }
     }

@@ -32,7 +32,6 @@ import org.json.JSONObject;
 
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.Tool;
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
 import com.manorrock.assistant.command.HelpCommand;
@@ -937,10 +936,6 @@ public class CLI implements Callable<Integer> {
   private ToolResult executeToolWithParams(String toolName, Map<String, Object> parameters) {
     try {
       return toolManager.executeTool(toolName, parameters);
-    } catch (ToolExecutionException e) {
-      // Only log at FINE level, so it shows in debug mode but not in error output
-      LOGGER.log(Level.FINE, "Tool execution failed: " + e.getMessage(), e);
-      return ToolResult.failure(e.getMessage());
     } catch (IllegalArgumentException e) {
       LOGGER.log(Level.FINE, "Invalid tool or parameters: " + e.getMessage(), e);
       return ToolResult.failure(e.getMessage());

@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.manorrock.assistant.api.Tool;
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolLifecycle;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolParameter;
@@ -76,15 +75,13 @@ public class DefaultToolManager implements ToolManager {
     }
     
     @Override
-    public ToolResult executeTool(String toolName, Map<String, Object> parameters) 
-            throws ToolExecutionException, IllegalArgumentException {
-        
+    public ToolResult executeTool(String toolName, Map<String, Object> parameters) throws IllegalArgumentException {
         Tool tool = findTool(toolName)
                 .orElseThrow(() -> new IllegalArgumentException("Tool not found: " + toolName));
         
         ToolLifecycle currentState = tool.getLifecycle();
         if (currentState != ToolLifecycle.READY) {
-            throw new IllegalStateException("Tool is not ready for execution. Current state: " + currentState);
+            return ToolResult.failure("Tool is not ready for execution. Current state: " + currentState);
         }
         
         // Validate required parameters
@@ -97,7 +94,7 @@ public class DefaultToolManager implements ToolManager {
         }
         
         if (!missingParams.isEmpty()) {
-            throw new ToolExecutionException("Missing required parameters: " + String.join(", ", missingParams));
+            return ToolResult.failure("Missing required parameters: " + String.join(", ", missingParams));
         }
         
         // Use empty map if parameters is null
@@ -108,12 +105,9 @@ public class DefaultToolManager implements ToolManager {
             ToolResult result = tool.execute(paramsToUse);
             tool.setLifecycle(ToolLifecycle.READY);
             return result;
-        } catch (ToolExecutionException e) {
-            tool.setLifecycle(ToolLifecycle.ERROR);
-            throw e;
         } catch (Exception e) {
             tool.setLifecycle(ToolLifecycle.ERROR);
-            throw new ToolExecutionException("Tool execution failed: " + e.getMessage(), e);
+            return ToolResult.failure("Tool execution failed: " + e.getMessage());
         }
     }
     

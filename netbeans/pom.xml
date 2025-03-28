@@ -103,6 +103,14 @@
                 <configuration>
                     <source>17</source>
                     <target>17</target>
+                    <!-- Enable annotation processing for NetBeans @Messages annotations -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.netbeans.api</groupId>
+                            <artifactId>org-openide-util</artifactId>
+                            <version>${netbeans.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>

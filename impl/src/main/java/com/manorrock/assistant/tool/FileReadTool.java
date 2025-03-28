@@ -1,6 +1,5 @@
 package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
@@ -33,33 +32,26 @@ public class FileReadTool extends AbstractTool {
     }
     
     @Override
-    public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+    protected ToolResult executeInternal(Map<String, Object> parameters) throws Exception {
         String filePath = parameters.get("path").toString();
         
-        try {
-            Path path = Paths.get(filePath);
-            
-            if (!Files.exists(path)) {
-                return ToolResult.failure("File does not exist: " + filePath);
-            }
-            
-            if (!Files.isRegularFile(path)) {
-                return ToolResult.failure("Path is not a regular file: " + filePath);
-            }
-            
-            if (!Files.isReadable(path)) {
-                return ToolResult.failure("File is not readable: " + filePath);
-            }
-            
-            String content = Files.readString(path, StandardCharsets.UTF_8);
-            Map<String, Object> data = new HashMap<>();
-            data.put("content", content);
-            return ToolResult.success(data);
-            
-        } catch (IOException e) {
-            throw new ToolExecutionException("Failed to read file: " + e.getMessage(), e);
-        } catch (SecurityException e) {
-            throw new ToolExecutionException("Security violation reading file: " + e.getMessage(), e);
+        Path path = Paths.get(filePath);
+        
+        if (!Files.exists(path)) {
+            return ToolResult.failure("File does not exist: " + filePath);
         }
+        
+        if (!Files.isRegularFile(path)) {
+            return ToolResult.failure("Path is not a regular file: " + filePath);
+        }
+        
+        if (!Files.isReadable(path)) {
+            return ToolResult.failure("File is not readable: " + filePath);
+        }
+        
+        String content = Files.readString(path, StandardCharsets.UTF_8);
+        Map<String, Object> data = new HashMap<>();
+        data.put("content", content);
+        return ToolResult.success(data);
     }
 }

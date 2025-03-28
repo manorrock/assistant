@@ -1,6 +1,5 @@
 package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
@@ -45,73 +44,66 @@ public class DependencyManagementTool extends AbstractTool {
     }
     
     @Override
-    public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+    protected ToolResult executeInternal(Map<String, Object> parameters) throws Exception {
         String pathStr = parameters.get("path").toString();
         String format = parameters.containsKey("format") ? parameters.get("format").toString().toLowerCase() : null;
         
-        try {
-            Path path = Paths.get(pathStr);
-            
-            if (!Files.exists(path)) {
-                return ToolResult.failure("Path does not exist: " + pathStr);
-            }
-            
-            // If path is a directory, try to find standard dependency files
-            if (Files.isDirectory(path)) {
-                path = findDependencyFile(path, format);
-                if (path == null) {
-                    return ToolResult.failure("Could not find a dependency file in the specified directory");
-                }
-            }
-            
-            // If format is not specified, detect from file name
-            if (format == null) {
-                format = detectFormatFromFileName(path.getFileName().toString());
-                if (format == null) {
-                    return ToolResult.failure("Could not detect dependency format from file: " + path.getFileName());
-                }
-            }
-            
-            // Parse dependencies based on the format
-            Map<String, Object> result = new HashMap<>();
-            List<Map<String, String>> dependencies = new ArrayList<>();
-            
-            switch (format) {
-                case "maven":
-                    dependencies = parseMavenDependencies(path);
-                    break;
-                case "gradle":
-                    dependencies = parseGradleDependencies(path);
-                    break;
-                case "npm":
-                    dependencies = parseNpmDependencies(path);
-                    break;
-                default:
-                    return ToolResult.failure("Unsupported dependency format: " + format);
-            }
-            
-            result.put("format", format);
-            result.put("file", path.toString());
-            result.put("dependencies", dependencies);
-            
-            // Add additional dependency metadata
-            result.put("count", dependencies.size());
-            
-            // Group dependencies by their group/organization
-            Map<String, List<Map<String, String>>> groupedDeps = new HashMap<>();
-            for (Map<String, String> dep : dependencies) {
-                String group = dep.getOrDefault("group", "unknown");
-                groupedDeps.computeIfAbsent(group, k -> new ArrayList<>()).add(dep);
-            }
-            result.put("groupedDependencies", groupedDeps);
-            
-            return ToolResult.success(result);
-            
-        } catch (IOException e) {
-            throw new ToolExecutionException("Failed to read dependency file: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new ToolExecutionException("Failed to analyze dependencies: " + e.getMessage(), e);
+        Path path = Paths.get(pathStr);
+        
+        if (!Files.exists(path)) {
+            return ToolResult.failure("Path does not exist: " + pathStr);
         }
+        
+        // If path is a directory, try to find standard dependency files
+        if (Files.isDirectory(path)) {
+            path = findDependencyFile(path, format);
+            if (path == null) {
+                return ToolResult.failure("Could not find a dependency file in the specified directory");
+            }
+        }
+        
+        // If format is not specified, detect from file name
+        if (format == null) {
+            format = detectFormatFromFileName(path.getFileName().toString());
+            if (format == null) {
+                return ToolResult.failure("Could not detect dependency format from file: " + path.getFileName());
+            }
+        }
+        
+        // Parse dependencies based on the format
+        Map<String, Object> result = new HashMap<>();
+        List<Map<String, String>> dependencies = new ArrayList<>();
+        
+        switch (format) {
+            case "maven":
+                dependencies = parseMavenDependencies(path);
+                break;
+            case "gradle":
+                dependencies = parseGradleDependencies(path);
+                break;
+            case "npm":
+                dependencies = parseNpmDependencies(path);
+                break;
+            default:
+                return ToolResult.failure("Unsupported dependency format: " + format);
+        }
+        
+        result.put("format", format);
+        result.put("file", path.toString());
+        result.put("dependencies", dependencies);
+        
+        // Add additional dependency metadata
+        result.put("count", dependencies.size());
+        
+        // Group dependencies by their group/organization
+        Map<String, List<Map<String, String>>> groupedDeps = new HashMap<>();
+        for (Map<String, String> dep : dependencies) {
+            String group = dep.getOrDefault("group", "unknown");
+            groupedDeps.computeIfAbsent(group, k -> new ArrayList<>()).add(dep);
+        }
+        result.put("groupedDependencies", groupedDeps);
+        
+        return ToolResult.success(result);
     }
     
     /**
