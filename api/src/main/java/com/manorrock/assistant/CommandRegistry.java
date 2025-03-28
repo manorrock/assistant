@@ -1,0 +1,90 @@
+/*
+ * Copyright (c) 2002-2025, Manorrock.com. All Rights Reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     1. Redistributions of source code must retain the above copyright 
+ *        notice, this list of conditions and the following disclaimer.
+ *
+ *     2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.manorrock.assistant;
+
+import java.util.Set;
+
+import com.manorrock.assistant.api.Command;
+
+/**
+ * Registry for managing and accessing Command instances by name.
+ */
+public interface CommandRegistry {
+
+  /**
+   * Register a command with the given name.
+   *
+   * @param name The name of the command
+   * @param command The command implementation
+   * @throws IllegalArgumentException if name is null or empty
+   */
+  void registerCommand(String name, Command command);
+
+  /**
+   * Get a command by name.
+   *
+   * @param name The name of the command
+   * @return The command implementation, or null if not found
+   */
+  Command getCommand(String name);
+
+  /**
+   * Get a command by name and required type.
+   *
+   * @param name The name of the command
+   * @param type The required command type
+   * @return The command implementation if it exists and matches the type, or null
+   */
+  <T extends Command> T getCommand(String name, Class<T> type);
+
+  /**
+   * Check if a command exists.
+   *
+   * @param name The name of the command
+   * @return true if the command exists, false otherwise
+   */
+  boolean hasCommand(String name);
+
+  /**
+   * Get all registered command names.
+   *
+   * @return An unmodifiable set of command names
+   */
+  Set<String> getCommandNames();
+
+  /**
+   * Remove a command from the registry.
+   *
+   * @param name The name of the command to remove
+   * @return The removed command, or null if not found
+   */
+  Command unregisterCommand(String name);
+
+  /**
+   * Clear all registered commands.
+   */
+  void clearCommands();
+}
