@@ -25,7 +25,7 @@ jobs:
         echo "Releasing $VERSION from $BRANCH branch"
         git checkout $BRANCH
         git checkout -b release
-        mvn -B -ntp versions:set versions:commit -DnewVersion=$VERSION
+        mvn -B -ntp -P intellij -P vscode versions:set versions:commit -DnewVersion=$VERSION
         git config --global user.email "noreply@manorrock.com"
         git config --global user.name "Automated release"
         git commit -a -m "Releasing version $VERSION"
