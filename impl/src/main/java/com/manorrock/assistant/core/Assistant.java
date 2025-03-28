@@ -25,9 +25,9 @@
  */
 package com.manorrock.assistant.core;
 
-import com.manorrock.assistant.api.CommandRegistry;
+import com.manorrock.assistant.CommandRegistry;
+import com.manorrock.assistant.command.CommandRegistryImpl;
 import com.manorrock.assistant.llm.Llm;
-import com.manorrock.assistant.llm.LlmConfiguration;
 import com.manorrock.assistant.llm.LlmRequest;
 import com.manorrock.assistant.llm.LlmResponse;
 
@@ -51,7 +51,7 @@ public class Assistant {
      */
     public Assistant() {
         this.llm = new Llm();
-        this.commandRegistry = new CommandRegistry();
+        this.commandRegistry = new CommandRegistryImpl();
     }
 
     /**

@@ -23,7 +23,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.manorrock.assistant.api;
+package com.manorrock.assistant.command;
+
+import com.manorrock.assistant.CommandRegistry;
+import com.manorrock.assistant.api.Command;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,29 +34,26 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Registry for managing and accessing Command instances by name.
+ * Implementation of the CommandRegistry interface.
  */
-public class CommandRegistry {
+public class CommandRegistryImpl implements CommandRegistry {
 
   /**
    * Stores the registered commands.
    */
   private final Map<String, Command> commands;
 
-  /*
+  /**
    * Constructor to initialize the CommandRegistry.
    */
-  public CommandRegistry() {
+  public CommandRegistryImpl() {
     commands = new HashMap<>();
   }
 
   /**
-   * Register a command with the given name.
-   *
-   * @param name The name of the command
-   * @param command The command implementation
-   * @throws IllegalArgumentException if name is null or empty
+   * {@inheritDoc}
    */
+  @Override
   public void registerCommand(String name, Command command) {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Command name cannot be null or empty");
@@ -65,59 +65,50 @@ public class CommandRegistry {
   }
 
   /**
-   * Get a command by name.
-   *
-   * @param name The name of the command
-   * @return The command implementation, or null if not found
+   * {@inheritDoc}
    */
+  @Override
   public Command getCommand(String name) {
     return name != null ? commands.get(name) : null;
   }
 
   /**
-   * Get a command by name and required type.
-   *
-   * @param name The name of the command
-   * @param type The required command type
-   * @return The command implementation if it exists and matches the type, or null
+   * {@inheritDoc}
    */
+  @Override
   public <T extends Command> T getCommand(String name, Class<T> type) {
     Command cmd = getCommand(name);
     return type.isInstance(cmd) ? type.cast(cmd) : null;
   }
 
   /**
-   * Check if a command exists.
-   *
-   * @param name The name of the command
-   * @return true if the command exists, false otherwise
+   * {@inheritDoc}
    */
+  @Override
   public boolean hasCommand(String name) {
     return name != null && commands.containsKey(name);
   }
 
   /**
-   * Get all registered command names.
-   *
-   * @return An unmodifiable set of command names
+   * {@inheritDoc}
    */
+  @Override
   public Set<String> getCommandNames() {
     return Collections.unmodifiableSet(commands.keySet());
   }
 
   /**
-   * Remove a command from the registry.
-   *
-   * @param name The name of the command to remove
-   * @return The removed command, or null if not found
+   * {@inheritDoc}
    */
+  @Override
   public Command unregisterCommand(String name) {
     return name != null ? commands.remove(name) : null;
   }
 
   /**
-   * Clear all registered commands except the built-in help command.
+   * {@inheritDoc}
    */
+  @Override
   public void clearCommands() {
     commands.clear();
   }

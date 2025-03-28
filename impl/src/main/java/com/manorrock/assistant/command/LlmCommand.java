@@ -16,8 +16,6 @@ import java.util.function.Consumer;
  * - /llmEndpoint
  * - /llmVendor
  * - /llmTemperature
- * - /endpoint (legacy)
- * - /model (legacy)
  */
 public class LlmCommand implements Command {
 
