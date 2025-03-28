@@ -39,7 +39,7 @@
                         </goals>
                         <configuration>
                             <target>
-                                <exec executable="./gradlew" dir="${project.basedir}" failonerror="true">
+                                <exec osfamily="unix" executable="./gradlew" dir="${project.basedir}" failonerror="true">
                                     <arg value="buildPlugin" />
                                 </exec>
                             </target>
