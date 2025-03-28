@@ -21,7 +21,7 @@
 
         <dependency>
             <groupId>com.manorrock.assistant</groupId>
-            <artifactId>tool</artifactId>
+            <artifactId>impl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

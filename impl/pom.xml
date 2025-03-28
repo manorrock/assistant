@@ -11,7 +11,11 @@
     <packaging>jar</packaging>
     <name>Manorrock Assistant - Implementation</name>
     <description>The default implementation of the Manorrock Assistant</description>
-    
+    <properties>
+        <json.version>20231013</json.version>
+        <jsoup.version>1.16.2</jsoup.version>
+        <junit.version>4.13.2</junit.version>
+    </properties>    
     <dependencies>
         <!-- compile -->
         <dependency>
@@ -20,11 +24,21 @@
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>${json.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
+        </dependency>
         <!-- test -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
