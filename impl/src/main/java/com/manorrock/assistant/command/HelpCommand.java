@@ -40,11 +40,6 @@ public class HelpCommand implements Command {
   }
   
   @Override
-  public String execute(String input) {
-    return executeToString(input);
-  }
-  
-  @Override
   public String executeToString(String input) {
     StringBuilder result = new StringBuilder();
     result.append("Available commands:\n");
