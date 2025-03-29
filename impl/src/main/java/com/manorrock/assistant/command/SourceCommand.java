@@ -82,4 +82,9 @@ public class SourceCommand implements Command {
   public String getDescription() {
     return "Execute commands from a file";
   }
+
+  @Override
+  public String getShortDescription() {
+    return "Execute commands from a file / text selection";
+  }
 }

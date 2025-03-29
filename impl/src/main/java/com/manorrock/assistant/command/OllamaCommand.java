@@ -101,4 +101,9 @@ public class OllamaCommand implements Command {
                
                The --host parameter is optional and defaults to localhost:11434""";
     }
+
+    @Override
+    public String getShortDescription() {
+        return "Execute Ollama commands";
+    }
 }

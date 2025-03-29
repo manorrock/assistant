@@ -43,7 +43,8 @@ public class CoreAssistantTest {
 
     @Test
     public void testSetCommandRegistry() {
-        CommandRegistry mockRegistry = new CoreCommandRegistry();
+        CoreAssistant coreAssistant = new CoreAssistant();
+        CommandRegistry mockRegistry = new CoreCommandRegistry(coreAssistant);
         coreAssistant.setCommandRegistry(mockRegistry);
         assertEquals(mockRegistry, coreAssistant.getCommandRegistry(), "CommandRegistry should be set correctly");
     }
@@ -159,7 +160,8 @@ public class CoreAssistantTest {
 
     @Test
     public void testSetAndGetCommandRegistry() {
-        CommandRegistry mockRegistry = new CoreCommandRegistry();
+        CoreAssistant coreAssistant = new CoreAssistant();
+        CommandRegistry mockRegistry = new CoreCommandRegistry(coreAssistant);
         coreAssistant.setCommandRegistry(mockRegistry);
         assertEquals(mockRegistry, coreAssistant.getCommandRegistry(), "CommandRegistry should be set and retrieved correctly");
     }
@@ -269,6 +271,11 @@ public class CoreAssistantTest {
             public String executeToString(String input) {
                 return null;
             }
+
+            @Override
+            public String getShortDescription() {
+                throw new UnsupportedOperationException("Unimplemented method 'getShortDescription'");
+            }
         };
         
         coreAssistant.getCommandRegistry().registerCommand(testCommandName, mockCommand);
@@ -306,6 +313,11 @@ public class CoreAssistantTest {
             @Override
             public String executeToString(String input) {
                 return null;
+            }
+
+            @Override
+            public String getShortDescription() {
+                throw new UnsupportedOperationException("Unimplemented method 'getShortDescription'");
             }
         };
         

@@ -23,6 +23,18 @@ public class CoreCommandRegistry implements CommandRegistry {
     private Map<String, Command> commands = new HashMap<>();
 
     /**
+     * Constructor.
+     * 
+     * @param assistant the core assistant instance.
+     */
+    public CoreCommandRegistry(CoreAssistant assistant) {
+
+        // Register the default commands.
+        registerCommand("llm", new CoreLlmCommand(assistant));
+        registerCommand("help", new CoreHelpCommand(assistant));
+    }
+
+    /**
      * Get a command from the registry.
      * 
      * @param name the name of the command

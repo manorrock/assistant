@@ -29,4 +29,9 @@ public class ClearCommand implements Command {
   public String getDescription() {
     return "Clear the response window";
   }
+
+  @Override
+  public String getShortDescription() {
+    return "Clears the response window";
+  }
 }

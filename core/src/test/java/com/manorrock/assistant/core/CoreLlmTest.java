@@ -2,6 +2,9 @@ package com.manorrock.assistant.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
+
+import java.util.Properties;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import dev.langchain4j.model.chat.ChatLanguageModel;
@@ -31,5 +34,29 @@ public class CoreLlmTest {
 
         assertEquals(expectedResponse, actualResponse);
         verify(mockModel).chat(prompt);
+    }
+
+    @Test
+    public void testDestroy() {
+        coreLlm.destroy();
+        assertEquals(null, coreLlm.model);
+    }
+
+    @Test
+    public void testGetProperties() {
+        Properties properties = coreLlm.getProperties();
+        assertEquals(0, properties.size());
+    }
+
+    @Test
+    public void testSetProperties() {
+        Properties newProperties = new Properties();
+        newProperties.setProperty("baseUrl", "http://example.com");
+        newProperties.setProperty("modelName", "customModel");
+        
+        coreLlm.setProperties(newProperties);
+        
+        assertEquals("http://example.com", coreLlm.getProperties().getProperty("baseUrl"));
+        assertEquals("customModel", coreLlm.getProperties().getProperty("modelName"));
     }
 }

@@ -214,22 +214,23 @@ public class CommandRegistryImplTest {
         
         @Override
         public String executeToString(String input) {
-            // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'executeToString'");
         }
         
         @Override
         public InputStream executeToStream(String input) {
-            // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'executeToStream'");
         }
         
         @Override
         public String getDescription() {
-            // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'getDescription'");
         }
-        // Mock implementation for testing
+
+        @Override
+        public String getShortDescription() {
+            throw new UnsupportedOperationException("Unimplemented method 'getShortDescription'");
+        }
     }
     
     /**
@@ -243,21 +244,22 @@ public class CommandRegistryImplTest {
         
         @Override
         public String executeToString(String input) {
-            // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'executeToString'");
         }
 
         @Override
         public InputStream executeToStream(String input) {
-            // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'executeToStream'");
         }
 
         @Override
         public String getDescription() {
-            // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'getDescription'");
         }
-        // Specialized implementation for testing
+
+        @Override
+        public String getShortDescription() {
+            throw new UnsupportedOperationException("Unimplemented method 'getShortDescription'");
+        }
     }
 }

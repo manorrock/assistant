@@ -112,4 +112,9 @@ public class CLIExplainCommand implements Command {
         
         return content;
     }
+
+    @Override
+    public String getShortDescription() {
+        return "Explains text from clipboard or specified file";
+    }
 }
