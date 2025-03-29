@@ -4,9 +4,12 @@ import java.util.Properties;
 
 import com.manorrock.assistant.api.Llm;
 
+import dev.langchain4j.data.message.AiMessage;
+import static dev.langchain4j.data.message.UserMessage.userMessage;
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
-
 /**
  * The Core LLM.
  * 
@@ -37,13 +40,21 @@ public class CoreLlm implements Llm {
             .build();
 
     /**
+     * Stores the chat memory.
+     */
+    ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(10);
+
+    /**
      * Stores the properties.
      */
     Properties properties = new Properties();
 
     @Override
     public String process(String prompt) {
-        return model.chat(prompt);
+        chatMemory.add(userMessage(prompt));
+        AiMessage answer = model.chat(chatMemory.messages()).aiMessage();
+        chatMemory.add(answer);
+        return answer.text();
     }
 
     @Override

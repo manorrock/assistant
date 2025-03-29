@@ -18,9 +18,9 @@ import java.util.Collections;
 public class CoreCommandRegistry implements CommandRegistry {
 
     /**
-     * Stores the command registry.
+     * Stores the commands.
      */
-    private Map<String, Command> commands = new HashMap<>();
+    private final Map<String, Command> commands = new HashMap<>();
 
     /**
      * Constructor.
@@ -28,10 +28,10 @@ public class CoreCommandRegistry implements CommandRegistry {
      * @param assistant the core assistant instance.
      */
     public CoreCommandRegistry(CoreAssistant assistant) {
-
         // Register the default commands.
         registerCommand("llm", new CoreLlmCommand(assistant));
         registerCommand("help", new CoreHelpCommand(assistant));
+        registerCommand("explain", new CoreExplainCommand(assistant));
     }
 
     /**

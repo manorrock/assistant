@@ -30,6 +30,17 @@ public class OllamaCommand implements Command {
     @Override
     public String executeToString(String args) {
         try {
+            // First validate the configuration
+            LlmConfiguration config = configSupplier.get();
+            if (!"OLLAMA".equalsIgnoreCase(config.vendor())) {
+                return "Error: Ollama command requires vendor to be OLLAMA (current: " + config.vendor() + ")";
+            }
+            
+            String endpoint = config.endpoint();
+            if (endpoint == null || !endpoint.contains("/api/chat")) {
+                return "Error: Invalid endpoint configuration. Expected format: http(s)://<host>:<port>/api/chat";
+            }
+
             // Parse host parameter if present
             String host = DEFAULT_HOST;
             String commandArgs = args;
@@ -41,14 +52,10 @@ public class OllamaCommand implements Command {
                     commandArgs = parts.length == 3 ? parts[2] : "";
                 }
             } else {
-                // If no host specified, check if current vendor is OLLAMA
-                LlmConfiguration config = configSupplier.get();
-                if ("OLLAMA".equalsIgnoreCase(config.vendor())) {
-                    String endpoint = config.endpoint();
-                    if (endpoint != null && endpoint.contains("/api/chat")) {
-                        host = endpoint.substring(0, endpoint.indexOf("/api/chat")).replace("http://", "").replace("https://", "");
-                    }
-                }
+                // Extract host from endpoint if no host specified
+                host = endpoint.substring(0, endpoint.indexOf("/api/chat"))
+                    .replace("http://", "")
+                    .replace("https://", "");
             }
             
             ProcessBuilder pb = new ProcessBuilder("ollama");
