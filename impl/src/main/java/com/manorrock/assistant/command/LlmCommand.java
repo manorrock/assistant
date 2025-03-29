@@ -50,6 +50,11 @@ public class LlmCommand implements Command {
     }
 
     @Override
+    public String execute(String input) {
+        return executeToString(input);
+    }
+    
+    @Override
     public String executeToString(String input) {
         if (input == null || input.trim().isEmpty()) {
             // Show current configuration if no arguments provided

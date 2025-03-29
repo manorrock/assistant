@@ -22,6 +22,11 @@ public class NewCommand implements Command {
     }
 
     @Override
+    public String execute(String input) {
+        return executeToString(input);
+    }
+    
+    @Override
     public String executeToString(String input) {
         newSessionHandler.run();
         return "Started new chat session";

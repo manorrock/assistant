@@ -6,7 +6,6 @@ import org.junit.Test;
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolLifecycle;
 
 import java.util.*;
@@ -119,7 +118,7 @@ public class ToolSerializerTest {
         }
 
         @Override
-        public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+        public ToolResult execute(Map<String, Object> parameters) {
             return ToolResult.success(Collections.emptyMap(), "Test execution");
         }
 

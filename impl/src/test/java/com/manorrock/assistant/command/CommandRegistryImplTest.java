@@ -207,19 +207,23 @@ public class CommandRegistryImplTest {
      * A mock implementation of Command for testing.
      */
     private static class MockCommand implements Command {
-
+        @Override
+        public String execute(String input) {
+            return executeToString(input);
+        }
+        
         @Override
         public String executeToString(String input) {
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'executeToString'");
         }
-
+        
         @Override
         public InputStream executeToStream(String input) {
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'executeToStream'");
         }
-
+        
         @Override
         public String getDescription() {
             // TODO Auto-generated method stub
@@ -232,7 +236,11 @@ public class CommandRegistryImplTest {
      * A specialized Command implementation for type testing.
      */
     private static class SpecialCommand implements Command {
-
+        @Override
+        public String execute(String input) {
+            return executeToString(input);
+        }
+        
         @Override
         public String executeToString(String input) {
             // TODO Auto-generated method stub

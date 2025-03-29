@@ -63,6 +63,11 @@ public class ToolCommand implements Command {
     }
 
     @Override
+    public String execute(String input) {
+        return executeToString(input);
+    }
+    
+    @Override
     public String executeToString(String input) {
         if (input == null || input.trim().isEmpty()) {
             // List available tools if no argument provided

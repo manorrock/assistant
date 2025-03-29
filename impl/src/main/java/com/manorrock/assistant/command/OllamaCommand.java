@@ -23,6 +23,11 @@ public class OllamaCommand implements Command {
     }
     
     @Override
+    public String execute(String input) {
+        return executeToString(input);
+    }
+    
+    @Override
     public String executeToString(String args) {
         try {
             // Parse host parameter if present

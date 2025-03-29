@@ -20,6 +20,11 @@ public class SourceCommand implements Command {
   }
 
   @Override
+  public String execute(String input) {
+    return executeToString(input);
+  }
+  
+  @Override
   public String executeToString(String input) {
     if (input == null || input.trim().isEmpty()) {
       return "Usage: /source <file_path>";

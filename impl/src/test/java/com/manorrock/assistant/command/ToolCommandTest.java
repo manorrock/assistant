@@ -1,7 +1,6 @@
 package com.manorrock.assistant.command;
 
 import com.manorrock.assistant.api.Tool;
-import com.manorrock.assistant.api.ToolExecutionException;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 import com.manorrock.assistant.api.ToolLifecycle;
@@ -178,7 +177,7 @@ public class ToolCommandTest {
             }
             
             @Override
-            public ToolResult execute(Map<String, Object> parameters) throws ToolExecutionException {
+            public ToolResult execute(Map<String, Object> parameters) {
                 return executionResults.getOrDefault(name, 
                     ToolResult.failure("Tool execution failed"));
             }
