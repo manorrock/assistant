@@ -1,6 +1,5 @@
 package com.manorrock.assistant.core;
 
-import com.manorrock.assistant.api.Assistant;
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.Llm;
 import java.io.ByteArrayInputStream;
@@ -18,22 +17,24 @@ import java.util.Properties;
  * </p>
  */
 public class CoreLlmCommand implements Command {
-
+    //
+    // TODO
+    //
+    // Reflect that we support multiple LLMs in the description.
+    //
+    
     /**
-     * Stores the assistant reference.
+     * Stores the core assistant.
      */
     private final CoreAssistant assistant;
 
     /**
-     * Create a new CoreLlmCommand.
+     * Constructor.
      *
-     * @param assistant The Assistant to integrate with
+     * @param assistant The core assistant instance
      */
-    public CoreLlmCommand(Assistant assistant) {
-        if (!(assistant instanceof CoreAssistant)) {
-            throw new IllegalArgumentException("CoreLlmCommand requires an instance of CoreAssistant");
-        }
-        this.assistant = (CoreAssistant) assistant;
+    public CoreLlmCommand(CoreAssistant assistant) {
+        this.assistant = assistant;
     }
 
     @Override
@@ -298,5 +299,10 @@ public class CoreLlmCommand implements Command {
         
         // Show first 4 and last 4 characters, mask the rest
         return apiKey.substring(0, 4) + "*".repeat(apiKey.length() - 8) + apiKey.substring(apiKey.length() - 4);
+    }
+
+    @Override
+    public String getShortDescription() {
+        return "Manages LLms and their configuration";
     }
 }

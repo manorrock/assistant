@@ -284,4 +284,9 @@ public class ToolCommand implements Command {
 
         return params;
     }
+
+    @Override
+    public String getShortDescription() {
+        return "Manage and execute tools";
+    }
 }

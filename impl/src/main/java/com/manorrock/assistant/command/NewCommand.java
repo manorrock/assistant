@@ -36,4 +36,9 @@ public class NewCommand implements Command {
     public InputStream executeToStream(String input) {
         return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
+
+    @Override
+    public String getShortDescription() {
+        return "Start a new chat session";
+    }
 }

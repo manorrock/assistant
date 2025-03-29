@@ -6,12 +6,6 @@
 
 ## Tool Integration
 
-6. Utility Tools Development
-   - [ ] JSON data transformation tool
-   - [ ] XML data transformation tool
-   - [ ] Schema validation tool
-   - [ ] Data format validation tool
-
 9. Testing Infrastructure
    - [ ] Concurrent execution testing
 
@@ -37,6 +31,7 @@
 - [x] Add unit test for commands
 - [x] Refactor to remove ToolExecutionException
 - [x] Add /clear command to VSCode extension
+- [x] Introduce a core module to make reuse of the assistant easier
 
 # Next release+1
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
@@ -226,3 +221,9 @@
 
 5. Documentation and Testing
    - [ ] Security audit implementation
+
+6. Utility Tools Development
+   - [ ] JSON data transformation tool
+   - [ ] XML data transformation tool
+   - [ ] Schema validation tool
+   - [ ] Data format validation tool

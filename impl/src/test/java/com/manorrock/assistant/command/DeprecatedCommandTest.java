@@ -41,6 +41,11 @@ public class DeprecatedCommandTest {
             public String getDescription() {
                 return "Mock command";
             }
+
+            @Override
+            public String getShortDescription() {
+                throw new UnsupportedOperationException("Unimplemented method 'getShortDescription'");
+            }
         };
         
         DeprecatedCommand command = new DeprecatedCommand("oldCommand", "newCommand", mockDelegate);
@@ -77,6 +82,11 @@ public class DeprecatedCommandTest {
             @Override
             public String getDescription() {
                 return "Mock command";
+            }
+
+            @Override
+            public String getShortDescription() {
+                throw new UnsupportedOperationException("Unimplemented method 'getShortDescription'");
             }
         };
         

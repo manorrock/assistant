@@ -283,4 +283,9 @@ public class LlmCommand implements Command {
         // Show first 4 and last 4 characters, mask the rest
         return apiKey.substring(0, 4) + "*".repeat(apiKey.length() - 8) + apiKey.substring(apiKey.length() - 4);
     }
+
+    @Override
+    public String getShortDescription() {
+        return "Manage LLM configuration";
+    }
 }

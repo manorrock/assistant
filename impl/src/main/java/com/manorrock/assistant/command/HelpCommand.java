@@ -84,4 +84,9 @@ public class HelpCommand implements Command {
   public String getDescription() {
     return "Show available commands";
   }
+
+  @Override
+  public String getShortDescription() {
+    return "Show available commands";
+  }
 }

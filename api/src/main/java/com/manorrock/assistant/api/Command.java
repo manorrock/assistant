@@ -26,6 +26,7 @@ public interface Command {
    * @param input The input string to process
    * @return The result of the command execution
    */
+  @Deprecated
   String executeToString(String input);
 
   /**
@@ -41,6 +42,7 @@ public interface Command {
    *              The input string to process
    * @return An InputStream containing the result of the command execution
    */
+  @Deprecated
   InputStream executeToStream(String input);
 
   /**
@@ -49,4 +51,11 @@ public interface Command {
    * @return the command description
    */
   String getDescription();
+
+  /**
+   * Get a short description of what this command does.
+   * 
+   * @return the command short description.
+   */
+  String getShortDescription();
 }

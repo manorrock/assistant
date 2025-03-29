@@ -29,7 +29,7 @@ public class CoreAssistant implements Assistant {
     /**
      * Stores the command registry.
      */
-    private CommandRegistry commandRegistry = new CoreCommandRegistry();
+    private CommandRegistry commandRegistry;
 
     /**
      * Stores the llm manager.
@@ -45,10 +45,14 @@ public class CoreAssistant implements Assistant {
      * Constructor.
      */
     public CoreAssistant() {
+        //
+        // TODO
+        //
+        // This should be moved to the CoreLlmManager instread of here.
+        //
         llmManager.registerLlm("llama3.2", new CoreLlm());
         
-        // Register core commands
-        commandRegistry.registerCommand("llm", new CoreLlmCommand(this));
+        commandRegistry = new CoreCommandRegistry(this);
     }
     
     /**

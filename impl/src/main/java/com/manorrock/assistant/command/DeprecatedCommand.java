@@ -87,4 +87,9 @@ public class DeprecatedCommand implements Command {
     public String getDeprecatedCommandName() {
         return deprecatedCommandName;
     }
+
+    @Override
+    public String getShortDescription() {
+        return "Deprecated: Use /" + newCommandName + " instead";
+    }
 }
