@@ -11,6 +11,11 @@ import java.nio.charset.StandardCharsets;
 public class ClearCommand implements Command {
 
   @Override
+  public String execute(String input) {
+    return executeToString(input);
+  }
+  
+  @Override
   public String executeToString(String input) {
     return "Response area cleared.";
   }

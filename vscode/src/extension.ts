@@ -141,6 +141,16 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.onDidReceiveMessage(async (message: { type: string; text: string }) => {
       if (message.type === 'sendMessage') {
+        // Handle /clear command to clear the UI only (without resetting CLI state)
+        if (message.text.trim() === '/clear') {
+          // Clear the UI
+          webviewView.webview.postMessage({
+            type: 'newSession',
+            message: ''
+          });
+          return;
+        }
+        
         // Handle /new command by first clearing UI, then sending to CLI
         if (message.text.trim() === '/new') {
           // Clear the UI

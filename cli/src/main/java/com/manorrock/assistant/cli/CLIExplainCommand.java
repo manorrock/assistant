@@ -27,6 +27,11 @@ public class CLIExplainCommand implements Command {
     }
     
     @Override
+    public String execute(String input) {
+        return executeToString(input);
+    }
+    
+    @Override
     public String executeToString(String input) {
         String textToExplain = null;
         

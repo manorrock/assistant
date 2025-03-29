@@ -6,9 +6,6 @@
 
 ## Tool Integration
 
-5. Documentation and Testing
-   - [ ] Security audit implementation
-
 6. Utility Tools Development
    - [ ] JSON data transformation tool
    - [ ] XML data transformation tool
@@ -37,6 +34,11 @@
    - [ ] Track tool selection accuracy metrics
 
 # Next release
+- [x] Add unit test for commands
+- [x] Refactor to remove ToolExecutionException
+- [x] Add /clear command to VSCode extension
+
+# Next release+1
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 
@@ -61,7 +63,7 @@
 - [ ] Add a Spring Boot application to expose the Assistant as an MCP server
 - [ ] Add WebSearchTool (DuckDuckGo)
 
-# Next+1 release
+# Next+2 release
 - [ ] Add a DatabaseTool to connect to a database and execute SQL commands
 - [ ] Add a Bing search tool (WebSearchTool)
 - [ ] Add a WorkflowTool to create, manage and execute workflows using a simple DSL structured as JSON
@@ -78,7 +80,7 @@
       prior to running any of the platform specific jobs that will 
       upload their SNAPSHOT artifacts
 
-# Next+2 release
+# Next+3 release
 - [ ] Add a JSON input / output mode to the CLI
 - [ ] Refactor to rename mobile module to phone and adjust the package names accordingly
 - [ ] Add Google support to WebSearchTool
@@ -221,3 +223,6 @@
    - [ ] Note-taking Systems
    - [ ] Task Management
    - [ ] Document Generation
+
+5. Documentation and Testing
+   - [ ] Security audit implementation

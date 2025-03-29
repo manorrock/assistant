@@ -23,6 +23,11 @@ public class DeprecatedCommandTest {
     public void testConstructorWithDelegate() {
         Command mockDelegate = new Command() {
             @Override
+            public String execute(String input) {
+                return executeToString(input);
+            }
+            
+            @Override
             public String executeToString(String input) {
                 return "Mock result";
             }
@@ -54,6 +59,11 @@ public class DeprecatedCommandTest {
     @Test
     public void testExecuteToStringWithDelegate() {
         Command mockDelegate = new Command() {
+            @Override
+            public String execute(String input) {
+                return executeToString(input);
+            }
+            
             @Override
             public String executeToString(String input) {
                 return "Mock result for: " + input;

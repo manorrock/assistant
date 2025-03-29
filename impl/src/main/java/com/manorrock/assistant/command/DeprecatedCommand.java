@@ -39,6 +39,11 @@ public class DeprecatedCommand implements Command {
     }
 
     @Override
+    public String execute(String input) {
+        return executeToString(input);
+    }
+    
+    @Override
     public String executeToString(String input) {
         StringBuilder result = new StringBuilder();
         result.append("WARNING: The command '/")
