@@ -32,6 +32,7 @@ public class CoreCommandRegistry implements CommandRegistry {
         registerCommand("llm", new CoreLlmCommand(assistant));
         registerCommand("help", new CoreHelpCommand(assistant));
         registerCommand("explain", new CoreExplainCommand(assistant));
+        registerCommand("source", new CoreSourceCommand(assistant));
     }
 
     /**
