@@ -10,21 +10,18 @@
 - [x] Add /help command to CoreAssistant
 - [x] Add /explain command to CoreAssistant
 - [x] Add /source command to CoreAssistant
-- [ ] Add /ollama command to CoreAssistant
+- [x] Add /ollama command to CoreAssistant
 - [ ] Add /tool command to CoreAssistant
 - [ ] Add /session command to CoreAssistant (wit new sub command)
 
-# Next release+1
+# Backlog
 - [ ] Add /session save/restor sub commands
 - [ ] Add /session autosave sub command
 - [ ] Route old CLI implementation through --old and deprecate it
 - [ ] Cleanup NetBeans plugin
-
-# Next release+2
 - [ ] Add /agent command (with list)
 - [ ] Add /agent active sub command
 - [ ] Add /agent deactivate sub command
-
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 

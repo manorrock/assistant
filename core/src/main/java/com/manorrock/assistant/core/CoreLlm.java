@@ -79,4 +79,13 @@ public class CoreLlm implements Llm {
     public void setProperties(Properties properties) {
         this.properties = properties;
     }
+
+    /**
+     * Get the model.
+     * 
+     * @return the model.
+     */
+    public ChatLanguageModel getChatLanguageModel() {
+        return model;
+    }
 }
