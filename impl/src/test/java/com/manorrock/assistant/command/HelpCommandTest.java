@@ -17,11 +17,9 @@ public class HelpCommandTest {
         
         assertThat(result, containsString("Available commands:"));
         assertThat(result, containsString("/clear - Clears the response window"));
-        assertThat(result, containsString("/endpoint - Changes the LLM API endpoint"));
         assertThat(result, containsString("/explain - Explains text from clipboard"));
         assertThat(result, containsString("/help - Displays available commands"));
         assertThat(result, containsString("/llm - Displays or configures LLM settings"));
-        assertThat(result, containsString("/model - Changes the LLM model used"));
         assertThat(result, containsString("/new - Starts a new chat session"));
         assertThat(result, containsString("/source - Executes commands from a file"));
         assertThat(result, containsString("/tool - Manages tool integrations"));

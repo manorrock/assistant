@@ -2,38 +2,29 @@
 
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
-## Core Development Focus
-
-## Tool Integration
-
-9. Testing Infrastructure
-   - [ ] Concurrent execution testing
-
-## Validation Criteria
-
-1. Tool Integration QA
-   - [ ] Verify plugin performance under load
-   - [ ] Monitor tool usage patterns
-   - [ ] Track performance metrics
-   - [ ] Gather user feedback
-
-## Additional Considerations
-
-1. System Design
-   - [ ] Implement tool usage observation system
-   - [ ] Create tool selection explanation mechanism
-   - [ ] Add rate limiting for API-based tools
-
-2. Deliverables
-   - [ ] Track tool selection accuracy metrics
-
 # Next release
 - [x] Add unit test for commands
 - [x] Refactor to remove ToolExecutionException
 - [x] Add /clear command to VSCode extension
 - [x] Introduce a core module to make reuse of the assistant easier
+- [x] Add /help command to CoreAssistant
+- [x] Add /explain command to CoreAssistant
+- [ ] Add /ollama command to CoreAssistant
+- [ ] Add /tool command to CoreAssistant
+- [ ] Add /session command to CoreAssistant (wit new sub command)
+- [ ] Add /source command to CoreAssistant
 
 # Next release+1
+- [ ] Add /session save/restor sub commands
+- [ ] Add /session autosave sub command
+- [ ] Route old CLI implementation through --old and deprecate it
+- [ ] Cleanup NetBeans plugin
+
+# Next release+2
+- [ ] Add /agent command (with list)
+- [ ] Add /agent active sub command
+- [ ] Add /agent deactivate sub command
+
 - [ ] Refactor all code in CLI except for the main and call method into a separate class called          
       CLIAssistant with setters and getters for instance variables and make the CLI call method
       call the process method of the CLIAssistant class. 
@@ -227,3 +218,28 @@
    - [ ] XML data transformation tool
    - [ ] Schema validation tool
    - [ ] Data format validation tool
+
+9. Testing Infrastructure
+   - [ ] Concurrent execution testing
+
+## Validation Criteria
+
+1. Tool Integration QA
+   - [ ] Verify plugin performance under load
+   - [ ] Monitor tool usage patterns
+   - [ ] Track performance metrics
+   - [ ] Gather user feedback
+
+## Additional Considerations
+
+1. System Design
+   - [ ] Implement tool usage observation system
+   - [ ] Create tool selection explanation mechanism
+   - [ ] Add rate limiting for API-based tools
+
+2. Deliverables
+   - [ ] Track tool selection accuracy metrics
+
+- [ ] Remove PROMPT.md
+- [ ] Remove PLAN_PROMPT.md
+- [ ] Remove plan.md

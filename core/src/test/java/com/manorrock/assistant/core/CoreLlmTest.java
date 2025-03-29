@@ -4,10 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import java.util.Properties;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.model.chat.response.ChatResponse;
 
 /**
  * Unit tests for the CoreLlm class.
@@ -28,12 +31,17 @@ public class CoreLlmTest {
     public void testProcess() {
         String prompt = "Hello, how are you?";
         String expectedResponse = "I am fine, thank you!";
-        when(mockModel.chat(prompt)).thenReturn(expectedResponse);
+        
+        ChatResponse mockResponse = mock(ChatResponse.class);
+        AiMessage mockAiMessage = mock(AiMessage.class);
+        when(mockAiMessage.text()).thenReturn(expectedResponse);
+        when(mockResponse.aiMessage()).thenReturn(mockAiMessage);
+        when(mockModel.chat(any(List.class))).thenReturn(mockResponse);
 
         String actualResponse = coreLlm.process(prompt);
 
         assertEquals(expectedResponse, actualResponse);
-        verify(mockModel).chat(prompt);
+        verify(mockModel).chat(any(List.class));
     }
 
     @Test
