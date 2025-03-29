@@ -9,10 +9,10 @@
 - [x] Introduce a core module to make reuse of the assistant easier
 - [x] Add /help command to CoreAssistant
 - [x] Add /explain command to CoreAssistant
+- [x] Add /source command to CoreAssistant
 - [ ] Add /ollama command to CoreAssistant
 - [ ] Add /tool command to CoreAssistant
 - [ ] Add /session command to CoreAssistant (wit new sub command)
-- [ ] Add /source command to CoreAssistant
 
 # Next release+1
 - [ ] Add /session save/restor sub commands
