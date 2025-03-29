@@ -25,8 +25,8 @@
  */
 package com.manorrock.assistant.command;
 
-import com.manorrock.assistant.CommandRegistry;
 import com.manorrock.assistant.api.Command;
+import com.manorrock.assistant.api.CommandRegistry;
 
 import java.util.Collections;
 import java.util.HashMap;

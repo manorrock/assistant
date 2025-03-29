@@ -448,7 +448,7 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
               } else if (message.type === 'process-complete') {
                 setProcessing(false);
               } else if (message.type === 'newSession') {
-                outputArea.innerHTML = marked.parse(message.message || 'Started a new chat session.');
+                outputArea.innerHTML = marked.parse(message.message || '');
                 setProcessing(false);
               }
             });

@@ -25,7 +25,7 @@
  */
 package com.manorrock.assistant.core;
 
-import com.manorrock.assistant.CommandRegistry;
+import com.manorrock.assistant.api.CommandRegistry;
 import com.manorrock.assistant.command.CommandRegistryImpl;
 import com.manorrock.assistant.llm.Llm;
 import com.manorrock.assistant.llm.LlmRequest;
