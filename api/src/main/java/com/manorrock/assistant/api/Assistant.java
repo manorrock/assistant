@@ -31,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
  * Interface defining an Assistant that can send, receive, and process messages.
  */
 public interface Assistant {
-    
+
     /**
      * Send a message to the Assistant.
      * 
@@ -39,7 +39,7 @@ public interface Assistant {
      * @return a CompletableFuture that will be completed with the response
      */
     CompletableFuture<AssistantMessage> sendMessage(AssistantMessage message);
-    
+
     /**
      * Process a message and generate a response synchronously.
      * 
@@ -47,4 +47,32 @@ public interface Assistant {
      * @return the response message
      */
     AssistantMessage processMessage(AssistantMessage message);
+
+    /**
+     * Get the command registry.
+     * 
+     * @return the command registry
+     */
+    CommandRegistry getCommandRegistry();
+
+    /**
+     * Get the LLM manager.
+     * 
+     * @return the LLM manager
+     */
+    LlmManager getLlmManager();
+
+    /**
+     * Get the active LLM.
+     * 
+     * @return the name of the active LLM
+     */
+    String getActiveLlm();
+
+    /**
+     * Set the active LLM.
+     * 
+     * @param activeLlm the name of the active LLM
+     */
+    void setActiveLlm(String activeLlm);
 }

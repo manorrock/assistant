@@ -2,6 +2,8 @@ package com.manorrock.assistant.cli;
 
 import com.manorrock.assistant.api.Assistant;
 import com.manorrock.assistant.api.AssistantMessage;
+import com.manorrock.assistant.api.CommandRegistry;
+import com.manorrock.assistant.api.LlmManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -134,5 +136,29 @@ public class CLIAssistant implements Assistant {
         }
         
         return response.toString().trim();
+    }
+
+    @Override
+    public CommandRegistry getCommandRegistry() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getCommandRegistry'");
+    }
+
+    @Override
+    public LlmManager getLlmManager() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getLlmManager'");
+    }
+
+    @Override
+    public String getActiveLlm() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getActiveLlm'");
+    }
+
+    @Override
+    public void setActiveLlm(String activeLlm) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setActiveLlm'");
     }
 }

@@ -85,6 +85,8 @@ public class CLI implements Callable<Integer> {
   private boolean useToolIntegration = true;
   private Assistant assistance;
   private ChatMemory chatMemory; // Added chat memory for conversation management
+  // CoreAssistant instance for new processing approach
+  private com.manorrock.assistant.core.CoreAssistant coreAssistant;
 
   @Option(names = {"--stdin"}, description = "Read message from standard input")
   private boolean readFromStdin = false;
@@ -107,6 +109,10 @@ public class CLI implements Callable<Integer> {
     chatMemory = MessageWindowChatMemory.builder()
         .maxMessages(MEMORY_WINDOW_SIZE)
         .build();
+    
+    // Initialize CoreAssistant with proper LLM configuration
+    coreAssistant = new com.manorrock.assistant.core.CoreAssistant();
+    coreAssistant.setActiveLlm("llama3.2");
   }
 
   public static void main(String[] args) {
@@ -151,7 +157,8 @@ public class CLI implements Callable<Integer> {
     // Initialize tool manager and register default tools
     initializeToolManager();
     
-    assistance.getCommandRegistry().registerCommand("help", new HelpCommand());
+    // Register help command with access to the command registry to show dynamic command listing
+    assistance.getCommandRegistry().registerCommand("help", new HelpCommand(assistance.getCommandRegistry()));
     
     // Register ONLY the consolidated LLM command - no individual LLM subcommands
     assistance.getCommandRegistry().registerCommand("llm", 
@@ -461,8 +468,25 @@ public class CLI implements Callable<Integer> {
         handleCommand(userMessage);
         return;
       }
-      System.out.println("You: " + userMessage);
       
+      // Check for "--new " prefix and route to CoreAssistant
+      if (userMessage.startsWith("--new ")) {
+        // Remove the prefix and use CoreAssistant
+        String actualMessage = userMessage.substring(6); // Length of "--new "
+        System.out.println("You: " + actualMessage);
+        
+        // Create the message for CoreAssistant
+        com.manorrock.assistant.api.AssistantMessage message = new com.manorrock.assistant.core.CoreAssistantMessage(actualMessage);
+        
+        // Process using the CoreAssistant
+        com.manorrock.assistant.api.AssistantMessage response = coreAssistant.processMessage(message);
+        
+        // Display the response
+        System.out.println("Assistant: " + response.getContent());
+        return;
+      }
+      
+      System.out.println("You: " + userMessage);
       processMessage(userMessage);
     }
   }
@@ -997,19 +1021,31 @@ public class CLI implements Callable<Integer> {
         // Load history and populate chat memory
         Path historyFile = stateDir.resolve("history.json");
         if (Files.exists(historyFile)) {
-          String content = Files.readString(historyFile);
-          JSONArray jsonArray = new JSONArray(content);
-          for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject msgObj = jsonArray.getJSONObject(i);
-            String role = msgObj.getString("role");
-            String msgContent = msgObj.getString("content");
-            if ("user".equals(role)) {
-              chatMemory.add(UserMessage.from(msgContent));
-            } else if ("assistant".equals(role)) {
-              chatMemory.add(AiMessage.from(msgContent));
-            } else if ("system".equals(role)) {
-              chatMemory.add(SystemMessage.from(msgContent));
+          try {
+            String content = Files.readString(historyFile);
+            JSONArray jsonArray = new JSONArray(content);
+            for (int i = 0; i < jsonArray.length(); i++) {
+              try {
+                JSONObject msgObj = jsonArray.getJSONObject(i);
+                String role = msgObj.getString("role");
+                // Check if content field exists to avoid JSONException
+                String msgContent = msgObj.has("content") ? msgObj.getString("content") : "";
+                
+                if ("user".equals(role)) {
+                  chatMemory.add(UserMessage.from(msgContent));
+                } else if ("assistant".equals(role)) {
+                  chatMemory.add(AiMessage.from(msgContent));
+                } else if ("system".equals(role)) {
+                  chatMemory.add(SystemMessage.from(msgContent));
+                }
+              } catch (Exception e) {
+                // Skip this message entry if there's any error parsing it
+                LOGGER.log(Level.WARNING, "Error parsing message entry in history file: " + e.getMessage());
+              }
             }
+          } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error loading chat history, starting with empty history: " + e.getMessage());
+            // Continue with empty chat history rather than failing
           }
         }
       } else {
