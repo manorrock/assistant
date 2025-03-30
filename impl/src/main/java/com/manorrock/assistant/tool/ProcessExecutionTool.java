@@ -4,16 +4,19 @@ import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.json.JSONObject;
 
 /**
  * A tool that executes local system processes.
@@ -35,6 +38,8 @@ public class ProcessExecutionTool implements Tool {
         new ToolParameter("environmentVariables", "object", "Map of environment variables to set for the process.", false),
         new ToolParameter("timeoutSeconds", "number", "Maximum time in seconds to wait for the command to complete. Default is 60 seconds.", false)
     );
+    
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     
     public ProcessExecutionTool() {
         // No initialization needed
@@ -106,9 +111,11 @@ public class ProcessExecutionTool implements Tool {
                 } else if (envVarsObj instanceof String && !((String) envVarsObj).trim().isEmpty()) {
                     // Try to parse as JSON if it's a non-empty string
                     try {
-                        JSONObject jsonObj = new JSONObject((String) envVarsObj);
-                        for (String key : jsonObj.keySet()) {
-                            environment.put(key, String.valueOf(jsonObj.get(key)));
+                        JsonNode jsonNode = MAPPER.readTree((String) envVarsObj);
+                        Iterator<String> fieldNames = jsonNode.fieldNames();
+                        while (fieldNames.hasNext()) {
+                            String key = fieldNames.next();
+                            environment.put(key, jsonNode.get(key).asText());
                         }
                     } catch (Exception e) {
                         return ToolResult.failure("Invalid environment variables format: " + e.getMessage());

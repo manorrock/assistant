@@ -4,16 +4,19 @@ import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.json.JSONObject;
 
 public class ShellExecutionTool implements Tool {
     
@@ -26,6 +29,8 @@ public class ShellExecutionTool implements Tool {
         new ToolParameter("environmentVariables", "map", "Map of environment variables to set for the process.", false),
         new ToolParameter("timeoutSeconds", "number", "Maximum time in seconds to wait for the command to complete. Default is 60 seconds.", false)
     );
+    
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     
     @Override
     public String getName() {
@@ -140,9 +145,12 @@ public class ShellExecutionTool implements Tool {
             }
         } else if (envVars instanceof String && !((String) envVars).trim().isEmpty()) {
             try {
-                JSONObject jsonObj = new JSONObject((String) envVars);
-                for (String key : jsonObj.keySet()) {
-                    environment.put(key, String.valueOf(jsonObj.get(key)));
+                // Use Jackson for parsing JSON string
+                JsonNode jsonNode = MAPPER.readTree((String) envVars);
+                Iterator<String> fieldNames = jsonNode.fieldNames();
+                while (fieldNames.hasNext()) {
+                    String key = fieldNames.next();
+                    environment.put(key, jsonNode.get(key).asText());
                 }
             } catch (Exception e) {
                 // Ignore parsing errors and keep existing environment

@@ -3,16 +3,7 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-- [x] Add unit test for commands
-- [x] Refactor to remove ToolExecutionException
-- [x] Add /clear command to VSCode extension
-- [x] Introduce a core module to make reuse of the assistant easier
-- [x] Add /help command to CoreAssistant
-- [x] Add /explain command to CoreAssistant
-- [x] Add /source command to CoreAssistant
-- [x] Add /ollama command to CoreAssistant
-- [x] Add /session command to CoreAssistant (wit new sub command)
-- [x] Add /tool command to CoreAssistant
+- [x] Fix release workflow
 
 # Backlog
 - [ ] Add /session save/restor sub commands
@@ -45,8 +36,6 @@
 - [ ] Add command category system for organizing and grouping related commands
 - [ ] Add a Spring Boot application to expose the Assistant as an MCP server
 - [ ] Add WebSearchTool (DuckDuckGo)
-
-# Next+2 release
 - [ ] Add a DatabaseTool to connect to a database and execute SQL commands
 - [ ] Add a Bing search tool (WebSearchTool)
 - [ ] Add a WorkflowTool to create, manage and execute workflows using a simple DSL structured as JSON
@@ -62,14 +51,9 @@
 - [ ] Add a job to the build workflow to remove the SNAPSHOT release 
       prior to running any of the platform specific jobs that will 
       upload their SNAPSHOT artifacts
-
-# Next+3 release
 - [ ] Add a JSON input / output mode to the CLI
 - [ ] Refactor to rename mobile module to phone and adjust the package names accordingly
 - [ ] Add Google support to WebSearchTool
-
-# Backlog
-
 - [ ] Create a CommandExecutionContext class to pass state and parameters to commands
 - [ ] Incorporate https://github.com/stephanj/MCPJavaFileSystem as a tool
 - [ ] Create a unified error code system for all command operations

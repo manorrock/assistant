@@ -3,7 +3,6 @@ package com.manorrock.assistant.tool;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

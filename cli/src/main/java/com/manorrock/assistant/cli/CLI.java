@@ -14,7 +14,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -27,8 +26,12 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.Tool;
@@ -79,6 +82,7 @@ public class CLI implements Callable<Integer> {
   private static final Logger LOGGER = Logger.getLogger(CLI.class.getName());
   private static final Duration TIMEOUT = Duration.ofMinutes(5);
   private static final int MEMORY_WINDOW_SIZE = 50; // Max number of messages to keep in chat memory
+  private static final ObjectMapper MAPPER = new ObjectMapper();
   
   private LlmConfiguration config;
   private ToolManager toolManager;
@@ -100,7 +104,6 @@ public class CLI implements Callable<Integer> {
   @Parameters(paramLabel = "MESSAGE", description = "Message to send", arity = "0..1")
   private String message;
 
-  private LinkedList<ChatMessage> history = new LinkedList<>();
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
   private Path stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "cli-state");
 
@@ -436,7 +439,7 @@ public class CLI implements Callable<Integer> {
    */
   private boolean loadToolFromJson(File jsonFile) throws Exception {
     String json = Files.readString(jsonFile.toPath());
-    JSONObject toolJson = new JSONObject(json);
+    JsonNode toolJson = MAPPER.readTree(json);
     
     // Create a JSON-based tool implementation
     Tool tool = new JsonBasedTool(toolJson);
@@ -454,7 +457,7 @@ public class CLI implements Callable<Integer> {
    */
   private boolean loadScriptTool(File scriptFile, File metadataFile) throws Exception {
     String metadata = Files.readString(metadataFile.toPath());
-    JSONObject metadataJson = new JSONObject(metadata);
+    JsonNode metadataJson = MAPPER.readTree(metadata);
     
     // Create a script-based tool implementation
     Tool tool = new ScriptBasedTool(scriptFile, metadataJson);
@@ -508,7 +511,9 @@ public class CLI implements Callable<Integer> {
 
     Command cmd = assistance.getCommandRegistry().getCommand(cmdName);
     if (cmd != null) {
-      System.out.println("System: " + cmd.executeToString(cmdArgs));
+      String result;
+      result = cmd.execute(cmdArgs);
+      System.out.println("System: " + result);
     } else {
       System.out.println("System: Unknown command. Type /help for a list of commands.");
     }
@@ -519,73 +524,16 @@ public class CLI implements Callable<Integer> {
     }
   }
 
-  private void explainFromClipboardOrFile(String command) {
-    String textToExplain = null;
-
-    // Parse optional file path if provided
-    String filePath = null;
-    if (command.length() > 9) { // "/explain " + something
-      filePath = command.substring(9).trim();
-    }
-
-    if (filePath != null && !filePath.isEmpty()) {
-      // Read from file
-      try {
-        textToExplain = Files.readString(Paths.get(filePath));
-        System.out.println("System: Explaining content from file: " + filePath);
-      } catch (IOException e) {
-        System.out.println("System: Error reading file: " + e.getMessage());
-        return;
-      }
-    } else {
-      // Read from clipboard
-      try {
-        textToExplain = getClipboardContent();
-        System.out.println("System: Explaining content from clipboard");
-      } catch (Exception e) {
-        System.out.println("System: Failed to access clipboard: " + e.getMessage());
-        System.out.println("System: Usage: /explain [file_path] - Explains text from clipboard or specified file");
-        return;
-      }
-    }
-
-    if (textToExplain != null && !textToExplain.trim().isEmpty()) {
-      String promptPrefix = "Please explain the following text in a clear and concise manner:\n\n";
-      processMessage(promptPrefix + textToExplain);
-    } else {
-      System.out.println("System: No content found to explain.");
-    }
-  }
-
-  private String getClipboardContent() throws Exception {
-    // For Mac/Linux, we can use the 'pbpaste' or 'xclip' commands
-    String os = System.getProperty("os.name").toLowerCase();
-    ProcessBuilder pb;
-
-    if (os.contains("mac")) {
-      pb = new ProcessBuilder("pbpaste");
-    } else if (os.contains("nix") || os.contains("nux")) {
-      pb = new ProcessBuilder("xclip", "-selection", "clipboard", "-o");
-    } else if (os.contains("win")) {
-      pb = new ProcessBuilder("powershell.exe", "-command", "Get-Clipboard");
-    } else {
-      throw new UnsupportedOperationException("Clipboard access not supported on this OS");
-    }
-
-    Process process = pb.start();
-    String content = new String(process.getInputStream().readAllBytes());
-    int exitCode = process.waitFor();
-    if (exitCode != 0) {
-      throw new IOException("Failed to get clipboard content, exit code: " + exitCode);
-    }
-
-    return content;
-  }
-
   private void showHelp() {
     Command helpCommand = assistance.getCommandRegistry().getCommand("help");
     if (helpCommand != null) {
-      System.out.println(helpCommand.executeToString(""));
+      try {
+        // Use execute() to get help text directly
+        String result = helpCommand.execute("");
+        System.out.println(result);
+      } catch (Exception e) {
+        System.out.println("Error showing help: " + e.getMessage());
+      }
     }
     
     // Get the explain command description for help text
@@ -718,13 +666,14 @@ public class CLI implements Callable<Integer> {
                   }
                   
                   // Create a JSON object containing both status and result data
-                  JSONObject resultJson = new JSONObject();
-                  resultJson.put("status", result.success() ? "success" : "error");
+                  ObjectNode resultJson = MAPPER.createObjectNode();
                   resultJson.put("status", result.success() ? "success" : "error");
                   resultJson.put("message", result.getMessage());
                   
                   if (result.getData() != null) {
-                      resultJson.put("data", result.getData());
+                      // Convert result data to JsonNode
+                      JsonNode dataNode = MAPPER.valueToTree(result.getData());
+                      resultJson.set("data", dataNode);
                   }
                   
                   // Create tool execution result message and add to chat memory
@@ -737,7 +686,7 @@ public class CLI implements Callable<Integer> {
                   System.out.println("  ✗ Tool execution error: " + e.getMessage());
                   
                   // Handle any errors during tool execution
-                  JSONObject errorJson = new JSONObject();
+                  ObjectNode errorJson = MAPPER.createObjectNode();
                   errorJson.put("status", "error");
                   errorJson.put("message", e.getMessage());
                   
@@ -786,57 +735,6 @@ public class CLI implements Callable<Integer> {
       System.out.println("[" + timestamp + " - Error]\n" + e.getMessage());
     }
   }
-  
-  /**
-   * Builds tool specifications from available tools.
-   * 
-   * @return List of tool specifications for LangChain4j
-   */
-  private List<ToolSpecification> buildToolSpecifications() {
-    return toolManager.getAvailableTools().stream()
-        .map(tool -> {
-          ToolSpecification.Builder toolSpecBuilder = ToolSpecification.builder()
-              .name(tool.getName())
-              .description(tool.getDescription());
-  
-          JsonObjectSchema.Builder schemaBuilder = JsonObjectSchema.builder();
-          
-          // Add each parameter to the schema
-          tool.getParameters().forEach(param -> {
-              switch (param.getType().toLowerCase()) {
-                  case "string":
-                      schemaBuilder.addStringProperty(param.getName(), param.getDescription());
-                      break;
-                  case "integer":
-                  case "int":
-                      schemaBuilder.addIntegerProperty(param.getName(), param.getDescription());
-                      break;
-                  case "number":
-                  case "float":
-                  case "double":
-                      schemaBuilder.addNumberProperty(param.getName(), param.getDescription());
-                      break;
-                  case "boolean":
-                  case "bool":
-                      schemaBuilder.addBooleanProperty(param.getName(), param.getDescription());
-                      break;
-                  default:
-                      // Default to string for unknown types
-                      schemaBuilder.addStringProperty(param.getName(), param.getDescription());
-              }
-              // Mark required parameters
-              if (param.isRequired()) {
-                  schemaBuilder.required(param.getName());
-              }
-          });
-          
-          // Build and return the tool specification
-          return toolSpecBuilder
-              .parameters(schemaBuilder.build())
-              .build();
-      })
-      .collect(Collectors.toList());
-  }
 
   /**
    * Maps and validates tool execution request arguments to tool parameters.
@@ -847,106 +745,248 @@ public class CLI implements Callable<Integer> {
    * @throws IllegalArgumentException if arguments are invalid
    */
   private Map<String, Object> mapToolArguments(String toolName, String requestArgs) {
-    // Check if tool exists by trying to find it in available tools
-    Tool tool = toolManager.getAvailableTools().stream()
-        .filter(t -> t.getName().equals(toolName))
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Tool not found: " + toolName));
+    try {
+      // Check if tool exists by trying to find it in available tools
+      Tool tool = toolManager.getAvailableTools().stream()
+          .filter(t -> t.getName().equals(toolName))
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException("Tool not found: " + toolName));
 
-    Map<String, Object> rawArgs = new JSONObject(requestArgs).toMap();
-    Map<String, Object> mappedArgs = new HashMap<>();
-    
-    // Validate and map each parameter
-    tool.getParameters().forEach(param -> {
-        String paramName = param.getName();
-        Object value = rawArgs.get(paramName);
-        
-        // Check required parameters
-        if (param.isRequired() && value == null) {
-            throw new IllegalArgumentException("Missing required parameter: " + paramName);
+      Map<String, Object> rawArgs = MAPPER.readValue(requestArgs, new TypeReference<Map<String, Object>>() {});
+      Map<String, Object> mappedArgs = new HashMap<>();
+      
+      // Validate and map each parameter
+      tool.getParameters().forEach(param -> {
+          String paramName = param.getName();
+          Object value = rawArgs.get(paramName);
+          
+          // Check required parameters
+          if (param.isRequired() && value == null) {
+              throw new IllegalArgumentException("Missing required parameter: " + paramName);
+          }
+          
+          // Skip if parameter is optional and not provided
+          if (value == null) {
+              return;
+          }
+          
+          // Type validation and conversion
+          try {
+              switch (param.getType().toLowerCase()) {
+                  case "string":
+                      mappedArgs.put(paramName, String.valueOf(value));
+                      break;
+                  case "integer":
+                  case "int":
+                      if (value instanceof Number) {
+                          mappedArgs.put(paramName, ((Number) value).intValue());
+                      } else {
+                          mappedArgs.put(paramName, Integer.parseInt(value.toString()));
+                      }
+                      break;
+                  case "number":
+                  case "float":
+                  case "double":
+                      if (value instanceof Number) {
+                          mappedArgs.put(paramName, ((Number) value).doubleValue());
+                      } else {
+                          mappedArgs.put(paramName, Double.parseDouble(value.toString()));
+                      }
+                      break;
+                  case "boolean":
+                  case "bool":
+                      if (value instanceof Boolean) {
+                          mappedArgs.put(paramName, value);
+                      } else {
+                          mappedArgs.put(paramName, Boolean.parseBoolean(value.toString()));
+                      }
+                      break;
+                  case "map":
+                      if (value instanceof Map) {
+                          mappedArgs.put(paramName, value);
+                      } else if (value instanceof String && ((String) value).trim().isEmpty()) {
+                          mappedArgs.put(paramName, new HashMap<>());
+                      } else {
+                          try {
+                              JsonNode jsonObj = MAPPER.readTree(value.toString());
+                              mappedArgs.put(paramName, MAPPER.convertValue(jsonObj, Map.class));
+                          } catch (Exception e) {
+                              throw new IllegalArgumentException(
+                                  "Invalid map value for parameter '" + paramName + "': " + value);
+                          }
+                      }
+                      break;
+                  case "list":
+                      if (value instanceof List) {
+                          mappedArgs.put(paramName, value);
+                      } else if (value instanceof String && ((String) value).trim().isEmpty()) {
+                          mappedArgs.put(paramName, new ArrayList<>());
+                      } else {
+                          try {
+                              JsonNode jsonArray = MAPPER.readTree(value.toString());
+                              List<Object> list = new ArrayList<>();
+                              if (jsonArray.isArray()) {
+                                  jsonArray.forEach(item -> list.add(MAPPER.convertValue(item, Object.class)));
+                              }
+                              mappedArgs.put(paramName, list);
+                          } catch (Exception e) {
+                              throw new IllegalArgumentException(
+                                  "Invalid list value for parameter '" + paramName + "': " + value);
+                          }
+                      }
+                      break;
+                  default:
+                      // For unknown types, pass through as string
+                      mappedArgs.put(paramName, String.valueOf(value));
+              }
+          } catch (Exception e) {
+              throw new IllegalArgumentException(
+                  "Invalid value for parameter '" + paramName + "': " + value);
+          }
+      });
+      
+      return mappedArgs;
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException("Invalid JSON in tool arguments: " + e.getMessage(), e);
+    }
+  }
+
+  private void startInteractiveMode() {
+    System.out.println("Entering interactive mode. Type /exit to quit, or /help for commands.");
+    System.out.println("Use \\ at end of line for multi-line input.");
+    try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
+      StringBuilder messageBuilder = new StringBuilder();
+      while (true) {
+        System.out.print(messageBuilder.length() == 0 ? "\nYou: " : "... ");
+        String line = scanner.nextLine();
+        String trimmedLine = line.trim();
+
+        // Check for exit command
+        if (trimmedLine.equals("/exit")) {
+          System.out.println("Exiting interactive mode.");
+          break;
+        }
+
+        // Handle commands when not in the middle of a message
+        if (trimmedLine.startsWith("/") && messageBuilder.length() == 0) {
+          handleCommand(trimmedLine);
+          continue;
+        }
+
+        // Handle line continuation
+        if (line.endsWith("\\") || trimmedLine.endsWith("\\")) {
+          // Remove the backslash and add the line with a newline
+          messageBuilder.append(line.substring(0, line.lastIndexOf('\\')).stripTrailing()).append("\n");
+          continue;
+        }
+
+        // Add the line to the message
+        messageBuilder.append(line);
+
+        // Process the complete message
+        String fullMessage = messageBuilder.toString().trim();
+        if (!fullMessage.isEmpty()) {
+          handleSendAction(fullMessage);
+        }
+        messageBuilder.setLength(0);
+      }
+    }
+  }
+
+  private void loadState() {
+    try {
+      if (Files.exists(stateDir)) {
+        Path configFile = stateDir.resolve("config.json");
+        if (Files.exists(configFile)) {
+          String content = Files.readString(configFile);
+          JsonNode configJson = MAPPER.readTree(content);
+          config = new LlmConfiguration(
+              configJson.path("endpoint").asText(), 
+              configJson.path("model").asText(),
+              configJson.path("vendor").asText(), 
+              configJson.path("apiKey").asText(), 
+              configJson.path("temperature").asDouble(0.7));
         }
         
-        // Skip if parameter is optional and not provided
-        if (value == null) {
-            return;
-        }
-        
-        // Type validation and conversion
-        try {
-            switch (param.getType().toLowerCase()) {
-                case "string":
-                    mappedArgs.put(paramName, String.valueOf(value));
-                    break;
-                case "integer":
-                case "int":
-                    if (value instanceof Number) {
-                        mappedArgs.put(paramName, ((Number) value).intValue());
-                    } else {
-                        mappedArgs.put(paramName, Integer.parseInt(value.toString()));
-                    }
-                    break;
-                case "number":
-                case "float":
-                case "double":
-                    if (value instanceof Number) {
-                        mappedArgs.put(paramName, ((Number) value).doubleValue());
-                    } else {
-                        mappedArgs.put(paramName, Double.parseDouble(value.toString()));
-                    }
-                    break;
-                case "boolean":
-                case "bool":
-                    if (value instanceof Boolean) {
-                        mappedArgs.put(paramName, value);
-                    } else {
-                        mappedArgs.put(paramName, Boolean.parseBoolean(value.toString()));
-                    }
-                    break;
-                case "map":
-                    if (value instanceof Map) {
-                        mappedArgs.put(paramName, value);
-                    } else if (value instanceof String && ((String) value).trim().isEmpty()) {
-                        mappedArgs.put(paramName, new HashMap<>());
-                    } else {
-                        try {
-                            JSONObject jsonObj = new JSONObject(value.toString());
-                            mappedArgs.put(paramName, jsonObj.toMap());
-                        } catch (Exception e) {
-                            throw new IllegalArgumentException(
-                                "Invalid map value for parameter '" + paramName + "': " + value);
-                        }
-                    }
-                    break;
-                case "list":
-                    if (value instanceof List) {
-                        mappedArgs.put(paramName, value);
-                    } else if (value instanceof String && ((String) value).trim().isEmpty()) {
-                        mappedArgs.put(paramName, new ArrayList<>());
-                    } else {
-                        try {
-                            JSONArray jsonArray = new JSONArray(value.toString());
-                            List<Object> list = new ArrayList<>();
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                list.add(jsonArray.get(i));
-                            }
-                            mappedArgs.put(paramName, list);
-                        } catch (Exception e) {
-                            throw new IllegalArgumentException(
-                                "Invalid list value for parameter '" + paramName + "': " + value);
-                        }
-                    }
-                    break;
-                default:
-                    // For unknown types, pass through as string
-                    mappedArgs.put(paramName, String.valueOf(value));
+        // Load history and populate chat memory
+        Path historyFile = stateDir.resolve("history.json");
+        if (Files.exists(historyFile)) {
+          try {
+            String content = Files.readString(historyFile);
+            JsonNode jsonArray = MAPPER.readTree(content);
+            if (jsonArray.isArray()) {
+              for (JsonNode msgObj : jsonArray) {
+                try {
+                  String role = msgObj.path("role").asText("");
+                  // Get content if it exists
+                  String msgContent = msgObj.has("content") ? msgObj.path("content").asText("") : "";
+                  
+                  if ("user".equals(role)) {
+                    chatMemory.add(UserMessage.from(msgContent));
+                  } else if ("assistant".equals(role)) {
+                    chatMemory.add(AiMessage.from(msgContent));
+                  } else if ("system".equals(role)) {
+                    chatMemory.add(SystemMessage.from(msgContent));
+                  }
+                } catch (Exception e) {
+                  // Skip this message entry if there's any error parsing it
+                  LOGGER.log(Level.WARNING, "Error parsing message entry in history file: " + e.getMessage());
+                }
+              }
             }
-        } catch (Exception e) {
-            throw new IllegalArgumentException(
-                "Invalid value for parameter '" + paramName + "': " + value);
+          } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error loading chat history, starting with empty history: " + e.getMessage());
+            // Continue with empty chat history rather than failing
+          }
         }
-    });
-    
-    return mappedArgs;
+      } else {
+        Files.createDirectories(stateDir);
+      }
+    } catch (IOException e) {
+      System.out.println("Error loading state: " + e.getMessage());
+    }
+  }
+
+  private void saveState() {
+    try {
+      Path configFile = stateDir.resolve("config.json");
+      ObjectNode configJson = MAPPER.createObjectNode();
+      configJson.put("endpoint", config.endpoint());
+      configJson.put("model", config.model());
+      configJson.put("vendor", config.vendor());
+      configJson.put("apiKey", config.apiKey());
+      configJson.put("temperature", config.temperature());
+      Files.writeString(configFile, MAPPER.writeValueAsString(configJson));
+      
+      // Save chat memory to history file
+      Path historyFile = stateDir.resolve("history.json");
+      ArrayNode historyArray = MAPPER.createArrayNode();
+      for (ChatMessage msg : chatMemory.messages()) {
+        ObjectNode msgObj = MAPPER.createObjectNode();
+        if (msg instanceof UserMessage userMsg) {
+          msgObj.put("role", "user");
+          msgObj.put("content", userMsg.text());
+        } else if (msg instanceof AiMessage aiMsg) {
+          msgObj.put("role", "assistant");
+          msgObj.put("content", aiMsg.text());
+        } else if (msg instanceof SystemMessage sysMsg) {
+          msgObj.put("role", "system");
+          msgObj.put("content", sysMsg.text());
+        }
+        historyArray.add(msgObj);
+      }
+      Files.writeString(historyFile, MAPPER.writeValueAsString(historyArray));
+    } catch (IOException e) {
+      System.out.println("Error saving state: " + e.getMessage());
+    }
+  }
+
+  protected void startNewSession() {
+    // Clear the chat memory
+    chatMemory = MessageWindowChatMemory.builder()
+        .maxMessages(MEMORY_WINDOW_SIZE)
+        .build();
+    saveState();
   }
 
   /**
@@ -966,136 +1006,106 @@ public class CLI implements Callable<Integer> {
     }
   }
 
-  private void startInteractiveMode() {
-    System.out.println("Entering interactive mode. Type /exit to quit, or /help for commands.");
-    System.out.println("Use \\ at end of line for multi-line input.");
-    java.util.Scanner scanner = new java.util.Scanner(System.in);
-    StringBuilder messageBuilder = new StringBuilder();
-    while (true) {
-      System.out.print(messageBuilder.length() == 0 ? "\nYou: " : "... ");
-      String line = scanner.nextLine();
-      String trimmedLine = line.trim();
-
-      // Check for exit command
-      if (trimmedLine.equals("/exit")) {
-        System.out.println("Exiting interactive mode.");
-        break;
-      }
-
-      // Handle commands when not in the middle of a message
-      if (trimmedLine.startsWith("/") && messageBuilder.length() == 0) {
-        handleCommand(trimmedLine);
-        continue;
-      }
-
-      // Handle line continuation
-      if (line.endsWith("\\") || trimmedLine.endsWith("\\")) {
-        // Remove the backslash and add the line with a newline
-        messageBuilder.append(line.substring(0, line.lastIndexOf('\\')).stripTrailing()).append("\n");
-        continue;
-      }
-
-      // Add the line to the message
-      messageBuilder.append(line);
-
-      // Process the complete message
-      String fullMessage = messageBuilder.toString().trim();
-      if (!fullMessage.isEmpty()) {
-        handleSendAction(fullMessage);
-      }
-      messageBuilder.setLength(0);
-    }
-  }
-
-  private void loadState() {
-    try {
-      if (Files.exists(stateDir)) {
-        Path configFile = stateDir.resolve("config.json");
-        if (Files.exists(configFile)) {
-          String content = Files.readString(configFile);
-          JSONObject configJson = new JSONObject(content);
-          config = new LlmConfiguration(configJson.getString("endpoint"), configJson.getString("model"),
-              configJson.getString("vendor"), configJson.getString("apiKey"), configJson.getDouble("temperature"));
-        }
+  /**
+   * Convert Manorrock tools to LangChain4j ToolSpecifications.
+   * This method creates tool specifications compatible with LLMs that support tools/function calling.
+   *
+   * @return List of ToolSpecification objects for use with the LLM
+   */
+  private List<ToolSpecification> buildToolSpecifications() {
+    List<ToolSpecification> specifications = new ArrayList<>();
+    
+    // Convert each available tool to a ToolSpecification
+    for (Tool tool : toolManager.getAvailableTools()) {
+      try {
+        // Create tool specification builder with name and description
+        ToolSpecification.Builder toolSpecBuilder = ToolSpecification.builder()
+            .name(tool.getName())
+            .description(tool.getDescription());
+            
+        // Create JsonObjectSchema builder for parameters
+        JsonObjectSchema.Builder schemaBuilder = JsonObjectSchema.builder();
         
-        // Load history and populate chat memory
-        Path historyFile = stateDir.resolve("history.json");
-        if (Files.exists(historyFile)) {
-          try {
-            String content = Files.readString(historyFile);
-            JSONArray jsonArray = new JSONArray(content);
-            for (int i = 0; i < jsonArray.length(); i++) {
-              try {
-                JSONObject msgObj = jsonArray.getJSONObject(i);
-                String role = msgObj.getString("role");
-                // Check if content field exists to avoid JSONException
-                String msgContent = msgObj.has("content") ? msgObj.getString("content") : "";
-                
-                if ("user".equals(role)) {
-                  chatMemory.add(UserMessage.from(msgContent));
-                } else if ("assistant".equals(role)) {
-                  chatMemory.add(AiMessage.from(msgContent));
-                } else if ("system".equals(role)) {
-                  chatMemory.add(SystemMessage.from(msgContent));
-                }
-              } catch (Exception e) {
-                // Skip this message entry if there's any error parsing it
-                LOGGER.log(Level.WARNING, "Error parsing message entry in history file: " + e.getMessage());
-              }
-            }
-          } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Error loading chat history, starting with empty history: " + e.getMessage());
-            // Continue with empty chat history rather than failing
+        // Process each parameter
+        for (com.manorrock.assistant.api.ToolParameter param : tool.getParameters()) {
+          // Add appropriate property type based on parameter type
+          switch (param.getType().toLowerCase()) {
+            case "string":
+            case "text":
+            case "path":
+            case "file":
+            case "dir":
+            case "directory":
+              schemaBuilder.addStringProperty(param.getName(), param.getDescription());
+              break;
+            case "integer":
+            case "int":
+              schemaBuilder.addIntegerProperty(param.getName(), param.getDescription());
+              break;
+            case "number":
+            case "float":
+            case "double":
+              schemaBuilder.addNumberProperty(param.getName(), param.getDescription());
+              break;
+            case "boolean":
+            case "bool":
+              schemaBuilder.addBooleanProperty(param.getName(), param.getDescription());
+              break;
+            case "array":
+            case "list":
+              // For complex types we fall back to string
+              schemaBuilder.addStringProperty(param.getName(), param.getDescription());
+              break;
+            case "object":
+            case "map":
+              // For complex types we fall back to string
+              schemaBuilder.addStringProperty(param.getName(), param.getDescription());
+              break;
+            default:
+              // Default to string for unknown types
+              schemaBuilder.addStringProperty(param.getName(), param.getDescription());
+          }
+          
+          // Mark required parameters
+          if (param.isRequired()) {
+            schemaBuilder.required(param.getName());
           }
         }
-      } else {
-        Files.createDirectories(stateDir);
+        
+        // Build the schema and add it to the tool specification
+        toolSpecBuilder.parameters(schemaBuilder.build());
+        
+        // Build and add the tool specification
+        specifications.add(toolSpecBuilder.build());
+        LOGGER.fine("Created tool specification for: " + tool.getName());
+      } catch (Exception e) {
+        LOGGER.log(Level.WARNING, "Failed to create tool specification for " + tool.getName(), e);
       }
-    } catch (IOException e) {
-      System.out.println("Error loading state: " + e.getMessage());
     }
+    
+    return specifications;
   }
-
-  private void saveState() {
-    try {
-      Path configFile = stateDir.resolve("config.json");
-      JSONObject configJson = new JSONObject();
-      configJson.put("endpoint", config.endpoint());
-      configJson.put("model", config.model());
-      configJson.put("vendor", config.vendor());
-      configJson.put("apiKey", config.apiKey());
-      configJson.put("temperature", config.temperature());
-      Files.writeString(configFile, configJson.toString());
-      
-      // Save chat memory to history file
-      Path historyFile = stateDir.resolve("history.json");
-      JSONArray historyArray = new JSONArray();
-      for (ChatMessage msg : chatMemory.messages()) {
-        JSONObject msgObj = new JSONObject();
-        if (msg instanceof UserMessage) {
-          msgObj.put("role", "user");
-          msgObj.put("content", ((UserMessage) msg).text());
-        } else if (msg instanceof AiMessage) {
-          msgObj.put("role", "assistant");
-          msgObj.put("content", ((AiMessage) msg).text());
-        } else if (msg instanceof SystemMessage) {
-          msgObj.put("role", "system");
-          msgObj.put("content", ((SystemMessage) msg).text());
-        }
-        historyArray.put(msgObj);
-      }
-      Files.writeString(historyFile, historyArray.toString());
-    } catch (IOException e) {
-      System.out.println("Error saving state: " + e.getMessage());
+  
+  /**
+   * Convert Manorrock Assistant tool parameter types to JSON Schema types.
+   * 
+   * @param paramType The tool parameter type
+   * @return The corresponding JSON Schema type
+   */
+  private String convertParamType(String paramType) {
+    if (paramType == null) {
+      return "string";
     }
-  }
-
-  protected void startNewSession() {
-    // Clear the chat memory
-    chatMemory = MessageWindowChatMemory.builder()
-        .maxMessages(MEMORY_WINDOW_SIZE)
-        .build();
-    saveState();
+    
+    return switch (paramType.toLowerCase()) {
+      case "string", "text", "path", "file", "dir", "directory" -> "string";
+      case "int", "integer" -> "integer";
+      case "float", "double", "number" -> "number";
+      case "boolean", "bool" -> "boolean";
+      case "array", "list" -> "array";
+      case "object", "map" -> "object";
+      default -> "string";  // Default to string for unknown types
+    };
   }
 
   static class PropertiesVersionProvider implements CommandLine.IVersionProvider {
