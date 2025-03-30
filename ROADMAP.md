@@ -12,7 +12,7 @@
 - [x] Add /source command to CoreAssistant
 - [x] Add /ollama command to CoreAssistant
 - [x] Add /session command to CoreAssistant (wit new sub command)
-- [ ] Add /tool command to CoreAssistant
+- [x] Add /tool command to CoreAssistant
 
 # Backlog
 - [ ] Add /session save/restor sub commands

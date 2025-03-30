@@ -20,4 +20,11 @@ public interface LlmManager {
      * @param llm the LLM
      */
     void registerLlm(String name, Llm llm);
+
+    /**
+     * Get the assistant.
+     * 
+     * @return the assistant.
+     */
+    Assistant getAssistant();
 }

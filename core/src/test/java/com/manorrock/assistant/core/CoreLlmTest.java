@@ -23,10 +23,12 @@ public class CoreLlmTest {
     @BeforeEach
     public void setUp() {
         mockModel = mock(ChatLanguageModel.class);
-        coreLlm = new CoreLlm();
+        coreLlm = new CoreLlm(null);
+        coreLlm.setToolIntegration(false); // Disable tool integration for tests
         coreLlm.model = mockModel;
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testProcess() {
         String prompt = "Hello, how are you?";

@@ -63,6 +63,13 @@ public interface Assistant {
     LlmManager getLlmManager();
 
     /**
+     * Get the tool manager.
+     * 
+     * @return the tool manager
+     */
+    ToolManager getToolManager();
+
+    /**
      * Get the active LLM.
      * 
      * @return the name of the active LLM

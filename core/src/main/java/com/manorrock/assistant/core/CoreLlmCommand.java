@@ -44,11 +44,12 @@ public class CoreLlmCommand implements Command {
                
                Usage:
                  /llm                     - Show current configuration
-                 /llm vendor <name>       - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
-                 /llm model <name>        - Set LLM model name
+                 /llm vendor <n>          - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
+                 /llm model <n>           - Set LLM model name
                  /llm endpoint <url>      - Set LLM API endpoint
                  /llm apikey <key>        - Set API key for authentication
                  /llm temperature <value> - Set temperature parameter (0.0-1.0)
+                 /llm functionCalling <on|off> - Enable or disable function calling
                """;
     }
 
@@ -104,9 +105,15 @@ public class CoreLlmCommand implements Command {
                 }
                 return setTemperature(parts[1].trim());
                 
+            case "functioncalling":
+                if (parts.length < 2) {
+                    return "Function calling is currently: " + (isFunctionCallingEnabled() ? "ON" : "OFF");
+                }
+                return setFunctionCalling(parts[1].trim());
+                
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: status, vendor, model, endpoint, apikey, temperature";
+                       "Available subcommands: status, vendor, model, endpoint, apikey, temperature, functionCalling";
         }
     }
 
@@ -127,6 +134,7 @@ public class CoreLlmCommand implements Command {
         result.append("  Endpoint: ").append(getProperty("baseUrl", "http://localhost:11434")).append("\n");
         result.append("  API Key: ").append(maskApiKey(getProperty("apiKey", ""))).append("\n");
         result.append("  Temperature: ").append(getProperty("temperature", "0.7")).append("\n");
+        result.append("  Function Calling: ").append(isFunctionCallingEnabled() ? "ON" : "OFF").append("\n");
         
         result.append("\nUse '/llm <setting> <value>' to update a specific setting");
         return result.toString();
@@ -304,5 +312,59 @@ public class CoreLlmCommand implements Command {
     @Override
     public String getShortDescription() {
         return "Manages LLms and their configuration";
+    }
+    
+    /**
+     * Set function calling on or off.
+     *
+     * @param setting "on" or "off"
+     * @return Result message
+     */
+    private String setFunctionCalling(String setting) {
+        String activeLlmName = assistant.getActiveLlm();
+        if (activeLlmName == null) {
+            return "No active LLM set. Use '/llm set <llm-name>' to set an active LLM first.";
+        }
+        
+        Llm activeLlm = assistant.getLlmManager().getLlm(activeLlmName);
+        if (activeLlm == null) {
+            return "Active LLM '" + activeLlmName + "' is not registered.";
+        }
+        
+        if (!(activeLlm instanceof CoreLlm)) {
+            return "Function calling is only supported by Core LLM.";
+        }
+        
+        CoreLlm coreLlm = (CoreLlm) activeLlm;
+        
+        setting = setting.toLowerCase();
+        if ("on".equals(setting)) {
+            coreLlm.setToolIntegration(true);
+            return "Function calling is now ON";
+        } else if ("off".equals(setting)) {
+            coreLlm.setToolIntegration(false);
+            return "Function calling is now OFF";
+        } else {
+            return "Invalid value. Use 'on' or 'off'";
+        }
+    }
+    
+    /**
+     * Check if function calling is enabled for the current active LLM.
+     *
+     * @return true if function calling is enabled, false otherwise
+     */
+    private boolean isFunctionCallingEnabled() {
+        String activeLlmName = assistant.getActiveLlm();
+        if (activeLlmName == null) {
+            return false;
+        }
+        
+        Llm activeLlm = assistant.getLlmManager().getLlm(activeLlmName);
+        if (activeLlm == null || !(activeLlm instanceof CoreLlm)) {
+            return false;
+        }
+        
+        return ((CoreLlm) activeLlm).isToolIntegrationEnabled();
     }
 }

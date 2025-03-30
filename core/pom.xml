@@ -14,6 +14,11 @@
     <dependencies>
         <!-- compile -->
         <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20250107</version>
+        </dependency>
+        <dependency>
             <groupId>com.manorrock.assistant</groupId>
             <artifactId>api</artifactId>
             <version>${project.version}</version>

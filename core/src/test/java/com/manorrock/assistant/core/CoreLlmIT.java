@@ -30,7 +30,7 @@ public class CoreLlmIT {
     @BeforeEach
     public void setUp() {
         // Create a new instance of CoreLlm that will connect to the specified Ollama host
-        coreLlm = new CoreLlm();
+        coreLlm = new CoreLlm(null);
         
         // If OLLAMA_HOST is set, use it instead of the default localhost
         String ollamaHost = System.getenv("OLLAMA_HOST");

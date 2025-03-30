@@ -57,7 +57,7 @@ public class CoreAssistantTest {
 
     @Test
     public void testSetToolManager() {
-        ToolManager mockToolManager = new CoreToolManager();
+        ToolManager mockToolManager = new CoreToolManager(null);
         coreAssistant.setToolManager(mockToolManager);
         assertEquals(mockToolManager, coreAssistant.getToolManager(), "ToolManager should be set correctly");
     }
@@ -168,7 +168,7 @@ public class CoreAssistantTest {
 
     @Test
     public void testSetAndGetToolManager() {
-        ToolManager mockToolManager = new CoreToolManager();
+        ToolManager mockToolManager = new CoreToolManager(null);
         coreAssistant.setToolManager(mockToolManager);
         assertEquals(mockToolManager, coreAssistant.getToolManager(), "ToolManager should be set and retrieved correctly");
     }
