@@ -28,7 +28,7 @@ public class CoreLlmTest {
     public void setUp() {
         mockModel = mock(ChatLanguageModel.class);
         coreLlm = new CoreLlm(null);
-        coreLlm.setToolIntegration(false); // Disable tool integration for tests
+        coreLlm.setFunctionCallingEnabled(false); // Disable tool integration for tests
         coreLlm.model = mockModel;
     }
 
@@ -76,11 +76,11 @@ public class CoreLlmTest {
 
     @Test
     public void testSetToolIntegration() {
-        coreLlm.setToolIntegration(true);
-        assertEquals(true, coreLlm.isToolIntegrationEnabled());
+        coreLlm.setFunctionCallingEnabled(true);
+        assertEquals(true, coreLlm.isFunctionCallingEnabled());
 
-        coreLlm.setToolIntegration(false);
-        assertEquals(false, coreLlm.isToolIntegrationEnabled());
+        coreLlm.setFunctionCallingEnabled(false);
+        assertEquals(false, coreLlm.isFunctionCallingEnabled());
     }
 
     @Test
@@ -98,7 +98,7 @@ public class CoreLlmTest {
         // Create a new CoreLlm with the mock manager
         coreLlm = new CoreLlm(mockManager);
         coreLlm.model = mockModel; // Set the mock model
-        coreLlm.setToolIntegration(true);
+        coreLlm.setFunctionCallingEnabled(true);
 
         String prompt = "Use a tool to calculate 2+2.";
         String expectedResponse = "The result is 4.";
@@ -185,7 +185,7 @@ public class CoreLlmTest {
     public void testProcessWithNullManager() {
         coreLlm = new CoreLlm(null);
         coreLlm.model = mockModel;
-        coreLlm.setToolIntegration(true);
+        coreLlm.setFunctionCallingEnabled(true);
         
         String prompt = "Test prompt";
         String expectedResponse = "Test response";

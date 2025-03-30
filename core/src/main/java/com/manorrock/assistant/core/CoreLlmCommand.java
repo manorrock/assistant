@@ -17,11 +17,6 @@ import java.util.Properties;
  * </p>
  */
 public class CoreLlmCommand implements Command {
-    //
-    // TODO
-    //
-    // Reflect that we support multiple LLMs in the description.
-    //
     
     /**
      * Stores the core assistant.
@@ -43,13 +38,13 @@ public class CoreLlmCommand implements Command {
                Display and manage LLM configuration.
                
                Usage:
-                 /llm                     - Show current configuration
-                 /llm vendor <n>          - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
-                 /llm model <n>           - Set LLM model name
-                 /llm endpoint <url>      - Set LLM API endpoint
-                 /llm apikey <key>        - Set API key for authentication
-                 /llm temperature <value> - Set temperature parameter (0.0-1.0)
+                 /llm                          - Show current configuration
+                 /llm apiKey <string>          - Set API key for authentication
+                 /llm endpoint <url>           - Set LLM endpoint
                  /llm functionCalling <on|off> - Enable or disable function calling
+                 /llm model <string>           - Set LLM model name
+                 /llm temperature <number>.    - Set temperature parameter (0.0-1.0)
+                 /llm vendor <string>          - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
                """;
     }
 
@@ -105,7 +100,7 @@ public class CoreLlmCommand implements Command {
                 }
                 return setTemperature(parts[1].trim());
                 
-            case "functioncalling":
+            case "functionCalling":
                 if (parts.length < 2) {
                     return "Function calling is currently: " + (isFunctionCallingEnabled() ? "ON" : "OFF");
                 }
@@ -113,7 +108,7 @@ public class CoreLlmCommand implements Command {
                 
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: status, vendor, model, endpoint, apikey, temperature, functionCalling";
+                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling";
         }
     }
 
@@ -129,12 +124,12 @@ public class CoreLlmCommand implements Command {
      */
     private String getCurrentConfiguration() {
         StringBuilder result = new StringBuilder("Current LLM Configuration:\n");
-        result.append("  Vendor: ").append(getProperty("vendor", "OLLAMA")).append("\n");
-        result.append("  Model: ").append(getProperty("modelName", "llama3.2")).append("\n");
-        result.append("  Endpoint: ").append(getProperty("baseUrl", "http://localhost:11434")).append("\n");
         result.append("  API Key: ").append(maskApiKey(getProperty("apiKey", ""))).append("\n");
-        result.append("  Temperature: ").append(getProperty("temperature", "0.7")).append("\n");
+        result.append("  Endpoint: ").append(getProperty("baseUrl", "http://localhost:11434")).append("\n");
         result.append("  Function Calling: ").append(isFunctionCallingEnabled() ? "ON" : "OFF").append("\n");
+        result.append("  Model: ").append(getProperty("modelName", "llama3.2")).append("\n");
+        result.append("  Temperature: ").append(getProperty("temperature", "0.7")).append("\n");
+        result.append("  Vendor: ").append(getProperty("vendor", "OLLAMA")).append("\n");
         
         result.append("\nUse '/llm <setting> <value>' to update a specific setting");
         return result.toString();
@@ -339,10 +334,10 @@ public class CoreLlmCommand implements Command {
         
         setting = setting.toLowerCase();
         if ("on".equals(setting)) {
-            coreLlm.setToolIntegration(true);
+            coreLlm.setFunctionCallingEnabled(true);
             return "Function calling is now ON";
         } else if ("off".equals(setting)) {
-            coreLlm.setToolIntegration(false);
+            coreLlm.setFunctionCallingEnabled(false);
             return "Function calling is now OFF";
         } else {
             return "Invalid value. Use 'on' or 'off'";
@@ -365,6 +360,6 @@ public class CoreLlmCommand implements Command {
             return false;
         }
         
-        return ((CoreLlm) activeLlm).isToolIntegrationEnabled();
+        return ((CoreLlm) activeLlm).isFunctionCallingEnabled();
     }
 }
