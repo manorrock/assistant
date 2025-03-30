@@ -4,6 +4,7 @@ import com.manorrock.assistant.api.Assistant;
 import com.manorrock.assistant.api.AssistantMessage;
 import com.manorrock.assistant.api.CommandRegistry;
 import com.manorrock.assistant.api.LlmManager;
+import com.manorrock.assistant.api.ToolManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -156,5 +157,10 @@ public class CLIAssistant implements Assistant {
     @Override
     public void setActiveLlm(String activeLlm) {
         throw new UnsupportedOperationException("Unimplemented method 'setActiveLlm'");
+    }
+
+    @Override
+    public ToolManager getToolManager() {
+        throw new UnsupportedOperationException("Unimplemented method 'getToolManager'");
     }
 }

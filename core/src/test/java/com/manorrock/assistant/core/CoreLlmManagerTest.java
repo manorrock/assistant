@@ -13,7 +13,7 @@ class CoreLlmManagerTest {
 
     @BeforeEach
     void setUp() {
-        coreLlmManager = new CoreLlmManager();
+        coreLlmManager = new CoreLlmManager(null);
     }
 
     @Test

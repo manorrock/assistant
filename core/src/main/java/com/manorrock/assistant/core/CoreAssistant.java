@@ -34,25 +34,27 @@ public class CoreAssistant implements Assistant {
     /**
      * Stores the llm manager.
      */
-    private LlmManager llmManager = new CoreLlmManager();
+    private LlmManager llmManager;
 
     /**
      * Stores the tool manager.
      */
-    private ToolManager toolManager = new CoreToolManager();
+    private ToolManager toolManager;
 
     /**
      * Constructor.
      */
     public CoreAssistant() {
+        llmManager = new CoreLlmManager(this);
         //
         // TODO
         //
         // This should be moved to the CoreLlmManager instead of here.
         //
-        llmManager.registerLlm("llama3.2", new CoreLlm());
+        llmManager.registerLlm("llama3.2", new CoreLlm(llmManager));
         
         commandRegistry = new CoreCommandRegistry(this);
+        toolManager = new CoreToolManager(this);
     }
     
     /**

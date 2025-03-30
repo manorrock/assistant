@@ -1,5 +1,6 @@
 package com.manorrock.assistant.core;
 
+import com.manorrock.assistant.api.Assistant;
 import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
 import java.util.HashMap;
@@ -22,6 +23,20 @@ public class CoreLlmManager implements LlmManager {
     private Map<String, Llm> llms = new HashMap<>();
 
     /**
+     * Stores the Assistant.
+     */
+    private Assistant assistant;
+
+    /**
+     * Constructor.
+     * 
+     * @param assistant the Assistant
+     */
+    public CoreLlmManager(Assistant assistant) {
+        this.assistant = assistant;
+    }
+
+    /**
      * Get the LLM.
      * 
      * @param name the name of the LLM
@@ -30,6 +45,7 @@ public class CoreLlmManager implements LlmManager {
     public Llm getLLM(String name) {
         return llms.get(name);
     }
+
     /**
      * Get the LLMs.
      * 
@@ -61,5 +77,10 @@ public class CoreLlmManager implements LlmManager {
     @Override
     public Llm getLlm(String name) {
         return llms.get(name);
+    }
+
+    @Override
+    public Assistant getAssistant() {
+        return assistant;
     }
 }
