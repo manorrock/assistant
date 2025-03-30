@@ -5,9 +5,9 @@
 # Next release
 - [x] Fix release workflow
 - [x] Route old CLI implementation through --old and deprecate it
+- [x] Add temperature and timeout controls
 - [ ] Add configuration persistence
 - [ ] Implement vendor support in CoreLlm
-- [ ] Add temperature and timeout controls
 - [ ] Add chat memory system
 - [ ] Implement history persistence
 - [ ] Add memory window controls

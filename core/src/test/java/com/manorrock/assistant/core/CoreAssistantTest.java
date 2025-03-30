@@ -502,16 +502,16 @@ public class CoreAssistantTest {
         coreAssistant.setActiveLlm(testLlmName);
         
         // Test get API key (should be masked)
-        AssistantMessage getCommand = new CoreAssistantMessage("/llm apikey");
+        AssistantMessage getCommand = new CoreAssistantMessage("/llm apiKey");
         AssistantMessage getResponse = coreAssistant.processMessage(getCommand);
         
         assertNotNull(getResponse, "Response should not be null");
         String content = getResponse.getContent();
-        assertTrue(content.contains("Current API key:"), "Response should contain API key label");
+        assertTrue(content.contains("API key:"), "Response should contain API key label");
         assertTrue(content.contains("****"), "API key should contain masked characters");
         
         // Test set API key
-        AssistantMessage setCommand = new CoreAssistantMessage("/llm apikey new-secret-key");
+        AssistantMessage setCommand = new CoreAssistantMessage("/llm apiKey new-secret-key");
         AssistantMessage setResponse = coreAssistant.processMessage(setCommand);
         
         assertNotNull(setResponse, "Response should not be null");
