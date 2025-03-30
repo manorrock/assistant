@@ -48,7 +48,7 @@ public class CoreAssistant implements Assistant {
         //
         // TODO
         //
-        // This should be moved to the CoreLlmManager instread of here.
+        // This should be moved to the CoreLlmManager instead of here.
         //
         llmManager.registerLlm("llama3.2", new CoreLlm());
         
@@ -184,5 +184,13 @@ public class CoreAssistant implements Assistant {
         
         String llmResponse = llmToUse.process(message.getContent());
         return new CoreAssistantMessage(llmResponse);
+    }
+
+    public void reset() {
+        Llm llmToUse = llmManager.getLlm(activeLlm);
+        if (llmToUse != null) {
+            llmToUse.destroy();
+            llmToUse.init();
+        }
     }
 }

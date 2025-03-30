@@ -59,6 +59,7 @@ public class CoreLlm implements Llm {
 
     @Override
     public void destroy() {
+        chatMemory = null;
         model = null;
     }
 
@@ -73,6 +74,7 @@ public class CoreLlm implements Llm {
                 .baseUrl(properties.getOrDefault("baseUrl", "http://localhost:11434").toString())
                 .modelName(properties.getOrDefault("modelName", "llama3.2").toString())
                 .build();
+        chatMemory = MessageWindowChatMemory.withMaxMessages(10);    
     }
 
     @Override
