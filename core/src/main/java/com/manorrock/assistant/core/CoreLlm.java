@@ -17,11 +17,14 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.azure.AzureOpenAiChatModel;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.ollama.OllamaChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+
 import static dev.langchain4j.data.message.UserMessage.userMessage;
 
 /**
@@ -29,20 +32,15 @@ import static dev.langchain4j.data.message.UserMessage.userMessage;
  * 
  * <p>
  * This class delivers the core LLM implementation we expose to the core
- * Assistant.
- * Underneath its covers we dispatch the request to a LangChain4J ChatModel.
- * Note
- * that if you want to use a different LLM you can do so by implementing the LLM
- * interface and registering it with the LLM manager.
+ * Assistant. Underneath its covers we dispatch the request to a LangChain4J
+ * ChatModel. Note that if you want to use a different LLM you can do so by
+ * implementing the LLM interface and registering it with the LLM manager.
  * </p>
  * <p>
  * Note this implementations supports a curated set of LangChain4J models. If
- * you
- * want a model that is currently not available please open an issue on our
- * GitHub
- * repository and we will see if we can add it. Or go ahead and implement it
- * using
- * the same pattern as mentioned above.
+ * you want a model that is currently not available please open an issue on our
+ * GitHub repository and we will see if we can add it. Or go ahead and implement it
+ * using the same pattern as mentioned above.
  * </p>
  * <p>
  * Currently we only support Ollama models.
@@ -306,6 +304,9 @@ public class CoreLlm implements Llm {
         if (!properties.containsKey("timeout")) {
             properties.setProperty("timeout", "30");
         }
+        if (!properties.containsKey("vendor")) {
+            properties.setProperty("vendor", "ollama");
+        }
     }
 
     /**
@@ -315,23 +316,45 @@ public class CoreLlm implements Llm {
         Double temperature;
         try {
             temperature = Double.parseDouble(
-                properties.getProperty("temperature"));
+                    properties.getProperty("temperature"));
         } catch (NumberFormatException e) {
             temperature = 0.7;
         }
         Duration timeout;
         try {
             timeout = Duration.ofSeconds(
-                Long.parseLong(properties.getProperty("timeout")));
+                    Long.parseLong(properties.getProperty("timeout")));
         } catch (NumberFormatException e) {
             timeout = Duration.ofSeconds(30);
         }
-        model = OllamaChatModel.builder()
-                .baseUrl(properties.getProperty("baseUrl"))
-                .modelName(properties.getProperty("modelName"))
-                .temperature(temperature)
-                .timeout(timeout)
-                .build();
+        String vendor = properties.getProperty("vendor", "ollama");
+        switch(vendor.toLowerCase()) {
+            case "azure_openai":
+                model = AzureOpenAiChatModel.builder()
+                    .apiKey(properties.getProperty("apiKey"))
+                    .deploymentName(properties.getProperty("deploymentName"))
+                    .temperature(temperature)
+                    .timeout(timeout)
+                    .build();
+                break;
+            case "openai":
+                model = OpenAiChatModel.builder()
+                    .apiKey(properties.getProperty("apiKey"))
+                    .modelName(properties.getProperty("modelName"))
+                    .temperature(temperature)
+                    .timeout(timeout)
+                    .build();
+                break;
+            case "ollama":
+            default:
+                model = OllamaChatModel.builder()
+                    .baseUrl(properties.getProperty("baseUrl"))
+                    .modelName(properties.getProperty("modelName"))
+                    .temperature(temperature)
+                    .timeout(timeout)
+                    .build();
+            break;
+        }
     }
 
     /**

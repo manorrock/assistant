@@ -34,15 +34,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import com.manorrock.assistant.api.Command;
+import com.manorrock.assistant.api.CommandRegistry;
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
+import com.manorrock.assistant.command.CommandRegistryImpl;
 import com.manorrock.assistant.command.HelpCommand;
 import com.manorrock.assistant.command.NewCommand;
 import com.manorrock.assistant.command.OllamaCommand;
 import com.manorrock.assistant.command.SourceCommand;
 import com.manorrock.assistant.command.ToolCommand;
-import com.manorrock.assistant.core.Assistant;
 import com.manorrock.assistant.llm.LlmConfiguration;
 import com.manorrock.assistant.tool.DefaultToolManager;
 import com.manorrock.assistant.tool.DependencyAnalysisTool;
@@ -87,7 +88,6 @@ public class CLI implements Callable<Integer> {
   private LlmConfiguration config;
   private ToolManager toolManager;
   private boolean useToolIntegration = true;
-  private Assistant assistance;
   private ChatMemory chatMemory; // Added chat memory for conversation management
   // CoreAssistant instance for new processing approach
   private com.manorrock.assistant.core.CoreAssistant coreAssistant;
@@ -107,11 +107,13 @@ public class CLI implements Callable<Integer> {
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
   private Path stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "cli-state");
 
+  private CommandRegistry commandRegistry;
+
   public CLI() {
-    assistance = new Assistant();
     chatMemory = MessageWindowChatMemory.builder()
         .maxMessages(MEMORY_WINDOW_SIZE)
         .build();
+    commandRegistry = new CommandRegistryImpl();
     
     // Initialize CoreAssistant with proper LLM configuration
     coreAssistant = new com.manorrock.assistant.core.CoreAssistant();
@@ -162,10 +164,10 @@ public class CLI implements Callable<Integer> {
     initializeToolManager();
     
     // Register help command with access to the command registry to show dynamic command listing
-    assistance.getCommandRegistry().registerCommand("help", new HelpCommand(assistance.getCommandRegistry()));
+    commandRegistry.registerCommand("help", new HelpCommand(commandRegistry));
     
     // Register ONLY the consolidated LLM command - no individual LLM subcommands
-    assistance.getCommandRegistry().registerCommand("llm", 
+    commandRegistry.registerCommand("llm", 
         new com.manorrock.assistant.command.LlmCommand(
             () -> config, 
             newConfig -> { 
@@ -173,18 +175,18 @@ public class CLI implements Callable<Integer> {
                 saveState();
             }));
         
-    assistance.getCommandRegistry().registerCommand("source",
+    commandRegistry.registerCommand("source",
         new SourceCommand(this::handleSendAction, this::handleCommand));
-    assistance.getCommandRegistry().registerCommand("new", new NewCommand(this::startNewSession));
+    commandRegistry.registerCommand("new", new NewCommand(this::startNewSession));
     
     // Register the Ollama command with config supplier
-    assistance.getCommandRegistry().registerCommand("ollama", new OllamaCommand(() -> config));
+    commandRegistry.registerCommand("ollama", new OllamaCommand(() -> config));
     
     // Register the explain command with the message processor
-    assistance.getCommandRegistry().registerCommand("explain", new CLIExplainCommand(this::processMessage));
+    commandRegistry.registerCommand("explain", new CLIExplainCommand(this::processMessage));
     
     // Register the tool command with integration support - use toolManager directly
-    assistance.getCommandRegistry().registerCommand("tool", new ToolCommand(
+    commandRegistry.registerCommand("tool", new ToolCommand(
         () -> new ArrayList<>(toolManager.getAvailableTools()),
         this::executeToolWithParams,
         (enabled) -> useToolIntegration = enabled,
@@ -515,7 +517,7 @@ public class CLI implements Callable<Integer> {
       cmdArgs = "";
     }
 
-    Command cmd = assistance.getCommandRegistry().getCommand(cmdName);
+    Command cmd = commandRegistry.getCommand(cmdName);
     if (cmd != null) {
       String result;
       result = cmd.execute(cmdArgs);
@@ -532,7 +534,7 @@ public class CLI implements Callable<Integer> {
 
   @Deprecated
   private void showHelp() {
-    Command helpCommand = assistance.getCommandRegistry().getCommand("help");
+    Command helpCommand = commandRegistry.getCommand("help");
     if (helpCommand != null) {
       try {
         // Use execute() to get help text directly
@@ -544,7 +546,7 @@ public class CLI implements Callable<Integer> {
     }
     
     // Get the explain command description for help text
-    Command explainCommand = assistance.getCommandRegistry().getCommand("explain");
+    Command explainCommand = commandRegistry.getCommand("explain");
     String explainDescription = explainCommand != null ? explainCommand.getDescription() : 
                              "Explain text from clipboard or specified file";
     
