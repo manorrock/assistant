@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
@@ -18,8 +16,8 @@ import org.junit.jupiter.api.Test;
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolResult;
+import com.manorrock.assistant.command.CommandRegistryImpl;
 import com.manorrock.assistant.command.ToolCommand;
-import com.manorrock.assistant.core.Assistant;
 
 /**
  * Tests for the ToolCommand class.
@@ -65,8 +63,7 @@ public class ToolCommandTest {
      */
     @Test
     public void testToolCommand() {
-        // Create an Assistant instance for the test
-        Assistant assistant = new Assistant();
+        CommandRegistryImpl commandRegistry = new CommandRegistryImpl();
         
         // Create a list of mock tools
         List<Tool> mockTools = new ArrayList<>();
@@ -88,10 +85,10 @@ public class ToolCommandTest {
         
         // Register the tool command
         ToolCommand toolCommand = new ToolCommand(toolSupplier, toolExecutor);
-        assistant.getCommandRegistry().registerCommand("tool", toolCommand);
+        commandRegistry.registerCommand("tool", toolCommand);
         
         // Verify registration
-        Command cmd = assistant.getCommandRegistry().getCommand("tool");
+        Command cmd = commandRegistry.getCommand("tool");
         assertNotNull(cmd);
         assertTrue(cmd instanceof ToolCommand);
         
@@ -118,7 +115,7 @@ public class ToolCommandTest {
     @Test
     public void testToolIntegrationToggle() {
         // Create an Assistant instance for the test
-        Assistant assistant = new Assistant();
+        CommandRegistryImpl commandRegistry = new CommandRegistryImpl();
         
         // Tracking variable for integration status
         boolean[] integrationEnabled = {true};
@@ -149,10 +146,10 @@ public class ToolCommandTest {
                 () -> integrationEnabled[0]
         );
         
-        assistant.getCommandRegistry().registerCommand("tool", toolCommand);
+        commandRegistry.registerCommand("tool", toolCommand);
         
         // Get the registered command
-        Command cmd = assistant.getCommandRegistry().getCommand("tool");
+        Command cmd = commandRegistry.getCommand("tool");
         assertNotNull(cmd);
         
         // Test status subcommand

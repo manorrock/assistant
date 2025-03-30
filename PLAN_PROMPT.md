@@ -1,3 +1,0 @@
-Create a plan.md that contains the design, implementation overview and detailed implementation plan that makes it possible to test the CLI with TestContainers and Docker executing the CLI in a sandboxed environment to test the commands, tools, prompts sent and received from the LLM as well as the upcoming agentic framework. Be as exhaustive as you can be. List requirements, exit criteria, create a tracking sheet and a grading scale to validate progress.
-
-Expand on Phase 1.1 in as much detail as possible and store it in task_1_1.md
