@@ -3,7 +3,9 @@ package com.manorrock.assistant.tool;
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
-import org.json.JSONObject;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.net.URI;
@@ -20,6 +22,7 @@ public class WebSearchTool implements Tool {
     private final String description = "A tool to perform web searches using DuckDuckGo API.";
     private final List<ToolParameter> parameters;
     private final HttpClient client;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public WebSearchTool() {
         this.client = HttpClient.newHttpClient();
@@ -62,13 +65,12 @@ public class WebSearchTool implements Tool {
                 return ToolResult.failure("Failed to fetch search results: " + response.statusCode());
             }
             
-            JSONObject jsonResponse = new JSONObject(response.body());
+            JsonNode jsonResponse = MAPPER.readTree(response.body());
             List<String> results = new ArrayList<>();
             
-            if (jsonResponse.has("Results")) {
-                jsonResponse.getJSONArray("Results").forEach(result -> {
-                    JSONObject resultObj = (JSONObject) result;
-                    results.add(resultObj.getString("FirstURL") + " - " + resultObj.getString("Text"));
+            if (jsonResponse.has("Results") && jsonResponse.get("Results").isArray()) {
+                jsonResponse.get("Results").forEach(result -> {
+                    results.add(result.get("FirstURL").asText() + " - " + result.get("Text").asText());
                 });
             }
             

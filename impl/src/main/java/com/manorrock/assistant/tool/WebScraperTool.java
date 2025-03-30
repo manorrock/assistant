@@ -1,13 +1,15 @@
 package com.manorrock.assistant.tool;
 
-import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.net.URL;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WebScraperTool extends AbstractTool {
     private static final int DEFAULT_TIMEOUT = 30;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public WebScraperTool() {
         super("web_scraper",  // This is correct
@@ -91,7 +94,7 @@ public class WebScraperTool extends AbstractTool {
             (method.equals("POST") || method.equals("PUT"))) {
             Object dataObj = parameters.get("data");
             if (dataObj instanceof Map || dataObj instanceof List) {
-                connection.requestBody(dataObj.toString());
+                connection.requestBody(MAPPER.writeValueAsString(dataObj));
             } else if (dataObj instanceof String) {
                 if (!((String) dataObj).isEmpty()) {
                     connection.requestBody((String) dataObj);
@@ -131,7 +134,7 @@ public class WebScraperTool extends AbstractTool {
         return ToolResult.success(resultData, "Successfully retrieved document");
     }
 
-    // ... keep existing helper methods but remove JSON-specific code ...
+    @SuppressWarnings("deprecation")
     private void validateUrl(String url) throws Exception {
         new URL(url);
     }
@@ -162,17 +165,33 @@ public class WebScraperTool extends AbstractTool {
     }
 
     private String formatAsJson(Object content) {
-        Map<String, Object> json = new HashMap<>();
-        if (content instanceof Elements elements) {
-            json.put("count", elements.size());
-            json.put("elements", elements.stream()
-                    .map(Element::outerHtml)
-                    .toArray());
-        } else if (content instanceof Document document) {
-            json.put("title", document.title());
-            json.put("content", document.text());
+        try {
+            if (content instanceof Elements elements) {
+                ObjectNode rootNode = MAPPER.createObjectNode();
+                rootNode.put("count", elements.size());
+                
+                ArrayNode elementArray = rootNode.putArray("elements");
+                elements.forEach(element -> elementArray.add(element.outerHtml()));
+                
+                return MAPPER.writeValueAsString(rootNode);
+            } else if (content instanceof Document document) {
+                ObjectNode rootNode = MAPPER.createObjectNode();
+                rootNode.put("title", document.title());
+                rootNode.put("content", document.text());
+                
+                return MAPPER.writeValueAsString(rootNode);
+            }
+            return "{}"; // Empty JSON object for unknown content types
+        } catch (Exception e) {
+            // In case of serialization error, return an error JSON
+            try {
+                ObjectNode errorNode = MAPPER.createObjectNode();
+                errorNode.put("error", "Failed to serialize content to JSON: " + e.getMessage());
+                return MAPPER.writeValueAsString(errorNode);
+            } catch (Exception ex) {
+                return "{\"error\":\"Failed to serialize content to JSON\"}";
+            }
         }
-        return json.toString();
     }
 
     private String getRequiredString(Map<String, Object> params, String name) {

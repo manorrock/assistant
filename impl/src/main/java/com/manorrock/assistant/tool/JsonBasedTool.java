@@ -3,39 +3,59 @@ package com.manorrock.assistant.tool;
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
+import com.manorrock.assistant.api.ToolLifecycle;
 
-import java.util.Arrays;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.json.JSONObject;
-import java.util.ArrayList;
 
 public class JsonBasedTool implements Tool {
     
     private final String name;
     private final String description;
     private final List<ToolParameter> parameters;
-    private final JSONObject config;
+    private final JsonNode config;
+    private ToolLifecycle lifecycle = ToolLifecycle.READY;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public JsonBasedTool(JSONObject config) {
+    public JsonBasedTool(String jsonConfig) {
+        try {
+            this.config = MAPPER.readTree(jsonConfig);
+            this.name = config.get("name").asText();
+            this.description = config.get("description").asText();
+            this.parameters = parseParameters(config);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid JSON configuration for tool: " + e.getMessage(), e);
+        }
+    }
+    
+    public JsonBasedTool(JsonNode config) {
         this.config = config;
-        this.name = config.getString("name");
-        this.description = config.getString("description");
+        this.name = config.get("name").asText();
+        this.description = config.get("description").asText();
         this.parameters = parseParameters(config);
     }
 
-    private List<ToolParameter> parseParameters(JSONObject config) {
+    private List<ToolParameter> parseParameters(JsonNode config) {
         List<ToolParameter> params = new ArrayList<>();
         if (config.has("parameters")) {
-            config.getJSONArray("parameters").forEach(param -> {
-                JSONObject paramObj = (JSONObject) param;
-                params.add(new ToolParameter(
-                    paramObj.getString("name"),
-                    paramObj.getString("type"),
-                    paramObj.getString("description"),
-                    paramObj.optBoolean("required", false)
-                ));
-            });
+            JsonNode paramsNode = config.get("parameters");
+            if (paramsNode.isArray()) {
+                ArrayNode paramsArray = (ArrayNode) paramsNode;
+                for (JsonNode param : paramsArray) {
+                    params.add(new ToolParameter(
+                        param.get("name").asText(),
+                        param.get("type").asText(),
+                        param.get("description").asText(),
+                        param.has("required") ? param.get("required").asBoolean() : false
+                    ));
+                }
+            }
         }
         return params;
     }
@@ -58,7 +78,27 @@ public class JsonBasedTool implements Tool {
     @Override
     public ToolResult execute(Map<String, Object> parameters) {
         // Execute based on JSON configuration
-        return ToolResult.success(Map.of("status", "Executed according to JSON configuration"), 
+        return ToolResult.success(Collections.singletonMap("status", "Executed according to JSON configuration"), 
             "JSON-based tool execution completed");
+    }
+    
+    @Override
+    public boolean initialize() {
+        return true;
+    }
+    
+    @Override
+    public void cleanup() {
+        // No resources to clean up
+    }
+    
+    @Override
+    public ToolLifecycle getLifecycle() {
+        return lifecycle;
+    }
+    
+    @Override
+    public void setLifecycle(ToolLifecycle lifecycle) {
+        this.lifecycle = lifecycle;
     }
 }

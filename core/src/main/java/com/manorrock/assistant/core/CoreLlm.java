@@ -7,9 +7,12 @@ import java.util.Properties;
 import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -19,7 +22,6 @@ import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import static dev.langchain4j.data.message.UserMessage.userMessage;
-import org.json.JSONObject;
 
 /**
  * The Core LLM.
@@ -42,6 +44,11 @@ import org.json.JSONObject;
  */
 public class CoreLlm implements Llm {
 
+    /**
+     * JSON Object Mapper.
+     */
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    
     /**
      * Stores the model used to process the prompt (with default local Llama3.2 model).
      */
@@ -81,6 +88,11 @@ public class CoreLlm implements Llm {
 
     @Override
     public String process(String prompt) {
+        // Handle empty prompts to prevent IllegalArgumentException
+        if (prompt == null || prompt.trim().isEmpty()) {
+            return "I need some input to provide a helpful response.";
+        }
+        
         chatMemory.add(userMessage(prompt));
         
         // Check if we should use tools
@@ -139,34 +151,37 @@ public class CoreLlm implements Llm {
                         String toolName = toolRequest.name();
                         String arguments = toolRequest.arguments();
                         
+                        // Parse arguments as Map using Jackson
+                        var argsMap = MAPPER.readValue(arguments, new TypeReference<java.util.Map<String, Object>>() {});
+                        
                         // Execute the tool using the assistant's tool manager
-                        JSONObject argsJson = new JSONObject(arguments);
-                        var result = manager.getAssistant().getToolManager().executeTool(toolName, argsJson.toMap());
+                        var result = manager.getAssistant().getToolManager().executeTool(toolName, argsMap);
                         
                         // Create a JSON object containing both status and result data
-                        JSONObject resultJson = new JSONObject();
+                        ObjectNode resultJson = MAPPER.createObjectNode();
                         resultJson.put("status", result.success() ? "success" : "error");
                         resultJson.put("message", result.getMessage());
                         
                         if (result.getData() != null) {
-                            resultJson.put("data", result.getData());
+                            // Convert result data to JsonNode
+                            resultJson.set("data", MAPPER.valueToTree(result.getData()));
                         }
                         
                         // Create tool execution result message and add to chat memory
                         ToolExecutionResultMessage resultMessage = ToolExecutionResultMessage.from(
                             toolRequest,
-                            resultJson.toString()
+                            MAPPER.writeValueAsString(resultJson)
                         );
                         chatMemory.add(resultMessage);
                     } catch (Exception e) {
                         // Handle any errors during tool execution
-                        JSONObject errorJson = new JSONObject();
+                        ObjectNode errorJson = MAPPER.createObjectNode();
                         errorJson.put("status", "error");
                         errorJson.put("message", e.getMessage());
                         
                         ToolExecutionResultMessage errorMessage = ToolExecutionResultMessage.from(
                             toolRequest,
-                            errorJson.toString()
+                            MAPPER.writeValueAsString(errorJson)
                         );
                         chatMemory.add(errorMessage);
                     }
@@ -209,7 +224,7 @@ public class CoreLlm implements Llm {
      * @return List of tool specifications for LangChain4j
      */
     private List<ToolSpecification> buildToolSpecifications() {
-        if (manager.getAssistant() == null || manager.getAssistant().getToolManager() == null) {
+        if (manager == null || manager.getAssistant() == null || manager.getAssistant().getToolManager() == null) {
             return Collections.emptyList();
         }
         
@@ -289,9 +304,18 @@ public class CoreLlm implements Llm {
 
     @Override
     public void init() {
+        // Store default values in the properties if they don't exist
+        if (!properties.containsKey("baseUrl")) {
+            properties.setProperty("baseUrl", "http://localhost:11434");
+        }
+        if (!properties.containsKey("modelName")) {
+            properties.setProperty("modelName", "llama3.2");
+        }
+        
+        // Build the model using properties (now with defaults)
         model = OllamaChatModel.builder()
-                .baseUrl(properties.getOrDefault("baseUrl", "http://localhost:11434").toString())
-                .modelName(properties.getOrDefault("modelName", "llama3.2").toString())
+                .baseUrl(properties.getProperty("baseUrl"))
+                .modelName(properties.getProperty("modelName"))
                 .build();
         chatMemory = MessageWindowChatMemory.withMaxMessages(10);    
     }

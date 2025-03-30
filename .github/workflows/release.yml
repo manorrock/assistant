@@ -32,6 +32,12 @@ jobs:
       - name: Build with Maven
         run: mvn -DskipTests -ntp -P vscode clean install 
 
+      - name: Standardize file names
+        run: |
+          mkdir -p standardized
+          cp vscode/*.vsix standardized/Manorrock-Assistant.vsix
+          cp cli/target/cli.jar standardized/Manorrock-Assistant.jar
+
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -49,7 +55,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./cli/target/cli.jar
+          asset_path: ./standardized/Manorrock-Assistant.jar
           asset_name: Manorrock-Assistant.jar
           asset_content_type: application/java-archive
 
@@ -59,7 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./vscode/*vsix
+          asset_path: ./standardized/Manorrock-Assistant.vsix
           asset_name: Manorrock-Assistant.vsix
           asset_content_type: application/octet-stream
 

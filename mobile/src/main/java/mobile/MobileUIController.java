@@ -18,9 +18,15 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.json.JSONObject;
-import org.json.JSONArray;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 public class MobileUIController {
 
@@ -37,9 +43,10 @@ public class MobileUIController {
     private ProgressBar progressBar;
 
     private String sessionId = UUID.randomUUID().toString();
-    private LinkedList<JSONObject> history = new LinkedList<>();
+    private LinkedList<Map<String, String>> history = new LinkedList<>();
     private String ollamaEndpoint = "http://localhost:11434/api/chat";
     private String model = "llama3.1";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
 
@@ -123,14 +130,14 @@ public class MobileUIController {
             model = matcher.group(1);
             responseTextArea.appendText("\n\nSystem: Model changed to " + model);
         } else {
-            responseTextArea.appendText("\n\nSystem: Invalid model format. Use /model <name>");
+            responseTextArea.appendText("\n\nSystem: Invalid model format. Use /model <n>");
         }
     }
 
     private void showHelp() {
         String helpMessage = "\n\nSystem: Available commands:\n" +
                              "/llmEndpoint myhostname:myport - Change the Ollama endpoint\n" +
-                             "/model <name> - Change the model used\n" +
+                             "/model <n> - Change the model used\n" +
                              "/help - Show this help message\n" +
                              "/clear - Clear the response window";
         responseTextArea.appendText(helpMessage);
@@ -144,7 +151,7 @@ public class MobileUIController {
         String timestamp = LocalDateTime.now().format(formatter);
 
         try {
-            JSONObject messageObject = new JSONObject();
+            Map<String, String> messageObject = new HashMap<>();
             messageObject.put("role", "user");
             messageObject.put("content", message);
 
@@ -154,9 +161,18 @@ public class MobileUIController {
                 history.removeFirst();
             }
 
-            JSONObject jsonInput = new JSONObject();
+            // Create the request payload
+            ObjectNode jsonInput = MAPPER.createObjectNode();
             jsonInput.put("model", model);
-            jsonInput.put("messages", new JSONArray(history));
+            
+            // Add messages array
+            ArrayNode messagesArray = jsonInput.putArray("messages");
+            for (Map<String, String> msg : history) {
+                ObjectNode msgObj = messagesArray.addObject();
+                msgObj.put("role", msg.get("role"));
+                msgObj.put("content", msg.get("content"));
+            }
+            
             jsonInput.put("stream", true);
             jsonInput.put("session_id", sessionId);
 
@@ -164,7 +180,7 @@ public class MobileUIController {
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(ollamaEndpoint))
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonInput.toString()))
+                .POST(HttpRequest.BodyPublishers.ofString(MAPPER.writeValueAsString(jsonInput)))
                 .build();
 
             sendRequestButton.setDisable(true);
@@ -176,40 +192,47 @@ public class MobileUIController {
                     StringBuilder responseBuilder = new StringBuilder();
                     final boolean[] isFirstLine = {true};
                     lines.forEach(line -> {
-                        JSONObject jsonObject = new JSONObject(line);
-                        if (jsonObject.has("session_id")) {
-                            sessionId = jsonObject.getString("session_id");
-                        }
-                        if (jsonObject.has("messages")) {
-                            JSONArray messages = jsonObject.getJSONArray("messages");
-                            for (int i = 0; i < messages.length(); i++) {
-                                JSONObject msg = messages.getJSONObject(i);
-                                if ("assistant".equals(msg.getString("role"))) {
-                                    String content = msg.getString("content");
-                                    responseBuilder.append(content);
-                                    Platform.runLater(() -> {
-                                        if (isFirstLine[0]) {
-                                            responseTextArea.appendText("\n\nAssistant: " + content);
-                                            isFirstLine[0] = false;
-                                        } else {
-                                            responseTextArea.appendText(content);
-                                        }
-                                        responseTextArea.positionCaret(responseTextArea.getText().length());
-                                    });
-                                }
+                        try {
+                            JsonNode jsonObject = MAPPER.readTree(line);
+                            
+                            if (jsonObject.has("session_id")) {
+                                sessionId = jsonObject.get("session_id").asText();
                             }
-                        } else {
-                            String content = jsonObject.getJSONObject("message").getString("content");
-                            responseBuilder.append(content);
-                            Platform.runLater(() -> {
-                                if (isFirstLine[0]) {
-                                    responseTextArea.appendText("\n\nAssistant: " + content);
-                                    isFirstLine[0] = false;
-                                } else {
-                                    responseTextArea.appendText(content);
+                            
+                            if (jsonObject.has("messages")) {
+                                JsonNode messages = jsonObject.get("messages");
+                                if (messages.isArray()) {
+                                    for (JsonNode msg : messages) {
+                                        if ("assistant".equals(msg.get("role").asText())) {
+                                            String content = msg.get("content").asText();
+                                            responseBuilder.append(content);
+                                            Platform.runLater(() -> {
+                                                if (isFirstLine[0]) {
+                                                    responseTextArea.appendText("\n\nAssistant: " + content);
+                                                    isFirstLine[0] = false;
+                                                } else {
+                                                    responseTextArea.appendText(content);
+                                                }
+                                                responseTextArea.positionCaret(responseTextArea.getText().length());
+                                            });
+                                        }
+                                    }
                                 }
-                                responseTextArea.positionCaret(responseTextArea.getText().length());
-                            });
+                            } else if (jsonObject.has("message")) {
+                                String content = jsonObject.get("message").get("content").asText();
+                                responseBuilder.append(content);
+                                Platform.runLater(() -> {
+                                    if (isFirstLine[0]) {
+                                        responseTextArea.appendText("\n\nAssistant: " + content);
+                                        isFirstLine[0] = false;
+                                    } else {
+                                        responseTextArea.appendText(content);
+                                    }
+                                    responseTextArea.positionCaret(responseTextArea.getText().length());
+                                });
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error parsing JSON response: " + e.getMessage());
                         }
                     });
 
@@ -219,7 +242,7 @@ public class MobileUIController {
                         progressBar.setProgress(0);
 
                         // Add the assistant's response to the history
-                        JSONObject responseObject = new JSONObject();
+                        Map<String, String> responseObject = new HashMap<>();
                         responseObject.put("role", "assistant");
                         responseObject.put("content", response);
                         history.add(responseObject);

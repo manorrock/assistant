@@ -25,6 +25,7 @@ public class CoreToolManager implements ToolManager {
     /**
      * Stores the CoreAssistant instance.
      */
+    @SuppressWarnings("unused")
     private final CoreAssistant assistant;
 
     /**
@@ -83,6 +84,11 @@ public class CoreToolManager implements ToolManager {
 
     @Override
     public boolean unregisterTool(String toolName) {
+        // Don't allow unregistering the CoreToolManagerTool
+        if (toolName != null && toolName.equals("tool_manager")) {
+            return false;
+        }
+        
         Optional<Tool> optionalTool = findTool(toolName);
         if (optionalTool.isPresent()) {
             Tool tool = optionalTool.get();
@@ -201,6 +207,11 @@ public class CoreToolManager implements ToolManager {
         // Check if tool exists
         if (findTool(toolName).isEmpty()) {
             throw new IllegalArgumentException("Tool not found: " + toolName);
+        }
+        
+        // Don't allow disabling the CoreToolManagerTool
+        if (toolName != null && toolName.equals("tool_manager")) {
+            return;
         }
         
         // Add to disabled list if not already present
