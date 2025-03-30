@@ -4,11 +4,25 @@
 
 # Next release
 - [x] Fix release workflow
+- [x] Route old CLI implementation through --old and deprecate it
+- [ ] Add configuration persistence
+- [ ] Implement vendor support in CoreLlm
+- [ ] Add temperature and timeout controls
+- [ ] Add chat memory system
+- [ ] Implement history persistence
+- [ ] Add memory window controls
+- [ ] Expand parameter type support
+- [ ] Register all tools similar to old CLI implementation (minus ones that should ask for permission)
 
 # Backlog
-- [ ] Add /session save/restor sub commands
+- [ ] Add conversational state to Assistant to allow for multiple interactions
+- [ ] Enable tools that require permission using conversational state
+- [ ] Add dynamic tool loading
+- [ ] Improve tool execution handling
+- [ ] Move default LLM registration to CoreLlmManager
+- [ ] Add /session save/restore sub commands
 - [ ] Add /session autosave sub command
-- [ ] Route old CLI implementation through --old and deprecate it
+- [ ] Remove old CLI implementation
 - [ ] Cleanup NetBeans plugin
 - [ ] Add /agent command (with list)
 - [ ] Add /agent active sub command
@@ -224,3 +238,156 @@
 - [ ] Remove PROMPT.md
 - [ ] Remove PLAN_PROMPT.md
 - [ ] Remove plan.md
+
+# Refactoring notes
+
+# Updated GAP Analysis: CoreAssistant vs CLI Implementation
+
+## Architecture & Design
+
+### Advantages of CoreAssistant
+1. **Clean Separation of Concerns**
+   - Clear delineation between Assistant, LLM, Command, and Tool management
+   - Built-in LLM support through CoreLlm
+   - Async support with CompletableFuture
+   - Simpler message processing pipeline
+
+### Gaps in CoreAssistant
+1. **Missing Features**
+   - No chat history persistence
+   - No configuration persistence
+   - Limited interactive features
+   - Basic tool integration without full parameter type support
+
+## Detailed Comparison
+
+### LLM Integration
+
+**CoreAssistant/CoreLlm Strengths**
+```markdown
+- Built-in LLM support via CoreLlm
+- Default Ollama integration
+- Properties-based configuration
+- Simpler initialization
+- Tool integration ready
+```
+
+**CLI Added Features**
+```markdown
+- Multiple vendor support (OLLAMA, OPENAI, AZURE_OPENAI)
+- Configuration persistence
+- Temperature controls
+- Timeout handling
+- Chat history management
+```
+
+### Tool Integration
+
+**CoreAssistant/CoreLlm**
+```markdown
+- Basic tool integration through CoreLlm
+- Parameter type support for:
+  - string
+  - integer/int
+  - number/float/double
+  - boolean/bool
+- Default string fallback for unknown types
+```
+
+**CLI Enhanced Features**
+```markdown
+- Advanced parameter types (arrays, maps)
+- Dynamic tool discovery
+- JSON/Script based tools
+- Complex parameter validation
+- Tool execution result handling
+- Tool specification system
+```
+
+## Recommendations
+
+1. **Enhance CoreLlm Configuration**
+````java
+public void setConfiguration(LlmConfiguration config) {
+    properties.setProperty("baseUrl", config.endpoint());
+    properties.setProperty("modelName", config.model());
+    properties.setProperty("temperature", String.valueOf(config.temperature()));
+    init(); // Rebuild model with new configuration
+}
+````
+
+2. **Add Chat History Support**
+````java
+private ChatMemory chatMemory;
+
+public void initializeMemory(int windowSize) {
+    chatMemory = MessageWindowChatMemory.builder()
+        .maxMessages(windowSize)
+        .build();
+}
+
+public ChatMemory getChatMemory() {
+    return chatMemory;
+}
+````
+
+3. **Enhanced Tool Parameter Support in CoreLlm**
+````java
+private JsonObjectSchema.Builder addParameterToSchema(JsonObjectSchema.Builder builder, 
+                                                    ToolParameter param) {
+    switch (param.getType().toLowerCase()) {
+        case "array", "list" -> builder.addArrayProperty(param.getName(), 
+                                                       param.getDescription());
+        case "map", "object" -> builder.addObjectProperty(param.getName(), 
+                                                        param.getDescription());
+        // ... existing cases ...
+    }
+    return builder;
+}
+````
+
+## Migration Path
+
+1. **Phase 1: Configuration Enhancement**
+   - Add configuration persistence
+   - Implement vendor support in CoreLlm
+   - Add temperature and timeout controls
+
+2. **Phase 2: Memory Management**
+   - Add chat memory system
+   - Implement history persistence
+   - Add memory window controls
+
+3. **Phase 3: Tool Enhancement**
+   - Expand parameter type support
+   - Add dynamic tool loading
+   - Improve tool execution handling
+
+## Key Differences
+
+1. **Initialization**
+   - CoreAssistant: Simple, with built-in LLM support
+   - CLI: More complex, requires explicit configuration
+
+2. **Message Processing**
+   - CoreAssistant: Direct through LLM with async support
+   - CLI: Complex pipeline with multiple processing stages
+
+3. **Tool Support**
+   - CoreAssistant: Basic but integrated
+   - CLI: Advanced with extensive type support
+
+4. **State Management**
+   - CoreAssistant: Minimal state
+   - CLI: Persistent configuration and chat history
+
+## Summary
+
+The CoreAssistant provides a solid foundation with built-in LLM support through CoreLlm, but could benefit from:
+
+1. Configuration persistence
+2. Enhanced tool parameter support
+3. Chat history management
+4. Interactive features
+
+The CLI implementation offers these features and can serve as a reference for enhancing CoreAssistant while maintaining its cleaner architecture.

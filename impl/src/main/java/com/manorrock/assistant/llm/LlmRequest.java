@@ -3,6 +3,7 @@ package com.manorrock.assistant.llm;
 /**
  * A request to the LLM.
  */
+@Deprecated
 public class LlmRequest {
     /**
      * Stores the request.

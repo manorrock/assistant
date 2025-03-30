@@ -3,6 +3,7 @@ package com.manorrock.assistant.core;
 /**
  * An assistant request.
  */
+@Deprecated
 public class AssistantRequest {
     
     /**

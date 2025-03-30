@@ -115,6 +115,7 @@ public class CLI implements Callable<Integer> {
     
     // Initialize CoreAssistant with proper LLM configuration
     coreAssistant = new com.manorrock.assistant.core.CoreAssistant();
+    // TODO should be in the CoreAssistant constructor
     coreAssistant.setActiveLlm("llama3.2");
   }
 
@@ -207,6 +208,7 @@ public class CLI implements Callable<Integer> {
   /**
    * Initialize the tool manager and register default tools.
    */
+  @Deprecated
   private void initializeToolManager() {
     toolManager = new DefaultToolManager();
     
@@ -240,6 +242,7 @@ public class CLI implements Callable<Integer> {
    * @param tool The tool to register
    * @return true if the tool was registered successfully, false otherwise
    */
+  @Deprecated
   private boolean registerTool(Tool tool) {
     try {
       // Validate tool before registration
@@ -262,6 +265,7 @@ public class CLI implements Callable<Integer> {
    * @param tool The tool to validate
    * @throws IllegalArgumentException If the tool is invalid
    */
+  @Deprecated
   private void validateTool(Tool tool) {
     if (tool == null) {
         throw new IllegalArgumentException("Tool cannot be null");
@@ -290,6 +294,7 @@ public class CLI implements Callable<Integer> {
    * 
    * @return The number of custom tools registered
    */
+  @Deprecated
   private int discoverAndRegisterCustomTools() {
     int count = 0;
     
@@ -352,6 +357,7 @@ public class CLI implements Callable<Integer> {
    * @param directory The directory to scan for tools
    * @return The number of tools registered from this directory
    */
+  @Deprecated
   private int loadToolsFromDirectory(File directory) {
     int count = 0;
     
@@ -412,6 +418,7 @@ public class CLI implements Callable<Integer> {
    * @return The number of tools registered from this JAR
    * @throws Exception If an error occurs while loading tools
    */
+  @Deprecated
   private int loadToolsFromJar(File jarFile) throws Exception {
     int count = 0;
     try (URLClassLoader classLoader = new URLClassLoader(
@@ -437,6 +444,7 @@ public class CLI implements Callable<Integer> {
    * @return true if the tool was registered, false otherwise
    * @throws Exception If an error occurs while loading the tool
    */
+  @Deprecated
   private boolean loadToolFromJson(File jsonFile) throws Exception {
     String json = Files.readString(jsonFile.toPath());
     JsonNode toolJson = MAPPER.readTree(json);
@@ -455,6 +463,7 @@ public class CLI implements Callable<Integer> {
    * @return true if the tool was registered, false otherwise
    * @throws Exception If an error occurs while loading the tool
    */
+  @Deprecated
   private boolean loadScriptTool(File scriptFile, File metadataFile) throws Exception {
     String metadata = Files.readString(metadataFile.toPath());
     JsonNode metadataJson = MAPPER.readTree(metadata);
@@ -467,33 +476,30 @@ public class CLI implements Callable<Integer> {
 
   protected void handleSendAction(String userMessage) {
     if (!userMessage.isEmpty()) {
-      if (userMessage.startsWith("/")) {
-        handleCommand(userMessage);
+      // Check for "--old " prefix and route it to the old deprecate CLI processing
+      if (userMessage.startsWith("--old ")) {
+        String actualMessage = userMessage.substring(6); // Length of "--old "
+       
+        if (userMessage.startsWith("/")) {
+          handleCommand(actualMessage);
+          return;
+        }
+        processMessage(actualMessage);
         return;
       }
-      
-      // Check for "--new " prefix and route to CoreAssistant
-      if (userMessage.startsWith("--new ")) {
-        // Remove the prefix and use CoreAssistant
-        String actualMessage = userMessage.substring(6); // Length of "--new "
-        System.out.println("You: " + actualMessage);
+
+      // Create the message for CoreAssistant
+      com.manorrock.assistant.api.AssistantMessage message = new com.manorrock.assistant.core.CoreAssistantMessage(userMessage);
+       
+      // Process using the CoreAssistant
+      com.manorrock.assistant.api.AssistantMessage response = coreAssistant.processMessage(message);
         
-        // Create the message for CoreAssistant
-        com.manorrock.assistant.api.AssistantMessage message = new com.manorrock.assistant.core.CoreAssistantMessage(actualMessage);
-        
-        // Process using the CoreAssistant
-        com.manorrock.assistant.api.AssistantMessage response = coreAssistant.processMessage(message);
-        
-        // Display the response
-        System.out.println("Assistant: " + response.getContent());
-        return;
-      }
-      
-      System.out.println("You: " + userMessage);
-      processMessage(userMessage);
+      // Display the response
+      System.out.println("Assistant: " + response.getContent());
     }
   }
 
+  @Deprecated
   protected void handleCommand(String command) {
     // Route all commands through the command registry
     String cmdLine = command.substring(1); // remove the leading '/'
@@ -524,6 +530,7 @@ public class CLI implements Callable<Integer> {
     }
   }
 
+  @Deprecated
   private void showHelp() {
     Command helpCommand = assistance.getCommandRegistry().getCommand("help");
     if (helpCommand != null) {
@@ -558,6 +565,7 @@ public class CLI implements Callable<Integer> {
    * @return Configured ChatLanguageModel instance
    * @throws IllegalArgumentException if vendor is unknown
    */
+  @Deprecated
   private ChatLanguageModel createChatModel() {
     String vendor = config.vendor();
     return switch (vendor.toUpperCase()) {
@@ -584,6 +592,7 @@ public class CLI implements Callable<Integer> {
     };
   }
 
+  @Deprecated
   private void processMessage(String message) {
     String timestamp = LocalDateTime.now().format(formatter);
     try {
@@ -744,6 +753,7 @@ public class CLI implements Callable<Integer> {
    * @return Mapped and validated arguments for the Manorrock Tool
    * @throws IllegalArgumentException if arguments are invalid
    */
+  @Deprecated
   private Map<String, Object> mapToolArguments(String toolName, String requestArgs) {
     try {
       // Check if tool exists by trying to find it in available tools
@@ -893,6 +903,7 @@ public class CLI implements Callable<Integer> {
     }
   }
 
+  @Deprecated
   private void loadState() {
     try {
       if (Files.exists(stateDir)) {
@@ -947,6 +958,7 @@ public class CLI implements Callable<Integer> {
     }
   }
 
+  @Deprecated
   private void saveState() {
     try {
       Path configFile = stateDir.resolve("config.json");
@@ -981,6 +993,7 @@ public class CLI implements Callable<Integer> {
     }
   }
 
+  @Deprecated
   protected void startNewSession() {
     // Clear the chat memory
     chatMemory = MessageWindowChatMemory.builder()
@@ -997,6 +1010,7 @@ public class CLI implements Callable<Integer> {
    * @param parameters Parameters to pass to the tool
    * @return Result of the tool execution
    */
+  @Deprecated
   private ToolResult executeToolWithParams(String toolName, Map<String, Object> parameters) {
     try {
       return toolManager.executeTool(toolName, parameters);
@@ -1012,6 +1026,7 @@ public class CLI implements Callable<Integer> {
    *
    * @return List of ToolSpecification objects for use with the LLM
    */
+  @Deprecated
   private List<ToolSpecification> buildToolSpecifications() {
     List<ToolSpecification> specifications = new ArrayList<>();
     
@@ -1092,6 +1107,7 @@ public class CLI implements Callable<Integer> {
    * @param paramType The tool parameter type
    * @return The corresponding JSON Schema type
    */
+  @Deprecated
   private String convertParamType(String paramType) {
     if (paramType == null) {
       return "string";

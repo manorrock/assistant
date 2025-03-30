@@ -6,6 +6,10 @@
 
 set -e
 
+# If this script was downloaded and piped to bash, the arguments need to be passed through
+# Get all arguments passed to the script
+SCRIPT_ARGS="$@"
+
 # Print banner first
 echo "════════════════════════════════════════════"
 echo "    Manorrock Assistant Installer"
@@ -19,6 +23,11 @@ SCRIPT_PATH="$INSTALL_DIR/assistant"
 # Parse command line arguments
 USE_SNAPSHOT=false
 DEBUG=false
+# Use SCRIPT_ARGS if running through curl, otherwise use regular args
+if [ ! -z "$SCRIPT_ARGS" ]; then
+    set -- $SCRIPT_ARGS
+fi
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         --snapshot) USE_SNAPSHOT=true; shift ;;

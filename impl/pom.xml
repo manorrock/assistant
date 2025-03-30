@@ -5,14 +5,13 @@
     <parent>
         <groupId>com.manorrock.assistant</groupId>
         <artifactId>project</artifactId>
-        <version>25.3.7-SNAPSHOT</version>
+        <version>25.3.9-SNAPSHOT</version>
     </parent>
     <artifactId>impl</artifactId>
     <packaging>jar</packaging>
     <name>Manorrock Assistant - Implementation</name>
     <description>The default implementation of the Manorrock Assistant</description>
     <properties>
-        <json.version>20231013</json.version>
         <jsoup.version>1.16.2</jsoup.version>
         <junit.version>4.13.2</junit.version>
     </properties>    
@@ -23,11 +22,6 @@
             <artifactId>api</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>${json.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
@@ -73,11 +67,5 @@
             <artifactId>api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.manorrock.assistant</groupId>
-            <artifactId>api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
     </dependencies>
 </project>

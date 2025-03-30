@@ -28,6 +28,7 @@ package com.manorrock.assistant.llm;
 /**
  * A response from the LLM.
  */
+@Deprecated
 public class LlmResponse {
 
     /**

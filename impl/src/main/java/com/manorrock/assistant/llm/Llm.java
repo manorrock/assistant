@@ -27,7 +27,6 @@ package com.manorrock.assistant.llm;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -44,6 +43,7 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 /**
  * The LLM that is the reusable component when interacting with a Large Language Model.
  */
+@Deprecated
 public class Llm {
     
     /**

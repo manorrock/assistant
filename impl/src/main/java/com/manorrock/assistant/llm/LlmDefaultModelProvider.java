@@ -8,6 +8,7 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 /**
  * The default model provider for Large Language Models.
  */
+@Deprecated
 public class LlmDefaultModelProvider implements LlmModelProvider<StreamingChatLanguageModel> {
 
     /**

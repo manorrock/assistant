@@ -25,6 +25,7 @@
  */
 package com.manorrock.assistant.llm;
 
+@Deprecated
 public class LlmConfiguration {
   private String endpoint;
   private String model;

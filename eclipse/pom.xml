@@ -6,18 +6,12 @@
     <parent>
         <groupId>com.manorrock.assistant</groupId>
         <artifactId>project</artifactId>
-        <version>25.3.7-SNAPSHOT</version>
+        <version>25.3.9-SNAPSHOT</version>
     </parent>
     <artifactId>eclipse</artifactId>
     <packaging>pom</packaging>
     <name>Manorrock Assistant - Eclipse Plugin</name>
     <dependencies>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20250107</version>
-            <scope>compile</scope>
-        </dependency>
         <dependency>
             <groupId>com.manorrock.assistant</groupId>
             <artifactId>impl</artifactId>
