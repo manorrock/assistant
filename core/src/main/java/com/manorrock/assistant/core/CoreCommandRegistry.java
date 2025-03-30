@@ -34,6 +34,7 @@ public class CoreCommandRegistry implements CommandRegistry {
         registerCommand("explain", new CoreExplainCommand(assistant));
         registerCommand("source", new CoreSourceCommand(assistant));
         registerCommand("ollama", new CoreOllamaCommand(assistant));
+        registerCommand("session", new CoreSessionCommand(assistant));
     }
 
     /**
