@@ -196,7 +196,7 @@ public class OllamaCommandTest {
     @Test
     public void testCommandWithMultipleArguments() {
         // Test command with multiple arguments by observing the actual result
-        String result = command.executeToString("run --help");
+        String result = command.executeToString("r--verbose");
         
         // Since we're likely not running the actual ollama command successfully in tests,
         // we just check that the result is reasonable and doesn't throw exceptions

@@ -34,6 +34,7 @@ import com.manorrock.assistant.llm.LlmResponse;
 /**
  * The Assistant class is the reusable component of the Assistant application.
  */
+@Deprecated
 public class Assistant {
 
     /**

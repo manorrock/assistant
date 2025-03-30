@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.manorrock.assistant</groupId>
   <artifactId>project</artifactId>
-  <version>25.3.7-SNAPSHOT</version>
+  <version>25.3.9-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Manorrock Assistant - Project</name>
   <modules>
@@ -36,6 +36,9 @@
           <inherited>true</inherited>
           <configuration>
             <release>${java.version}</release>
+            <compilerArgs>
+              <arg>-Xlint:all</arg>
+            </compilerArgs>
           </configuration>
         </plugin>
         <plugin>
@@ -48,11 +51,6 @@
   </build>
   <dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.14</version>
-        </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>

@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 /**
  * The shared implementation of the Assistant that executes commands using the CLI.
  */
+@Deprecated
 public class AssistantImpl {
     private static final Executor EXECUTOR = Executors.newCachedThreadPool();
     private final String cliPath;

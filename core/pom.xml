@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.manorrock.assistant</groupId>
         <artifactId>project</artifactId>
-        <version>25.3.7-SNAPSHOT</version>
+        <version>25.3.9-SNAPSHOT</version>
     </parent>
     <artifactId>core</artifactId>
     <packaging>jar</packaging>
@@ -13,11 +13,6 @@
     <description>Core implementation of the Manorrock Assistant</description>
     <dependencies>
         <!-- compile -->
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20250107</version>
-        </dependency>
         <dependency>
             <groupId>com.manorrock.assistant</groupId>
             <artifactId>api</artifactId>
@@ -36,8 +31,9 @@
         </dependency>
         <!-- runtime -->
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>2.0.17</version>
             <scope>runtime</scope>
         </dependency>
         <!-- test -->   

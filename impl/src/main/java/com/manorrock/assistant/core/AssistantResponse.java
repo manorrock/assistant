@@ -28,6 +28,7 @@ package com.manorrock.assistant.core;
 /**
  * An assistant response.
  */
+@Deprecated
 public class AssistantResponse {
     
     /**

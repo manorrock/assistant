@@ -6,6 +6,7 @@ package com.manorrock.assistant.llm;
  * @param <T> the type of model
  * @author Manfred Riem (mriem@manorrock.com)
  */
+@Deprecated
 @FunctionalInterface
 public interface LlmModelProvider<T> {
     
