@@ -25,34 +25,4 @@ public class CoreAssistantMessageTest {
         message.setContent("New Content");
         assertEquals("New Content", message.getContent());
     }
-
-    @Test
-    public void testGetTypeThrowsException() {
-        CoreAssistantMessage message = new CoreAssistantMessage();
-        assertThrows(UnsupportedOperationException.class, message::getType);
-    }
-
-    @Test
-    public void testSetTypeThrowsException() {
-        CoreAssistantMessage message = new CoreAssistantMessage();
-        assertThrows(UnsupportedOperationException.class, () -> message.setType("type"));
-    }
-
-    @Test
-    public void testGetTimestampThrowsException() {
-        CoreAssistantMessage message = new CoreAssistantMessage();
-        assertThrows(UnsupportedOperationException.class, message::getTimestamp);
-    }
-
-    @Test
-    public void testSetTimestampThrowsException() {
-        CoreAssistantMessage message = new CoreAssistantMessage();
-        assertThrows(UnsupportedOperationException.class, () -> message.setTimestamp(null));
-    }
-
-    @Test
-    public void testSetIdThrowsException() {
-        CoreAssistantMessage message = new CoreAssistantMessage();
-        assertThrows(UnsupportedOperationException.class, () -> message.setId("id"));
-    }
 }

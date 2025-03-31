@@ -43,9 +43,6 @@ import static dev.langchain4j.data.message.UserMessage.userMessage;
  * GitHub repository and we will see if we can add it. Or go ahead and implement it
  * using the same pattern as mentioned above.
  * </p>
- * <p>
- * Currently we only support Ollama models.
- * </p>
  */
 public class CoreLlm implements Llm {
 
@@ -301,6 +298,9 @@ public class CoreLlm implements Llm {
         if (!properties.containsKey("modelName")) {
             properties.setProperty("modelName", "llama3.2");
         }
+        if (!properties.containsKey("systemMessage")) {
+            properties.setProperty("systemMessage", "You are a helpful assistant.");
+        }
         if (!properties.containsKey("temperature")) {
             properties.setProperty("temperature", "0.7");
         }
@@ -410,8 +410,10 @@ public class CoreLlm implements Llm {
      * @return the response text
      */
     private String processWithoutTools(String prompt) {
-        chatMemory.add(SystemMessage.from(
-                properties.getProperty("systemMessage", "You are a helpful assistant.")));
+        if (properties.getProperty("systemMessage") != null) {
+            chatMemory.add(SystemMessage.from(
+                properties.getProperty("systemMessage")));
+        }
         chatMemory.add(userMessage(prompt));
         ChatResponse response = model.chat(chatMemory.messages());
         chatMemory.add(response.aiMessage());

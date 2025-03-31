@@ -183,6 +183,9 @@ public class CoreAssistant implements Assistant {
         return new CoreAssistantMessage(llmResponse);
     }
 
+    /**
+     * Reset the core assistant.
+     */
     public void reset() {
         Llm llmToUse = llmManager.getLlm(activeLlm);
         if (llmToUse != null) {

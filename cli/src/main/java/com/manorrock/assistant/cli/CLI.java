@@ -97,6 +97,9 @@ public class CLI implements Callable<Integer> {
 
   @Option(names = {"-i", "--interactive"}, description = "Start in interactive mode")
   private boolean interactive = false;
+
+  @Option(names = {"--no-prefix"}, description = "Do not show You/Assistant: prefix")
+  private boolean noPrefix = false;
   
   @Option(names = {"--debug"}, description = "Enable debug logging")
   private boolean debug = false;
@@ -117,7 +120,6 @@ public class CLI implements Callable<Integer> {
     
     // Initialize CoreAssistant with proper LLM configuration
     coreAssistant = new com.manorrock.assistant.core.CoreAssistant();
-    // TODO should be in the CoreAssistant constructor
     coreAssistant.setActiveLlm("llama3.2");
   }
 
@@ -495,9 +497,12 @@ public class CLI implements Callable<Integer> {
        
       // Process using the CoreAssistant
       com.manorrock.assistant.api.AssistantMessage response = coreAssistant.processMessage(message);
-        
+
       // Display the response
-      System.out.println("Assistant: " + response.getContent());
+      if (!noPrefix) {
+        System.out.print("Assistant: ");
+      }
+      System.out.println(response.getContent());
     }
   }
 
@@ -869,7 +874,9 @@ public class CLI implements Callable<Integer> {
     try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
       StringBuilder messageBuilder = new StringBuilder();
       while (true) {
-        System.out.print(messageBuilder.length() == 0 ? "\nYou: " : "... ");
+        if (!noPrefix) {
+          System.out.print(messageBuilder.length() == 0 ? "\nYou: " : "... ");
+        }
         String line = scanner.nextLine();
         String trimmedLine = line.trim();
 

@@ -12,6 +12,21 @@ public class CoreAssistantMessage implements AssistantMessage {
     private String content;
 
     /**
+     * Stores the id.
+     */
+    private String id;
+
+    /**
+     * Stores the timestamp.
+     */
+    private LocalDateTime timestamp;
+
+    /**
+     * Stores the type.
+     */
+    private String type;
+
+    /**
      * Constructor.
      */
     public CoreAssistantMessage() {
@@ -36,6 +51,21 @@ public class CoreAssistantMessage implements AssistantMessage {
         return content;
     }
 
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    @Override
+    public String getType() {
+        return type;
+    }
+
     /**
      * Set the message content.
      * 
@@ -46,39 +76,27 @@ public class CoreAssistantMessage implements AssistantMessage {
     }
 
     @Override
-    public String getType() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getType'");
-    }
-
-    @Override
-    public void setType(String type) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setType'");
-    }
-
-    @Override
-    public LocalDateTime getTimestamp() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTimestamp'");
+    public void setId(String id) {
+        this.id = id;
     }
 
     @Override
     public void setTimestamp(LocalDateTime timestamp) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setTimestamp'");
+        this.timestamp = timestamp;
     }
 
     @Override
-    public String getId() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getId'");
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override
-    public void setId(String id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setId'");
+    public String toString() {
+        return "CoreAssistantMessage{" +
+                "content='" + content + '\'' +
+                ", id='" + id + '\'' +
+                ", timestamp=" + timestamp +
+                ", type='" + type + '\'' +
+                '}';
     }
-    
 }

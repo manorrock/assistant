@@ -8,13 +8,21 @@
 - [x] Add temperature and timeout controls
 - [x] Implement vendor support in CoreLlm
 - [x] Refactor to get rid of old com.manorrock.assistant.core package
-- [ ] Refactor desktop application to use the CoreAssistant directly
-- [ ] Add --noprefix option that disables showing the "You/Assistant:" prefixes
-- [ ] Refactor VSCode extension to use persistent CLI process using -i --noprefix
+- [x] Refactor desktop application to use the CoreAssistant directly
+- [x] Add --no-prefix option that disables showing the "You/Assistant:" prefixes
+
+# Backlog
+
+## Uncategorized items
+
+- [ ] Refactor VSCode extension to use persistent CLI process using -i --no-prefix
+- [ ] Add /llm reload which reloads the LLM with updated properties
+- [ ] Refactor vscode directory into 2 separate sub directories
+      - vscode
+            - extension - the VSCode extension itself
+            - cli       - the VSCode CLI version (integrates VSCode specific tooling)
 - [ ] Add configuration persistence
 - [ ] Add chat memory system
-
-# Next+1 release
 - [ ] Implement history persistence
 - [ ] Add memory window controls
 - [ ] Register all tools similar to old CLI implementation (minus ones that should ask for permission) but disable all of them by default
@@ -22,28 +30,10 @@
 - [ ] Refactor NetBeans plugin to use the CoreAssistant directly
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
-
-# Backlog
-
-## Quick Wins
-- [ ] Add version info to CoreAssistant
-- [ ] Add basic error logging in CoreToolManager
-- [ ] Implement toString() for CoreAssistantMessage
-- [ ] Add unimplemented getter/setters in CoreAssistantMessage
-- [ ] Add maxMessages parameter to CoreLlm CLI flag
-- [ ] Add message count info to /session command
-- [ ] Add basic input validation in CoreOllamaCommand
-- [ ] Add basic status indicators in CoreToolCommand
-- [ ] Add model info to /llm status command
-- [ ] Add basic parameter type validation in CoreToolManager
-
-## Other items
-- [ ] Expand parameter type support
+- [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
+      response area
 
 ## Conversation Support
-- [x] Define ConversationContext interface to encapsulate conversation state
-- [x] Define ConversationState enum (WAITING_FOR_PERMISSION, WAITING_FOR_FILE, WAITING_FOR_INPUT)
-- [x] Define ConversationListener interface for UI callbacks
 - [ ] Implement ConversationContext interface
 - [ ] Add callback support for file attachment requests
 - [ ] Add permission request/response system
