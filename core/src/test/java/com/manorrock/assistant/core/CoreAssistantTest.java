@@ -64,6 +64,8 @@ public class CoreAssistantTest {
 
     @Test
     public void testSendMessage() {
+        coreAssistant.setActiveLlm(null);
+        
         AssistantMessage inputMessage = new CoreAssistantMessage("Test input");
         CompletableFuture<AssistantMessage> future = coreAssistant.sendMessage(inputMessage);
         assertNotNull(future, "sendMessage should return a non-null CompletableFuture");
