@@ -85,36 +85,71 @@ function updateLLMEndpoint() {
     return;
   }
 
-  let cliPath = config.get<string>('assistant.cliPath') || path.join(os.homedir(), '.manorrock', 'assistant', 'cli.jar');
-  if (cliPath.startsWith('~') || cliPath.startsWith('%USERPROFILE%')) {
-    cliPath = path.join(os.homedir(), cliPath.slice(cliPath.indexOf(path.sep) + 1));
-  }
-
-  try {
-    const cliProcess = spawn(getJavaPath(), ['-jar', cliPath, '--stdin']);
-    cliProcess.stdin.write(`/llmEndpoint ${endpoint}\n`);
-    cliProcess.stdin.end();
-
-    cliProcess.on('error', (error) => {
-      vscode.window.showErrorMessage(`Failed to set LLM endpoint: ${error.message}`);
-    });
-  } catch (error) {
-    vscode.window.showErrorMessage(`Failed to launch CLI process: ${(error as Error).message}`);
-  }
+  // We can't directly get the provider instance, so we'll need to register a new command
+  // that the provider will need to handle
+  vscode.commands.executeCommand('assistant.updateEndpoint', endpoint);
 }
 
 class AssistantViewProvider implements vscode.WebviewViewProvider {
-  constructor(private readonly context: vscode.ExtensionContext) {}
-
   private _view: vscode.WebviewView | undefined;
+  private cliProcess: any | undefined;
+  public outputChannel: vscode.OutputChannel;
+
+  constructor(private readonly context: vscode.ExtensionContext) {
+    this.outputChannel = vscode.window.createOutputChannel('Manorrock Assistant');
+  }
+
+  private startCliProcess(cliPath: string): void {
+    if (this.cliProcess) {
+      return; // Process already running
+    }
+    
+    this.outputChannel.appendLine(`Starting persistent CLI process with path: ${cliPath}`);
+    this.cliProcess = spawn(getJavaPath(), ['-jar', cliPath, '-i', '--no-prefix']);
+
+    this.cliProcess.stdout.on('data', (data: Buffer) => {
+      const output = data.toString();
+      this.outputChannel.appendLine(`Output received: ${output}`);
+      this._view?.webview.postMessage({ type: 'cli-output', text: output });
+    });
+
+    this.cliProcess.stderr.on('data', (data: Buffer) => {
+      const error = data.toString();
+      this.outputChannel.appendLine(`Error: ${error}`);
+      this._view?.webview.postMessage({ type: 'cli-output', text: `Error: ${error}` });
+    });
+
+    this.cliProcess.on('close', (code: number) => {
+      this.outputChannel.appendLine(`CLI process exited with code ${code}`);
+      this.cliProcess = undefined;
+      if (code !== 0) {
+        this._view?.webview.postMessage({ 
+          type: 'cli-output', 
+          text: `CLI process terminated unexpectedly with code ${code}. You may need to restart the extension.` 
+        });
+      }
+    });
+
+    this.cliProcess.on('error', (error: Error) => {
+      this.outputChannel.appendLine(`CLI process error: ${error.message}`);
+      this._view?.webview.postMessage({ type: 'cli-output', text: `Error: ${error.message}` });
+      this.cliProcess = undefined;
+    });
+  }
+
+  public stopCliProcess(): void {
+    if (this.cliProcess) {
+      this.cliProcess.kill();
+      this.cliProcess = undefined;
+    }
+  }
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
-    console.log('Resolving Webview View'); // Add logging
+    console.log('Resolving Webview View');
     webviewView.webview.options = { enableScripts: true };
     webviewView.webview.html = this.getWebviewContent();
 
-    const outputChannel = vscode.window.createOutputChannel('Manorrock Assistant');
     const config = vscode.workspace.getConfiguration('assistant');
     let cliPath = config.get<string>('cliPath') || path.join(os.homedir(), '.manorrock', 'assistant', 'cli.jar');
 
@@ -131,19 +166,21 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
         text: '⚠️ **CLI Not Found**\n\nThe Manorrock Assistant CLI was not found at the expected location.\n\nPlease visit [installation instructions](https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install) to set up the CLI.'
       });
       return;
-    } else {
-      // Show ready message if CLI exists
-      webviewView.webview.postMessage({
-        type: 'cli-output',
-        text: 'Ready to answer! Use /help for help'
-      });
     }
+
+    // Start the persistent CLI process
+    this.startCliProcess(cliPath);
+
+    // Show ready message if CLI exists
+    webviewView.webview.postMessage({
+      type: 'cli-output',
+      text: 'Ready to answer! Use /help for help'
+    });
 
     webviewView.webview.onDidReceiveMessage(async (message: { type: string; text: string }) => {
       if (message.type === 'sendMessage') {
         // Handle /clear command to clear the UI only (without resetting CLI state)
         if (message.text.trim() === '/clear') {
-          // Clear the UI
           webviewView.webview.postMessage({
             type: 'newSession',
             message: ''
@@ -151,29 +188,13 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
           return;
         }
         
-        // Handle /new command by first clearing UI, then sending to CLI
+        // Handle /new command
         if (message.text.trim() === '/new') {
-          // Clear the UI
           webviewView.webview.postMessage({
             type: 'newSession',
             message: 'Started a new chat session.'
           });
-          
-          // Also dispatch to CLI so it resets its state
-          try {
-            outputChannel.appendLine(`Sending /new command to CLI`);
-            const cliProcess = spawn(getJavaPath(), ['-jar', cliPath, '--stdin']);
-            cliProcess.stdin.write(`/new\n`);
-            cliProcess.stdin.end();
-            
-            cliProcess.stdout.on('data', (data) => {
-              const output = data.toString();
-              outputChannel.appendLine(`CLI response to /new: ${output}`);
-            });
-          } catch (error) {
-            outputChannel.appendLine(`Error sending /new to CLI: ${(error as Error).message}`);
-          }
-          return;
+          message.text = '/new';
         }
 
         // Enhanced /explain command handling
@@ -195,10 +216,8 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
               `entire file: ${fileName}` : 
               `selection from ${fileName} (${selection.start.line + 1}:${selection.start.character + 1} to ${selection.end.line + 1}:${selection.end.character + 1})`;
             
-            const prompt = `/explain\nExplaining ${fileInfo}\n-----------------------------------------\n${text}`;
-            message.text = prompt;
+            message.text = `/explain\nExplaining ${fileInfo}\n-----------------------------------------\n${text}`;
             
-            // Let the user know what's being explained
             webviewView.webview.postMessage({ 
               type: 'cli-output', 
               text: `Explaining ${fileInfo}...\n` 
@@ -213,38 +232,28 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
         }
         
         try {
-          outputChannel.appendLine(`Spawning process with CLI path: ${cliPath}`);
-          outputChannel.appendLine(`Input sent to process: ${message.text}`);
-          const cliProcess = spawn(getJavaPath(), ['-jar', cliPath, '--stdin']);
-          cliProcess.stdin.write(`${message.text}\n`);
-          cliProcess.stdin.end();
+          if (!this.cliProcess) {
+            this.startCliProcess(cliPath);
+          }
 
-          cliProcess.stdout.on('data', (data) => {
-            const output = data.toString();
-            outputChannel.appendLine(`Output received from process: ${output}`);
-            webviewView.webview.postMessage({ type: 'cli-output', text: output });
-          });
-
-          cliProcess.on('close', (code) => {
-            if (code !== 0) {
-              const exitMessage = `CLI process exited with code ${code}`;
-              outputChannel.appendLine(exitMessage);
-              webviewView.webview.postMessage({ type: 'cli-output', text: exitMessage });
-            }
-            webviewView.webview.postMessage({ type: 'process-complete' });
-          });
-
-          cliProcess.on('error', (error) => {
-            const errorMessage = (error as Error).message;
-            outputChannel.appendLine(`Error: ${errorMessage}`);
-            webviewView.webview.postMessage({ type: 'cli-output', text: `Error: ${errorMessage}` });
-          });
+          this.outputChannel.appendLine(`Sending to CLI: ${message.text}`);
+          this.cliProcess.stdin.write(`${message.text}\n`);
+          webviewView.webview.postMessage({ type: 'process-complete' });
         } catch (error) {
           const errorMessage = (error as Error).message;
-          outputChannel.appendLine(`Exception: ${errorMessage}`);
+          this.outputChannel.appendLine(`Exception: ${errorMessage}`);
           webviewView.webview.postMessage({ type: 'cli-output', text: `Exception: ${errorMessage}` });
+          
+          // Try to recover by restarting the CLI process
+          this.stopCliProcess();
+          this.startCliProcess(cliPath);
         }
       }
+    });
+
+    // Handle cleanup when the webview is disposed
+    webviewView.onDidDispose(() => {
+      this.stopCliProcess();
     });
   }
 
