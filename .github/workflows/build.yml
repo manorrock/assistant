@@ -51,7 +51,7 @@ jobs:
         fi
     - name: Update SNAPSHOT release
       if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: SNAPSHOT Build
         tag_name: SNAPSHOT
@@ -104,7 +104,7 @@ jobs:
           cp eclipse/target/com.manorrock.assistant.eclipse_*.jar standardized/Manorrock-Assistant-Eclipse.jar
       - name: Update SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: SNAPSHOT Build
           tag_name: SNAPSHOT
@@ -129,7 +129,7 @@ jobs:
           cp build/distributions/*.zip ../standardized/Manorrock-Assistant-IntelliJ.zip
       - name: Update SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: SNAPSHOT Build
           tag_name: SNAPSHOT
@@ -153,7 +153,7 @@ jobs:
         cp desktop/target/*.dmg standardized/Manorrock-Assistant-arm64.dmg
     - name: Update SNAPSHOT release
       if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: SNAPSHOT Build
         tag_name: SNAPSHOT
@@ -177,7 +177,7 @@ jobs:
         cp desktop/target/*.dmg standardized/Manorrock-Assistant-amd64.dmg
     - name: Update SNAPSHOT release
       if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: SNAPSHOT Build
         tag_name: SNAPSHOT
@@ -201,7 +201,7 @@ jobs:
         cp desktop/target/*.msi standardized/Manorrock-Assistant-amd64.msi
     - name: Update SNAPSHOT release
       if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: SNAPSHOT Build
         tag_name: SNAPSHOT
@@ -225,7 +225,7 @@ jobs:
           cp netbeans/target/*.nbm standardized/Manorrock-Assistant.nbm
       - name: Update SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: SNAPSHOT Build
           tag_name: SNAPSHOT
@@ -250,7 +250,7 @@ jobs:
           cp vscode/*.vsix standardized/Manorrock-Assistant.vsix
       - name: Upload VSCode extension to SNAPSHOT release
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: SNAPSHOT Build
           tag_name: SNAPSHOT
