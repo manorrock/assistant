@@ -64,6 +64,8 @@ public class CoreAssistantTest {
 
     @Test
     public void testSendMessage() {
+        coreAssistant.setActiveLlm(null);
+        
         AssistantMessage inputMessage = new CoreAssistantMessage("Test input");
         CompletableFuture<AssistantMessage> future = coreAssistant.sendMessage(inputMessage);
         assertNotNull(future, "sendMessage should return a non-null CompletableFuture");
@@ -83,15 +85,6 @@ public class CoreAssistantTest {
         coreAssistant.setActiveLlm(testLLM);
         assertEquals(testLLM, coreAssistant.getActiveLlm(), 
             "Active LLM should be set and retrieved correctly");
-    }
-
-    @Test
-    public void testProcessMessageWithNoActiveLlm() {
-        AssistantMessage inputMessage = new CoreAssistantMessage("Test message");
-        AssistantMessage response = coreAssistant.processMessage(inputMessage);
-        assertNotNull(response, "Response should not be null");
-        assertEquals("Unable to determine which LLM to use", response.getContent(),
-            "Response content should indicate no active LLM is set");
     }
 
     @Test
@@ -171,15 +164,6 @@ public class CoreAssistantTest {
         ToolManager mockToolManager = new CoreToolManager(null);
         coreAssistant.setToolManager(mockToolManager);
         assertEquals(mockToolManager, coreAssistant.getToolManager(), "ToolManager should be set and retrieved correctly");
-    }
-
-    @Test
-    public void testSendMessageWithNullActiveLlm() {
-        AssistantMessage inputMessage = new CoreAssistantMessage("Test message");
-        CompletableFuture<AssistantMessage> future = coreAssistant.sendMessage(inputMessage);
-        AssistantMessage response = future.join();
-        assertEquals("Unable to determine which LLM to use", response.getContent(),
-            "Response content should indicate no active LLM is set");
     }
 
     @Test

@@ -879,9 +879,9 @@ public class CLI implements Callable<Integer> {
           break;
         }
 
-        // Handle commands when not in the middle of a message
-        if (trimmedLine.startsWith("/") && messageBuilder.length() == 0) {
-          handleCommand(trimmedLine);
+        if (trimmedLine.startsWith("--old ")) {
+          String actualMessage = trimmedLine.substring(6); // Length of "--old "
+          processMessage(actualMessage);
           continue;
         }
 

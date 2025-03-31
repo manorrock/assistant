@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -99,6 +100,8 @@ public class CoreLlm implements Llm {
      */
     private String processWithTools(String prompt) {
         StringBuilder resultBuilder = new StringBuilder();
+        chatMemory.add(SystemMessage.from(
+                properties.getProperty("systemMessage", "You are a helpful assistant.")));
         chatMemory.add(userMessage(prompt));
 
         try {
@@ -407,6 +410,8 @@ public class CoreLlm implements Llm {
      * @return the response text
      */
     private String processWithoutTools(String prompt) {
+        chatMemory.add(SystemMessage.from(
+                properties.getProperty("systemMessage", "You are a helpful assistant.")));
         chatMemory.add(userMessage(prompt));
         ChatResponse response = model.chat(chatMemory.messages());
         chatMemory.add(response.aiMessage());
