@@ -100,7 +100,7 @@ public class CoreLlmCommand implements Command {
                 }
                 return setTemperature(parts[1].trim());
                 
-            case "functionCalling":
+            case "functioncalling":
                 if (parts.length < 2) {
                     return "Function calling is currently: " + (isFunctionCallingEnabled() ? "ON" : "OFF");
                 }

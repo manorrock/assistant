@@ -45,6 +45,7 @@ public class CoreAssistant implements Assistant {
      * Constructor.
      */
     public CoreAssistant() {
+        activeLlm = "llama3.2";
         llmManager = new CoreLlmManager(this);
         llmManager.registerLlm("llama3.2", new CoreLlm(llmManager));
         commandRegistry = new CoreCommandRegistry(this);

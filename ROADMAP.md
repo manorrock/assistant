@@ -8,13 +8,34 @@
 - [x] Add temperature and timeout controls
 - [x] Implement vendor support in CoreLlm
 - [x] Refactor to get rid of old com.manorrock.assistant.core package
+- [ ] Refactor desktop application to use the CoreAssistant directly
+- [ ] Add --noprefix option that disables showing the "You/Assistant:" prefixes
+- [ ] Refactor VSCode extension to use persistent CLI process using -i --noprefix
 - [ ] Add configuration persistence
 - [ ] Add chat memory system
+
+# Next+1 release
 - [ ] Implement history persistence
 - [ ] Add memory window controls
-- [ ] Register all tools similar to old CLI implementation (minus ones that should ask for permission)
+- [ ] Register all tools similar to old CLI implementation (minus ones that should ask for permission) but disable all of them by default
+- [ ] Refactor all CLI handling to go through the new CoreAssistant
+- [ ] Refactor NetBeans plugin to use the CoreAssistant directly
+- [ ] Refactor Eclipse plugin to use the CoreAssistant directly
+- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 
 # Backlog
+
+## Quick Wins
+- [ ] Add version info to CoreAssistant
+- [ ] Add basic error logging in CoreToolManager
+- [ ] Implement toString() for CoreAssistantMessage
+- [ ] Add unimplemented getter/setters in CoreAssistantMessage
+- [ ] Add maxMessages parameter to CoreLlm CLI flag
+- [ ] Add message count info to /session command
+- [ ] Add basic input validation in CoreOllamaCommand
+- [ ] Add basic status indicators in CoreToolCommand
+- [ ] Add model info to /llm status command
+- [ ] Add basic parameter type validation in CoreToolManager
 
 ## Other items
 - [ ] Expand parameter type support
