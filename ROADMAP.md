@@ -12,7 +12,7 @@
 - [x] Add --no-prefix option that disables showing the "You/Assistant:" prefixes
 - [x] Refactor VSCode extension to use persistent CLI process using -i --no-prefix
 - [x] Register all tools similar to old CLI implementation but disable all of them by default
-- [ ] Refactor all CLI handling to go through the new CoreAssistant
+- [x] Refactor all CLI handling to go through the new CoreAssistant
 
 # Next+1 release
 

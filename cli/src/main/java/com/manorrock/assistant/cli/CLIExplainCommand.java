@@ -1,6 +1,8 @@
 package com.manorrock.assistant.cli;
 
+import com.manorrock.assistant.api.Assistant;
 import com.manorrock.assistant.api.Command;
+import com.manorrock.assistant.core.CoreAssistantMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -8,22 +10,24 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.function.Consumer;
 
 /**
  * Command implementation that explains text from clipboard or file.
  */
 public class CLIExplainCommand implements Command {
-    
-    private final Consumer<String> messageProcessor;
-    
+
     /**
-     * Constructor that takes a message processor function.
-     * 
-     * @param messageProcessor Function to process the explain prompt
+     * Stores the assistant instance.
      */
-    public CLIExplainCommand(Consumer<String> messageProcessor) {
-        this.messageProcessor = messageProcessor;
+    private final Assistant assistant;
+
+    /**
+     * Constuctor to initialize the command with the assistant.
+     * 
+     * @param assistant the assistant.
+     */
+    public CLIExplainCommand(Assistant assistant) {
+        this.assistant = assistant;
     }
     
     @Override
@@ -47,7 +51,6 @@ public class CLIExplainCommand implements Command {
             // Read from file
             try {
                 textToExplain = Files.readString(Paths.get(filePath));
-                resultBuilder.append("Explaining content from file: ").append(filePath);
             } catch (IOException e) {
                 return "Error reading file: " + e.getMessage();
             }
@@ -55,18 +58,27 @@ public class CLIExplainCommand implements Command {
             // Read from clipboard
             try {
                 textToExplain = getClipboardContent();
-                resultBuilder.append("Explaining content from clipboard");
             } catch (Exception e) {
-                return "Failed to access clipboard: " + e.getMessage() + 
-                       "\nUsage: /explain [file_path] - Explains text from clipboard or specified file";
+                return "Failed to access clipboard: " + e.getMessage();
             }
         }
         
         if (textToExplain != null && !textToExplain.trim().isEmpty()) {
-            String promptPrefix = "Please explain the following text in a clear and concise manner:\n\n";
-            // Process the message asynchronously
-            messageProcessor.accept(promptPrefix + textToExplain);
-            return resultBuilder.toString();
+            String promptPrefix = """
+                        Please explain the following in a clear and concise manner.\n
+                        Do NOT go into making ANY suggestions. Do not add ANY conclusions.\n
+                        Response format MUST be structured as follows:\n
+                        Original text:\n
+                        <original text>\n
+                        Explanation:\n
+                        <explanation>\n
+                        """;
+            var response = assistant.processMessage(new CoreAssistantMessage(promptPrefix + textToExplain));
+            if (response == null) {
+                return "Failed to get explanation from assistant.";
+            }
+        
+            return resultBuilder.toString() + response.getContent();            
         } else {
             return "No content found to explain.";
         }
