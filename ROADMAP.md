@@ -10,19 +10,20 @@
 - [x] Refactor to get rid of old com.manorrock.assistant.core package
 - [x] Refactor desktop application to use the CoreAssistant directly
 - [x] Add --no-prefix option that disables showing the "You/Assistant:" prefixes
+- [ ] Refactor VSCode extension to use persistent CLI process using -i --no-prefix
 
 # Backlog
 
 ## Uncategorized items
 
-- [ ] Refactor VSCode extension to use persistent CLI process using -i --no-prefix
-- [ ] Add /llm reload which reloads the LLM with updated properties
+- [ ] Add /llm reset which resets the LLM and the memory
+- [ ] Add /llm reset model which resets the LLM model with updated properties
+- [ ] Add /llm reset memory which resets the memory
 - [ ] Refactor vscode directory into 2 separate sub directories
       - vscode
             - extension - the VSCode extension itself
             - cli       - the VSCode CLI version (integrates VSCode specific tooling)
 - [ ] Add configuration persistence
-- [ ] Add chat memory system
 - [ ] Implement history persistence
 - [ ] Add memory window controls
 - [ ] Register all tools similar to old CLI implementation (minus ones that should ask for permission) but disable all of them by default
