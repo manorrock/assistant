@@ -12,7 +12,7 @@
     <name>Manorrock Assistant - Implementation</name>
     <description>The default implementation of the Manorrock Assistant</description>
     <properties>
-        <jsoup.version>1.16.2</jsoup.version>
+        <jsoup.version>1.19.1</jsoup.version>
         <junit.version>4.13.2</junit.version>
     </properties>    
     <dependencies>
