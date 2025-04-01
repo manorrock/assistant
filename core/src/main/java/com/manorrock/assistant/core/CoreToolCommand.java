@@ -49,6 +49,12 @@ public class CoreToolCommand implements Command {
         String subCommand = parts[0].toLowerCase();
 
         switch (subCommand) {
+            case "disable":
+                boolean disabled = assistant.getToolManager().disableTool(parts[1].trim());
+                return disabled ? "Tool disabled successfully" : "Failed to disable tool";
+            case "enable":
+                boolean enabled = assistant.getToolManager().enableTool(parts[1].trim());
+                return enabled ? "Tool enabled successfully" : "Failed to enable tool";
             case "list":
                 return listTools();
 

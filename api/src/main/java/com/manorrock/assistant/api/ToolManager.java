@@ -62,13 +62,15 @@ public interface ToolManager {
      * Enable a disabled tool.
      * 
      * @param toolName name of the tool to enable
+     * @return true if the tool was enabled, false if an error occurred
      */
-    void enableTool(String toolName);
+    boolean enableTool(String toolName);
     
     /**
      * Disable a tool temporarily.
      * 
      * @param toolName name of the tool to disable
+     * @return true if the tool was disabled, false if an error occurred
      */
-    void disableTool(String toolName);
+    boolean disableTool(String toolName);
 }

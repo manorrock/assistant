@@ -112,7 +112,7 @@ public class DefaultToolManager implements ToolManager {
     }
     
     @Override
-    public void enableTool(String toolName) {
+    public boolean enableTool(String toolName) {
         Tool tool = tools.get(toolName);
         if (tool != null && tool.getLifecycle() == ToolLifecycle.DISABLED) {
             if (tool.initialize()) {
@@ -121,14 +121,16 @@ public class DefaultToolManager implements ToolManager {
                 tool.setLifecycle(ToolLifecycle.ERROR);
             }
         }
+        return tool != null && tool.getLifecycle() == ToolLifecycle.READY;
     }
     
     @Override
-    public void disableTool(String toolName) {
+    public boolean disableTool(String toolName) {
         Tool tool = tools.get(toolName);
         if (tool != null && tool.getLifecycle() == ToolLifecycle.READY) {
             tool.setLifecycle(ToolLifecycle.DISABLED);
         }
+        return tool != null && tool.getLifecycle() == ToolLifecycle.DISABLED;
     }
     
     @Override
