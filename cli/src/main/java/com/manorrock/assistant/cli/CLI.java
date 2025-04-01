@@ -55,6 +55,12 @@ public class CLI implements Callable<Integer> {
   private boolean interactive = false;
 
   /**
+   * Stores the command line flag to not show the banner.
+   */
+  @Option(names = { "--no-banner" }, description = "Do not show the banner")
+  private boolean noBanner = false;
+
+  /**
    * Stores the command line flag to disable the You/Assistant: prefix.
    */
   @Option(names = { "--no-prefix" }, description = "Do not show You/Assistant: prefix")
@@ -868,8 +874,10 @@ public class CLI implements Callable<Integer> {
   // }
 
   private void startInteractiveMode() {
-    System.out.println("Entering interactive mode. Type /exit to quit, or /help for commands.");
-    System.out.println("Use \\ at end of line for multi-line input.");
+    if (!noBanner) {
+      System.out.println("Entering interactive mode. Type /exit to quit, or /help for commands.");
+      System.out.println("Use \\ at end of line for multi-line input.");
+    }
     try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
       StringBuilder messageBuilder = new StringBuilder();
       while (true) {

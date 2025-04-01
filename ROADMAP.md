@@ -3,20 +3,17 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-- [x] Fix release workflow
-- [x] Route old CLI implementation through --old and deprecate it
-- [x] Add temperature and timeout controls
-- [x] Implement vendor support in CoreLlm
-- [x] Refactor to get rid of old com.manorrock.assistant.core package
-- [x] Refactor desktop application to use the CoreAssistant directly
-- [x] Add --no-prefix option that disables showing the "You/Assistant:" prefixes
-- [x] Refactor VSCode extension to use persistent CLI process using -i --no-prefix
-- [x] Register all tools similar to old CLI implementation but disable all of them by default
-- [x] Refactor all CLI handling to go through the new CoreAssistant
 
-# Next+1 release
+- [x] Add --no-banner to CLI
+- [ ] Remove deprecated methods
+- [ ] Fix release workflow
 
-- [ ] Add --no-banner to CLI
+```bash
+Run # Get all releases sorted by creation date (newest first)
+jq: error (at <stdin>:881): string ("2025-04-01...) cannot be negated
+Error: Process completed with exit code 5.
+```
+
 - [ ] Refactor NetBeans plugin to use the CoreAssistant directly
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
@@ -24,13 +21,16 @@
       response area
 - [ ] Refactor to move VSCode extension into `vscode/extension` directory
 - [ ] Add VSCode CLI to `vscode/cli` directory
-- [ ] Remove old CLI implementation
+- [ ] Add /llm reset which resets the LLM and the memory
+
+# Next+1 release
+
+- [ ] Add LICENSE to VSCode extension
 
 # Backlog
 
 ## Uncategorized items
 
-- [ ] Add /llm reset which resets the LLM and the memory
 - [ ] Add /llm reset model which resets the LLM model with updated properties
 - [ ] Add /llm reset memory which resets the memory
 - [ ] Update VSCode extension to pretty print code blocks
