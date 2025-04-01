@@ -3,6 +3,15 @@ package com.manorrock.assistant.core;
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
+import com.manorrock.assistant.tool.DependencyAnalysisTool;
+import com.manorrock.assistant.tool.DirectoryListTool;
+import com.manorrock.assistant.tool.FileReadTool;
+import com.manorrock.assistant.tool.FileWriteTool;
+import com.manorrock.assistant.tool.MavenArchetypeTool;
+import com.manorrock.assistant.tool.ProcessExecutionTool;
+import com.manorrock.assistant.tool.ProjectStructureAnalysisTool;
+import com.manorrock.assistant.tool.ShellExecutionTool;
+import com.manorrock.assistant.tool.WebScraperTool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +56,22 @@ public class CoreToolManager implements ToolManager {
         // Register the CoreToolManagerTool to expose the ToolManager itself as a tool
         CoreToolManagerTool toolManagerTool = new CoreToolManagerTool(this);
         registerTool(toolManagerTool);
+        registerTool(new FileReadTool(), false);
+        registerTool(new FileWriteTool(), false);
+        registerTool(new DirectoryListTool(), false);
+        registerTool(new ShellExecutionTool(), false);
+        registerTool(new ProcessExecutionTool(), false);
+        registerTool(new ProjectStructureAnalysisTool(), false);
+        registerTool(new DependencyAnalysisTool(), false);
+        registerTool(new WebScraperTool(), false);
+        registerTool(new MavenArchetypeTool(), false);
+    }
+
+    public void registerTool(Tool tool, boolean enable) {
+        registerTool(tool);
+        if (!enable) {
+            disableTool(tool.getName());
+        }
     }
 
     @Override
@@ -107,9 +132,7 @@ public class CoreToolManager implements ToolManager {
 
     @Override
     public List<Tool> getAvailableTools() {
-        // Return only tools that are not disabled
         return tools.stream()
-            .filter(tool -> !disabledTools.contains(tool.getName()))
             .collect(Collectors.toList());
     }
 
@@ -192,31 +215,36 @@ public class CoreToolManager implements ToolManager {
     }
 
     @Override
-    public void enableTool(String toolName) {
+    public boolean enableTool(String toolName) {
         // Check if tool exists
         if (findTool(toolName).isEmpty()) {
-            throw new IllegalArgumentException("Tool not found: " + toolName);
+            return false;
         }
         
         // Remove from disabled list if present
         disabledTools.remove(toolName);
+        return true;
     }
 
     @Override
-    public void disableTool(String toolName) {
+    public boolean disableTool(String toolName) {
         // Check if tool exists
         if (findTool(toolName).isEmpty()) {
-            throw new IllegalArgumentException("Tool not found: " + toolName);
+            return false;
         }
         
         // Don't allow disabling the CoreToolManagerTool
         if (toolName != null && toolName.equals("tool_manager")) {
-            return;
+            return false;
         }
         
         // Add to disabled list if not already present
         if (!disabledTools.contains(toolName)) {
             disabledTools.add(toolName);
+            return true;
         }
+
+        // Tool is already disabled
+        return true;
     }
 }

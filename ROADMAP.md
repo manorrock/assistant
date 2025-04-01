@@ -10,7 +10,21 @@
 - [x] Refactor to get rid of old com.manorrock.assistant.core package
 - [x] Refactor desktop application to use the CoreAssistant directly
 - [x] Add --no-prefix option that disables showing the "You/Assistant:" prefixes
-- [ ] Refactor VSCode extension to use persistent CLI process using -i --no-prefix
+- [x] Refactor VSCode extension to use persistent CLI process using -i --no-prefix
+- [x] Register all tools similar to old CLI implementation but disable all of them by default
+- [ ] Refactor all CLI handling to go through the new CoreAssistant
+
+# Next+1 release
+
+- [ ] Add --no-banner to CLI
+- [ ] Refactor NetBeans plugin to use the CoreAssistant directly
+- [ ] Refactor Eclipse plugin to use the CoreAssistant directly
+- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
+- [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
+      response area
+- [ ] Refactor to move VSCode extension into `vscode/extension` directory
+- [ ] Add VSCode CLI to `vscode/cli` directory
+- [ ] Remove old CLI implementation
 
 # Backlog
 
@@ -19,20 +33,10 @@
 - [ ] Add /llm reset which resets the LLM and the memory
 - [ ] Add /llm reset model which resets the LLM model with updated properties
 - [ ] Add /llm reset memory which resets the memory
-- [ ] Refactor vscode directory into 2 separate sub directories
-      - vscode
-            - extension - the VSCode extension itself
-            - cli       - the VSCode CLI version (integrates VSCode specific tooling)
+- [ ] Update VSCode extension to pretty print code blocks
 - [ ] Add configuration persistence
 - [ ] Implement history persistence
 - [ ] Add memory window controls
-- [ ] Register all tools similar to old CLI implementation (minus ones that should ask for permission) but disable all of them by default
-- [ ] Refactor all CLI handling to go through the new CoreAssistant
-- [ ] Refactor NetBeans plugin to use the CoreAssistant directly
-- [ ] Refactor Eclipse plugin to use the CoreAssistant directly
-- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
-- [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
-      response area
 
 ## Conversation Support
 - [ ] Implement ConversationContext interface

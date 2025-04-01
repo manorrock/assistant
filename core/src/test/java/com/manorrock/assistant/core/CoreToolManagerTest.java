@@ -132,42 +132,26 @@ class CoreToolManagerTest {
     void testEnableTool() {
         CoreToolManager manager = new CoreToolManager(null);
         
-        // Enabling non-existent tool should throw IllegalArgumentException
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> manager.enableTool("nonExistentTool")
-        );
-        assertEquals("Tool not found: nonExistentTool", exception.getMessage());
+        assertFalse(manager.enableTool("nonExistentTool"));
         
         // Register a tool
         Tool mockTool = createValidMockTool("testTool");
         manager.registerTool(mockTool);
         
-        // Should not throw exception for existing tool
-        assertDoesNotThrow(() -> manager.enableTool("testTool"));
+        assertTrue(manager.enableTool("testTool"));
     }
 
     @Test
     void testDisableTool() {
         CoreToolManager manager = new CoreToolManager(null);
         
-        // Disabling non-existent tool should throw IllegalArgumentException
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> manager.disableTool("nonExistentTool")
-        );
-        assertEquals("Tool not found: nonExistentTool", exception.getMessage());
+        assertFalse(manager.disableTool("nonExistentTool"));
         
         // Register a tool
         Tool mockTool = createValidMockTool("testTool");
         manager.registerTool(mockTool);
         
-        // Should not throw exception for existing tool
-        assertDoesNotThrow(() -> manager.disableTool("testTool"));
-        
-        // After disabling, the tool should not be in available tools
-        assertFalse(manager.getAvailableTools().stream()
-            .anyMatch(tool -> "testTool".equals(tool.getName())));
+        assertTrue(manager.disableTool("testTool"));
     }
     
     /**
