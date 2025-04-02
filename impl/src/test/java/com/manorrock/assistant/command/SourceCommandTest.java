@@ -36,19 +36,19 @@ class SourceCommandTest {
     
     @Test
     void testEmptyInput() {
-        String result = sourceCommand.executeToString(null);
+        String result = sourceCommand.execute(null);
         assertEquals("Usage: /source <file_path>", result);
         
-        result = sourceCommand.executeToString("");
+        result = sourceCommand.execute("");
         assertEquals("Usage: /source <file_path>", result);
         
-        result = sourceCommand.executeToString("   ");
+        result = sourceCommand.execute("   ");
         assertEquals("Usage: /source <file_path>", result);
     }
     
     @Test
     void testNonExistentFile() {
-        String result = sourceCommand.executeToString("/non/existent/file.txt");
+        String result = sourceCommand.execute("/non/existent/file.txt");
         assertThat(result, containsString("Error reading source file:"));
     }
     
@@ -57,7 +57,7 @@ class SourceCommandTest {
         Path testFile = tempDir.resolve("test.txt");
         Files.writeString(testFile, "Hello world\n/command test");
         
-        String result = sourceCommand.executeToString(testFile.toString());
+        String result = sourceCommand.execute(testFile.toString());
         
         assertEquals("Successfully executed commands from " + testFile, result);
         assertEquals(1, messages.size());
@@ -76,7 +76,7 @@ class SourceCommandTest {
             List<String> testCommands = new ArrayList<>();
             SourceCommand command = new SourceCommand(testMessages::add, testCommands::add);
             
-            String result = command.executeToString(testFile.toString());
+            String result = command.execute(testFile.toString());
             
             assertEquals(1, testMessages.size());
             
@@ -92,22 +92,11 @@ class SourceCommandTest {
     }
     
     @Test
-    void testExecuteToStream() throws IOException {
-        Path testFile = tempDir.resolve("stream.txt");
-        Files.writeString(testFile, "Test content");
-        
-        try (InputStream is = sourceCommand.executeToStream(testFile.toString())) {
-            String result = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-            assertThat(result, containsString("Successfully executed commands from"));
-        }
-    }
-    
-    @Test
     void testExitCommandIsHandledAsMessage() throws IOException {
         Path testFile = tempDir.resolve("exit.txt");
         Files.writeString(testFile, "/exit");
         
-        sourceCommand.executeToString(testFile.toString());
+        sourceCommand.execute(testFile.toString());
         
         assertEquals(1, messages.size());
         assertEquals("/exit", messages.get(0));

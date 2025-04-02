@@ -209,17 +209,7 @@ public class CommandRegistryImplTest {
     private static class MockCommand implements Command {
         @Override
         public String execute(String input) {
-            return executeToString(input);
-        }
-        
-        @Override
-        public String executeToString(String input) {
             throw new UnsupportedOperationException("Unimplemented method 'executeToString'");
-        }
-        
-        @Override
-        public InputStream executeToStream(String input) {
-            throw new UnsupportedOperationException("Unimplemented method 'executeToStream'");
         }
         
         @Override
@@ -237,19 +227,10 @@ public class CommandRegistryImplTest {
      * A specialized Command implementation for type testing.
      */
     private static class SpecialCommand implements Command {
-        @Override
-        public String execute(String input) {
-            return executeToString(input);
-        }
         
         @Override
-        public String executeToString(String input) {
+        public String execute(String input) {
             throw new UnsupportedOperationException("Unimplemented method 'executeToString'");
-        }
-
-        @Override
-        public InputStream executeToStream(String input) {
-            throw new UnsupportedOperationException("Unimplemented method 'executeToStream'");
         }
 
         @Override

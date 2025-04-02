@@ -245,16 +245,6 @@ public class CoreAssistantTest {
             public String getDescription() {
                 return "Test command for arguments";
             }
-            
-            @Override
-            public java.io.InputStream executeToStream(String input) {
-                return new java.io.ByteArrayInputStream(execute(input).getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            }
-
-            @Override
-            public String executeToString(String input) {
-                return null;
-            }
 
             @Override
             public String getShortDescription() {
@@ -287,16 +277,6 @@ public class CoreAssistantTest {
             @Override
             public String getDescription() {
                 return "Test command for no arguments";
-            }
-            
-            @Override
-            public java.io.InputStream executeToStream(String input) {
-                return new java.io.ByteArrayInputStream(execute(input).getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            }
-
-            @Override
-            public String executeToString(String input) {
-                return null;
             }
 
             @Override

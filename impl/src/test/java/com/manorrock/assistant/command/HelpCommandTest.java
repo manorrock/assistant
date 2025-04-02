@@ -13,7 +13,7 @@ public class HelpCommandTest {
     @Test
     public void testExecuteToString() {
         HelpCommand command = new HelpCommand();
-        String result = command.executeToString("");
+        String result = command.execute("");
         
         assertThat(result, containsString("Available commands:"));
         assertThat(result, containsString("/clear - Clears the response window"));
@@ -23,16 +23,6 @@ public class HelpCommandTest {
         assertThat(result, containsString("/new - Starts a new chat session"));
         assertThat(result, containsString("/source - Executes commands from a file"));
         assertThat(result, containsString("/tool - Manages tool integrations"));
-    }
-
-    @Test
-    public void testExecuteToStream() throws IOException {
-        HelpCommand command = new HelpCommand();
-        InputStream stream = command.executeToStream("");
-        
-        String result = inputStreamToString(stream);
-        
-        assertThat(result, equalTo(command.executeToString("")));
     }
     
     @Test

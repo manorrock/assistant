@@ -24,17 +24,7 @@ public class DeprecatedCommandTest {
         Command mockDelegate = new Command() {
             @Override
             public String execute(String input) {
-                return executeToString(input);
-            }
-            
-            @Override
-            public String executeToString(String input) {
                 return "Mock result";
-            }
-            
-            @Override
-            public InputStream executeToStream(String input) {
-                return new ByteArrayInputStream("Mock result".getBytes(StandardCharsets.UTF_8));
             }
             
             @Override
@@ -56,7 +46,7 @@ public class DeprecatedCommandTest {
     @Test
     public void testExecuteToStringWithoutDelegate() {
         DeprecatedCommand command = new DeprecatedCommand("oldCommand", "newCommand");
-        String result = command.executeToString("test input");
+        String result = command.execute("test input");
         assertThat(result, containsString("WARNING: The command '/oldCommand' is deprecated"));
         assertThat(result, containsString("Please use '/newCommand' instead."));
     }
@@ -64,19 +54,10 @@ public class DeprecatedCommandTest {
     @Test
     public void testExecuteToStringWithDelegate() {
         Command mockDelegate = new Command() {
+            
             @Override
             public String execute(String input) {
-                return executeToString(input);
-            }
-            
-            @Override
-            public String executeToString(String input) {
                 return "Mock result for: " + input;
-            }
-            
-            @Override
-            public InputStream executeToStream(String input) {
-                return new ByteArrayInputStream(("Mock result for: " + input).getBytes(StandardCharsets.UTF_8));
             }
             
             @Override
@@ -91,23 +72,10 @@ public class DeprecatedCommandTest {
         };
         
         DeprecatedCommand command = new DeprecatedCommand("oldCommand", "newCommand", mockDelegate);
-        String result = command.executeToString("test input");
+        String result = command.execute("test input");
         assertThat(result, containsString("WARNING: The command '/oldCommand' is deprecated"));
         assertThat(result, containsString("Please use '/newCommand' instead."));
         assertThat(result, containsString("Mock result for: test input"));
-    }
-
-    @Test
-    public void testExecuteToStream() throws IOException {
-        DeprecatedCommand command = new DeprecatedCommand("oldCommand", "newCommand");
-        InputStream stream = command.executeToStream("test input");
-        
-        byte[] buffer = new byte[1024];
-        int bytesRead = stream.read(buffer);
-        String result = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
-        
-        assertThat(result, containsString("WARNING: The command '/oldCommand' is deprecated"));
-        assertThat(result, containsString("Please use '/newCommand' instead."));
     }
 
     @Test

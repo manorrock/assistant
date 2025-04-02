@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,7 +38,7 @@ public class CoreExplainCommandTest {
         );
 
         // Execute the command
-        String result = explainCommand.executeToString(testFile.toString());
+        String result = explainCommand.execute(testFile.toString());
 
         // Verify results
         assertTrue(result.contains("Explaining content from file:"));
@@ -48,14 +47,14 @@ public class CoreExplainCommandTest {
 
     @Test
     public void testExplainFromFileNotFound() {
-        String result = explainCommand.executeToString("/nonexistent/file.txt");
+        String result = explainCommand.execute("/nonexistent/file.txt");
         assertTrue(result.startsWith("Error reading file:"));
     }
 
     @Test
     public void testExplainEmptyInput() {
         // This should try to read from clipboard, which will likely fail in test environment
-        String result = explainCommand.executeToString("");
+        String result = explainCommand.execute("");
         assertTrue(result.contains("Failed to access clipboard:") || 
                   result.contains("No content found to explain."));
     }
@@ -66,7 +65,7 @@ public class CoreExplainCommandTest {
         Path testFile = tempDir.resolve("empty.txt");
         Files.write(testFile, new byte[0]);
 
-        String result = explainCommand.executeToString(testFile.toString());
+        String result = explainCommand.execute(testFile.toString());
         assertEquals("No content found to explain.", result);
     }
 
@@ -83,34 +82,13 @@ public class CoreExplainCommandTest {
     }
 
     @Test
-    public void testExecuteToStream() throws IOException {
-        // Create a test file
-        Path testFile = tempDir.resolve("streamTest.txt");
-        String testContent = "Test content for stream";
-        Files.write(testFile, testContent.getBytes(StandardCharsets.UTF_8));
-
-        // Mock the assistant's response
-        when(mockAssistant.processMessage(any())).thenReturn(
-            new CoreAssistantMessage("Stream explanation: " + testContent)
-        );
-
-        // Execute the command
-        InputStream result = explainCommand.executeToStream(testFile.toString());
-
-        // Read the result
-        String streamContent = new String(result.readAllBytes(), StandardCharsets.UTF_8);
-        assertTrue(streamContent.contains("Explaining content from file:"));
-        assertTrue(streamContent.contains("Stream explanation: " + testContent));
-    }
-
-    @Test
-    public void testExecuteDelegatesToExecuteToString() {
+    public void testExecuteToStringDelegatesToExecute() {
         // Create a spy to verify the delegation
         CoreExplainCommand spy = spy(explainCommand);
         String testInput = "test input";
         
         spy.execute(testInput);
         
-        verify(spy).executeToString(testInput);
+        verify(spy).execute(testInput);
     }
 }

@@ -26,11 +26,6 @@ public class CoreExplainCommand implements Command {
     
     @Override
     public String execute(String input) {
-        return executeToString(input);
-    }
-    
-    @Override
-    public String executeToString(String input) {
         String textToExplain = null;
         StringBuilder resultBuilder = new StringBuilder();
         
@@ -65,11 +60,6 @@ public class CoreExplainCommand implements Command {
         }
         
         return resultBuilder.toString() + response.getContent();
-    }
-    
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
     
     @Override

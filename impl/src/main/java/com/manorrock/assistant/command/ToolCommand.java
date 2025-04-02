@@ -1,8 +1,5 @@
 package com.manorrock.assistant.command;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,11 +61,6 @@ public class ToolCommand implements Command {
 
     @Override
     public String execute(String input) {
-        return executeToString(input);
-    }
-    
-    @Override
-    public String executeToString(String input) {
         if (input == null || input.trim().isEmpty()) {
             // List available tools if no argument provided
             return listTools();
@@ -114,11 +106,6 @@ public class ToolCommand implements Command {
                 return "Unknown subcommand: " + subCommand + "\n" +
                         "Available subcommands: list, execute, info, integration, status";
         }
-    }
-
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
 
     /**

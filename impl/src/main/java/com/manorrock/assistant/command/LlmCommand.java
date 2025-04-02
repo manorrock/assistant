@@ -2,9 +2,6 @@ package com.manorrock.assistant.command;
 
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.llm.LlmConfiguration;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 import java.util.function.Consumer;
 
@@ -51,11 +48,6 @@ public class LlmCommand implements Command {
 
     @Override
     public String execute(String input) {
-        return executeToString(input);
-    }
-    
-    @Override
-    public String executeToString(String input) {
         if (input == null || input.trim().isEmpty()) {
             // Show current configuration if no arguments provided
             return getCurrentConfiguration();
@@ -104,11 +96,6 @@ public class LlmCommand implements Command {
                 return "Unknown subcommand: " + subCommand + "\n" +
                        "Available subcommands: status, vendor, model, endpoint, apikey, temperature";
         }
-    }
-
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
     
     /**

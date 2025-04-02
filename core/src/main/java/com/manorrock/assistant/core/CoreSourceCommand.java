@@ -36,11 +36,6 @@ public class CoreSourceCommand implements Command {
 
     @Override
     public String execute(String input) {
-        return executeToString(input);
-    }
-
-    @Override
-    public String executeToString(String input) {
         if (input == null || input.trim().isEmpty()) {
             return "Usage: /source <file_path>";
         }
@@ -82,21 +77,6 @@ public class CoreSourceCommand implements Command {
         }
     }
 
-    /**
-     * Process a message from the file, either as a command or a prompt.
-     * 
-     * @param message The message to process
-     */
-    private void processMessage(String message) {
-        AssistantMessage assistantMessage = new CoreAssistantMessage(message);
-        assistant.processMessage(assistantMessage);
-    }
-
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
-    }
-
     @Override
     public String getDescription() {
         return "Execute commands from a file";
@@ -105,5 +85,15 @@ public class CoreSourceCommand implements Command {
     @Override
     public String getShortDescription() {
         return "Execute commands from a file";
+    }
+
+    /**
+     * Process a message from the file, either as a command or a prompt.
+     * 
+     * @param message The message to process
+     */
+    private void processMessage(String message) {
+        AssistantMessage assistantMessage = new CoreAssistantMessage(message);
+        assistant.processMessage(assistantMessage);
     }
 }

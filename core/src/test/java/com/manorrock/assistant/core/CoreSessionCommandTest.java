@@ -21,15 +21,15 @@ public class CoreSessionCommandTest {
     }
 
     @Test
-    public void testExecuteToString_withNewSubcommand() {
-        String result = command.executeToString("new");
+    public void testExecute_withNewSubcommand() {
+        String result = command.execute("new");
         assertEquals("Started new chat session", result);
         verify(mockAssistant).reset();
     }
 
     @Test
-    public void testExecuteToString_withHelpSubcommand() {
-        String result = command.executeToString("help");
+    public void testExecute_withHelpSubcommand() {
+        String result = command.execute("help");
         assertEquals("""
                Session management commands.
                
@@ -40,8 +40,8 @@ public class CoreSessionCommandTest {
     }
 
     @Test
-    public void testExecuteToString_withEmptyInput() {
-        String result = command.executeToString("");
+    public void testExecute_withEmptyInput() {
+        String result = command.execute("");
         assertEquals("""
                Session management commands.
                
@@ -52,8 +52,8 @@ public class CoreSessionCommandTest {
     }
 
     @Test
-    public void testExecuteToString_withNullInput() {
-        String result = command.executeToString(null);
+    public void testExecute_withNullInput() {
+        String result = command.execute(null);
         assertEquals("""
                Session management commands.
                
@@ -61,13 +61,6 @@ public class CoreSessionCommandTest {
                  /session             - Show session command help
                  /session new         - Start a new session (clear history)
                """, result);
-    }
-
-    @Test
-    public void testExecuteToStream() throws Exception {
-        String input = "new";
-        String expected = "Started new chat session";
-        assertEquals(expected, new String(command.executeToStream(input).readAllBytes()));
     }
 
     @Test

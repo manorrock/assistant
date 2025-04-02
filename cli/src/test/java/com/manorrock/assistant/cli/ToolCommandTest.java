@@ -93,18 +93,18 @@ public class ToolCommandTest {
         assertTrue(cmd instanceof ToolCommand);
         
         // Execute the command without parameters (should list tools)
-        String result = cmd.executeToString("");
+        String result = cmd.execute("");
         assertTrue(result.contains("Available tools:"));
         assertTrue(result.contains("test_tool"));
         assertTrue(result.contains("A test tool"));
         
         // Execute with a specific tool
-        result = cmd.executeToString("execute test_tool");
+        result = cmd.execute("execute test_tool");
         assertTrue(result.contains("Tool execution succeeded"));
         assertTrue(result.contains("Tool test_tool executed successfully"));
         
         // Test info subcommand
-        result = cmd.executeToString("info test_tool");
+        result = cmd.execute("info test_tool");
         assertTrue(result.contains("Tool: test_tool"));
         assertTrue(result.contains("Description: A test tool"));
     }
@@ -153,16 +153,16 @@ public class ToolCommandTest {
         assertNotNull(cmd);
         
         // Test status subcommand
-        String result = cmd.executeToString("status");
+        String result = cmd.execute("status");
         assertTrue(result.contains("LLM tool integration is currently enabled"));
         
         // Test disable integration
-        result = cmd.executeToString("integration off");
+        result = cmd.execute("integration off");
         assertTrue(result.contains("LLM tool integration disabled"));
         assertFalse(integrationEnabled[0]);
         
         // Test enable integration
-        result = cmd.executeToString("integration on");
+        result = cmd.execute("integration on");
         assertTrue(result.contains("LLM tool integration enabled"));
         assertTrue(integrationEnabled[0]);
     }

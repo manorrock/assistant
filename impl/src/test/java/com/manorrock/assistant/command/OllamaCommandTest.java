@@ -39,30 +39,10 @@ public class OllamaCommandTest {
     }
 
     @Test
-    public void testExecuteToStream() {
-        String testString = "test output";
-        OllamaCommand spyCommand = new OllamaCommand(mockConfigSupplier) {
-            @Override
-            public String executeToString(String args) {
-                return testString;
-            }
-        };
-
-        InputStream inputStream = spyCommand.executeToStream("test");
-        byte[] bytes = new byte[testString.length()];
-        try {
-            inputStream.read(bytes);
-            assertEquals(testString, new String(bytes, StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Test
     public void testHostParameterParsing() {
         OllamaCommand spyCommand = new OllamaCommand(mockConfigSupplier) {
             @Override
-            public String executeToString(String args) {
+            public String execute(String args) {
                 if (args.startsWith("--host custom:1234")) {
                     return "Using custom host";
                 }
@@ -70,7 +50,7 @@ public class OllamaCommandTest {
             }
         };
 
-        String result = spyCommand.executeToString("--host custom:1234 list");
+        String result = spyCommand.execute("--host custom:1234 list");
         assertThat(result, is("Using custom host"));
     }
 
@@ -83,7 +63,7 @@ public class OllamaCommandTest {
         
         // This test cannot fully validate the host extraction behavior without mocking Process
         // but we can at least verify the command doesn't throw exceptions
-        String result = commandWithConfig.executeToString("list");
+        String result = commandWithConfig.execute("list");
         assertThat(result, anyOf(
             containsString("Failed to execute"),
             containsString("Error executing"),
@@ -94,7 +74,7 @@ public class OllamaCommandTest {
 
     @Test
     public void testNullArgs() {
-        String result = command.executeToString(null);
+        String result = command.execute(null);
         // When null args are provided, the command still runs 'ollama' with no args
         // which shows the help text, so we should expect that instead of an error
         assertThat(result, anyOf(
@@ -106,7 +86,7 @@ public class OllamaCommandTest {
 
     @Test
     public void testEmptyArgs() {
-        String result = command.executeToString("");
+        String result = command.execute("");
         // Empty args should also show the help text
         assertThat(result, anyOf(
             containsString("Available Commands:"),
@@ -119,7 +99,7 @@ public class OllamaCommandTest {
     public void testProcessExecution() {
         OllamaCommand spyCommand = new OllamaCommand(mockConfigSupplier) {
             @Override
-            public String executeToString(String args) {
+            public String execute(String args) {
                 // Verify arguments are properly processed
                 if (args == null || args.trim().isEmpty()) {
                     return "Command received: ollama (no args)";
@@ -135,23 +115,23 @@ public class OllamaCommandTest {
         };
 
         // Test null args
-        assertThat(spyCommand.executeToString(null), 
+        assertThat(spyCommand.execute(null), 
             is("Command received: ollama (no args)"));
 
         // Test empty args
-        assertThat(spyCommand.executeToString("  "), 
+        assertThat(spyCommand.execute("  "), 
             is("Command received: ollama (no args)"));
 
         // Test with command without host
-        assertThat(spyCommand.executeToString("list"), 
+        assertThat(spyCommand.execute("list"), 
             is("Command received: ollama with args: list"));
 
         // Test with host parameter
-        assertThat(spyCommand.executeToString("--host custom:1234 list"), 
+        assertThat(spyCommand.execute("--host custom:1234 list"), 
             containsString("with host custom:1234"));
         
         // Test with host parameter only
-        assertThat(spyCommand.executeToString("--host custom:1234"), 
+        assertThat(spyCommand.execute("--host custom:1234"), 
             containsString("with host custom:1234"));
     }
 
@@ -164,7 +144,7 @@ public class OllamaCommandTest {
         
         // We can't easily test this without modifying the source code to expose internal behavior
         // So we just verify it doesn't throw exceptions
-        String result = nonOllamaCommand.executeToString("list");
+        String result = nonOllamaCommand.execute("list");
         // Since we're likely not running the actual ollama command successfully in tests,
         // we just check that the result is reasonable
         assertThat(result, anyOf(
@@ -183,7 +163,7 @@ public class OllamaCommandTest {
         
         // We can't easily test this without modifying the source code to expose internal behavior
         // So we just verify it doesn't throw exceptions
-        String result = malformedCommand.executeToString("list");
+        String result = malformedCommand.execute("list");
         // Since we're likely not running the actual ollama command successfully in tests,
         // we just check that the result is reasonable
         assertThat(result, anyOf(
@@ -196,7 +176,7 @@ public class OllamaCommandTest {
     @Test
     public void testCommandWithMultipleArguments() {
         // Test command with multiple arguments by observing the actual result
-        String result = command.executeToString("r--verbose");
+        String result = command.execute("r--verbose");
         
         // Since we're likely not running the actual ollama command successfully in tests,
         // we just check that the result is reasonable and doesn't throw exceptions
@@ -212,7 +192,7 @@ public class OllamaCommandTest {
     public void testProcessErrorHandling() {
         // Create a test command that will likely fail
         // For example, try to run a non-existent command or with invalid parameters
-        String result = command.executeToString("nonexistentcommand");
+        String result = command.execute("nonexistentcommand");
         
         // Since the command doesn't exist, we expect either an error from ollama
         // or our command handler to catch an exception
@@ -228,7 +208,7 @@ public class OllamaCommandTest {
     @Test
     public void testHostParameterWithoutCommand() {
         // Test host parameter without any further command
-        String result = command.executeToString("--host custom:1234");
+        String result = command.execute("--host custom:1234");
         
         // Since we're likely not running the actual ollama command successfully in tests,
         // we just check that the result is reasonable and doesn't throw exceptions

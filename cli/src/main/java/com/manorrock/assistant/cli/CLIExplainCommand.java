@@ -4,10 +4,7 @@ import com.manorrock.assistant.api.Assistant;
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.core.CoreAssistantMessage;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -32,11 +29,6 @@ public class CLIExplainCommand implements Command {
     
     @Override
     public String execute(String input) {
-        return executeToString(input);
-    }
-    
-    @Override
-    public String executeToString(String input) {
         String textToExplain = null;
         
         // Parse optional file path if provided
@@ -82,11 +74,6 @@ public class CLIExplainCommand implements Command {
         } else {
             return "No content found to explain.";
         }
-    }
-    
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
     
     @Override

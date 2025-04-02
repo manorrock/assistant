@@ -16,18 +16,8 @@ public class ClearCommandTest {
     @Test
     public void testExecuteToString() {
         ClearCommand command = new ClearCommand();
-        String result = command.executeToString("any input");
+        String result = command.execute("any input");
         assertThat(result, is(equalTo("Response area cleared.")));
-    }
-
-    @Test
-    public void testExecuteToStream() throws IOException {
-        ClearCommand command = new ClearCommand();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(command.executeToStream("any input"), StandardCharsets.UTF_8))) {
-            String result = reader.lines().collect(Collectors.joining("\n"));
-            assertThat(result, is(equalTo("Response area cleared.")));
-        }
     }
 
     @Test

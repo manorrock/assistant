@@ -3,9 +3,6 @@ package com.manorrock.assistant.command;
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.CommandRegistry;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -36,11 +33,6 @@ public class HelpCommand implements Command {
 
   @Override
   public String execute(String input) {
-    return executeToString(input);
-  }
-  
-  @Override
-  public String executeToString(String input) {
     StringBuilder result = new StringBuilder();
     result.append("Available commands:\n");
     
@@ -73,11 +65,6 @@ public class HelpCommand implements Command {
     }
     
     return result.toString();
-  }
-
-  @Override
-  public InputStream executeToStream(String input) {
-    return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
   }
 
   @Override
