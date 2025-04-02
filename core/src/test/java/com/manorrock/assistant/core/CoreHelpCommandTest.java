@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,19 +27,19 @@ public class CoreHelpCommandTest {
     }
 
     @Test
-    public void testExecuteToStringWithNoCommands() {
+    public void testExecuteWithNoCommands() {
         // Arrange
         when(mockRegistry.getCommandNames()).thenReturn(Collections.emptySet());
 
         // Act
-        String result = helpCommand.executeToString("");
+        String result = helpCommand.execute("");
 
         // Assert
         assertEquals("Manorrock Assistant 25.3.7\n\nAvailable commands:\n", result);
     }
 
     @Test
-    public void testExecuteToStringWithCommands() {
+    public void testExecuteWithCommands() {
         // Arrange
         Set<String> commandNames = new HashSet<>();
         commandNames.add("cmd1");
@@ -56,7 +55,7 @@ public class CoreHelpCommandTest {
         when(mockCmd2.getShortDescription()).thenReturn("Description for cmd2");
 
         // Act
-        String result = helpCommand.executeToString("");
+        String result = helpCommand.execute("");
 
         // Assert
         // Since Set doesn't guarantee order, we need to check for both possible orderings
@@ -64,18 +63,6 @@ public class CoreHelpCommandTest {
         String expected2 = "Manorrock Assistant 25.3.7\n\nAvailable commands:\n/cmd2 - Description for cmd2\n/cmd1 - Description for cmd1\n";
         assertTrue(result.equals(expected1) || result.equals(expected2),
                 "Result should match one of the expected outputs");
-    }
-
-    @Test
-    public void testExecuteToStream() {
-        // Arrange
-        when(mockRegistry.getCommandNames()).thenReturn(Collections.emptySet());
-
-        // Act
-        InputStream result = helpCommand.executeToStream("");
-
-        // Assert
-        assertNotNull(result);
     }
 
     @Test

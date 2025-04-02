@@ -5,7 +5,7 @@
 # Next release
 
 - [x] Add --no-banner to CLI
-- [ ] Remove deprecated methods
+- [x] Remove deprecated methods from Command
 - [ ] Fix release workflow
 
 ```bash

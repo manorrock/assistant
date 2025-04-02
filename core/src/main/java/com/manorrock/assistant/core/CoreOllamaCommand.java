@@ -3,9 +3,6 @@ package com.manorrock.assistant.core;
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.Llm;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,11 +62,6 @@ public class CoreOllamaCommand implements Command {
 
     @Override
     public String execute(String input) {
-        return executeToString(input);
-    }
-    
-    @Override
-    public String executeToString(String input) {
         if (input == null || input.trim().isEmpty()) {
             return "Endpoint URL: " + getEndpoint() + "\n" +
                    "Usage: /ollama <subcommand> [args]\n" +
@@ -165,11 +157,6 @@ public class CoreOllamaCommand implements Command {
         }
         
         return hostPart;
-    }
-
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
     
     /**

@@ -27,7 +27,7 @@ public class LlmCommandTest {
     @Test
     public void testExecuteToStringWithEmptyInput() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString("");
+        String result = command.execute("");
         
         assertThat(result, containsString("Current LLM Configuration:"));
         assertThat(result, containsString("Vendor: TEST_VENDOR"));
@@ -40,7 +40,7 @@ public class LlmCommandTest {
     @Test
     public void testExecuteToStringWithNullInput() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString(null);
+        String result = command.execute(null);
         
         assertThat(result, containsString("Current LLM Configuration:"));
     }
@@ -48,7 +48,7 @@ public class LlmCommandTest {
     @Test
     public void testExecuteToStringWithStatusCommand() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString("status");
+        String result = command.execute("status");
         
         assertThat(result, containsString("Current LLM Configuration:"));
     }
@@ -61,7 +61,7 @@ public class LlmCommandTest {
             config -> capturedConfig[0] = config
         );
         
-        String result = command.executeToString("vendor openai");
+        String result = command.execute("vendor openai");
         
         assertThat(result, is("Vendor updated to: OPENAI"));
         assertNotNull(capturedConfig[0]);
@@ -75,7 +75,7 @@ public class LlmCommandTest {
     @Test
     public void testGetVendor() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString("vendor");
+        String result = command.execute("vendor");
         
         assertThat(result, is("Current vendor: TEST_VENDOR"));
     }
@@ -88,7 +88,7 @@ public class LlmCommandTest {
             config -> capturedConfig[0] = config
         );
         
-        String result = command.executeToString("model gpt-4");
+        String result = command.execute("model gpt-4");
         
         assertThat(result, is("Model updated to: gpt-4"));
         assertNotNull(capturedConfig[0]);
@@ -102,7 +102,7 @@ public class LlmCommandTest {
     @Test
     public void testGetModel() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString("model");
+        String result = command.execute("model");
         
         assertThat(result, is("Current model: test-model"));
     }
@@ -115,7 +115,7 @@ public class LlmCommandTest {
             config -> capturedConfig[0] = config
         );
         
-        String result = command.executeToString("endpoint api.example.com");
+        String result = command.execute("endpoint api.example.com");
         
         assertThat(result, is("Endpoint updated to: http://api.example.com/api/chat"));
         assertNotNull(capturedConfig[0]);
@@ -130,7 +130,7 @@ public class LlmCommandTest {
             config -> capturedConfig[0] = config
         );
         
-        String result = command.executeToString("endpoint https://api.example.com");
+        String result = command.execute("endpoint https://api.example.com");
         
         assertThat(result, is("Endpoint updated to: https://api.example.com/api/chat"));
         assertNotNull(capturedConfig[0]);
@@ -140,7 +140,7 @@ public class LlmCommandTest {
     @Test
     public void testGetEndpoint() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString("endpoint");
+        String result = command.execute("endpoint");
         
         assertThat(result, is("Current endpoint: http://test.com/api/chat"));
     }
@@ -153,7 +153,7 @@ public class LlmCommandTest {
             config -> capturedConfig[0] = config
         );
         
-        String result = command.executeToString("apikey sk-12345abcdef");
+        String result = command.execute("apikey sk-12345abcdef");
         
         assertThat(result, is("API key updated"));
         assertNotNull(capturedConfig[0]);
@@ -163,7 +163,7 @@ public class LlmCommandTest {
     @Test
     public void testGetApiKey() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString("apikey");
+        String result = command.execute("apikey");
         
         assertThat(result, is("Current API key: test****1234"));
     }
@@ -176,7 +176,7 @@ public class LlmCommandTest {
             config -> capturedConfig[0] = config
         );
         
-        String result = command.executeToString("temperature 0.3");
+        String result = command.execute("temperature 0.3");
         
         assertThat(result, is("Temperature updated to: 0.3"));
         assertNotNull(capturedConfig[0]);
@@ -190,7 +190,7 @@ public class LlmCommandTest {
             config -> {}
         );
         
-        String result = command.executeToString("temperature 1.5");
+        String result = command.execute("temperature 1.5");
         
         assertThat(result, is("Temperature must be between 0.0 and 1.0"));
     }
@@ -202,7 +202,7 @@ public class LlmCommandTest {
             config -> {}
         );
         
-        String result = command.executeToString("temperature xyz");
+        String result = command.execute("temperature xyz");
         
         assertThat(result, is("Invalid temperature format. Must be a number between 0.0 and 1.0"));
     }
@@ -210,7 +210,7 @@ public class LlmCommandTest {
     @Test
     public void testGetTemperature() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString("temperature");
+        String result = command.execute("temperature");
         
         assertThat(result, is("Current temperature: 0.7"));
     }
@@ -218,22 +218,10 @@ public class LlmCommandTest {
     @Test
     public void testUnknownSubcommand() {
         LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        String result = command.executeToString("invalid");
+        String result = command.execute("invalid");
         
         assertThat(result, containsString("Unknown subcommand: invalid"));
         assertThat(result, containsString("Available subcommands:"));
-    }
-    
-    @Test
-    public void testExecuteToStream() throws IOException {
-        LlmCommand command = new LlmCommand(() -> createDefaultConfig(), config -> {});
-        InputStream stream = command.executeToStream("model");
-        
-        byte[] buffer = new byte[100];
-        int bytesRead = stream.read(buffer);
-        String result = new String(buffer, 0, bytesRead);
-        
-        assertThat(result, is("Current model: test-model"));
     }
     
     @Test
@@ -244,11 +232,11 @@ public class LlmCommandTest {
             config -> capturedConfig[0] = config
         );
         
-        String result = command.executeToString("apikey abc");
+        String result = command.execute("apikey abc");
         
         assertThat(result, is("API key updated"));
         // We can't directly test maskApiKey since it's private, but we can test it indirectly
-        result = command.executeToString("apikey");
+        result = command.execute("apikey");
         assertThat(result, is("Current API key: ***"));
     }
     
@@ -258,7 +246,7 @@ public class LlmCommandTest {
             "http://test.com/api/chat", "test-model", "TEST_VENDOR", "", 0.7
         );
         LlmCommand command = new LlmCommand(() -> emptyKeyConfig, config -> {});
-        String result = command.executeToString("apikey");
+        String result = command.execute("apikey");
         
         assertThat(result, is("Current API key: (not set)"));
     }

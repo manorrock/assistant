@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CoreSourceCommandTest {
 
     @Test
-    void testExecuteToString_withValidFile() throws IOException {
+    void testExecute_withValidFile() throws IOException {
         // Arrange
         CoreAssistant mockAssistant = new CoreAssistant() {
             @Override
@@ -29,7 +29,7 @@ class CoreSourceCommandTest {
         Files.writeString(tempFile, "Test command 1\nTest command 2");
 
         // Act
-        String result = command.executeToString(tempFile.toString());
+        String result = command.execute(tempFile.toString());
 
         // Assert
         assertEquals("Successfully executed commands from " + tempFile.toString(), result);
@@ -39,7 +39,7 @@ class CoreSourceCommandTest {
     }
 
     @Test
-    void testExecuteToString_withInvalidFile() {
+    void testExecute_withInvalidFile() {
         // Arrange
         CoreAssistant mockAssistant = new CoreAssistant() {
             @Override
@@ -51,14 +51,14 @@ class CoreSourceCommandTest {
         CoreSourceCommand command = new CoreSourceCommand(mockAssistant);
 
         // Act
-        String result = command.executeToString("nonexistent_file.txt");
+        String result = command.execute("nonexistent_file.txt");
 
         // Assert
         assertTrue(result.startsWith("Error reading source file:"));
     }
 
     @Test
-    void testExecuteToString_withEmptyInput() {
+    void testExecute_withEmptyInput() {
         // Arrange
         CoreAssistant mockAssistant = new CoreAssistant() {
             @Override
@@ -70,7 +70,7 @@ class CoreSourceCommandTest {
         CoreSourceCommand command = new CoreSourceCommand(mockAssistant);
 
         // Act
-        String result = command.executeToString("");
+        String result = command.execute("");
 
         // Assert
         assertEquals("Usage: /source <file_path>", result);

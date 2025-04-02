@@ -54,21 +54,21 @@ public class ToolCommandTest {
 
     @Test
     public void testEmptyCommandListsTools() {
-        String result = command.executeToString("");
+        String result = command.execute("");
         assertThat(result, containsString("Available tools:"));
         assertThat(result, containsString("testTool"));
     }
 
     @Test
     public void testListCommand() {
-        String result = command.executeToString("list");
+        String result = command.execute("list");
         assertThat(result, containsString("Available tools:"));
         assertThat(result, containsString("testTool"));
     }
 
     @Test
     public void testInfoCommand() {
-        String result = command.executeToString("info testTool");
+        String result = command.execute("info testTool");
         assertThat(result, containsString("Tool: testTool"));
         assertThat(result, containsString("param1 (string) [Required]"));
         assertThat(result, containsString("param2 (number)"));
@@ -76,32 +76,21 @@ public class ToolCommandTest {
 
     @Test
     public void testInfoCommandWithNonExistentTool() {
-        String result = command.executeToString("info nonExistentTool");
+        String result = command.execute("info nonExistentTool");
         assertThat(result, containsString("Tool not found"));
     }
 
     @Test
     public void testExecuteCommand() {
-        String result = command.executeToString("execute testTool param1=value1 param2=42");
+        String result = command.execute("execute testTool param1=value1 param2=42");
         assertThat(result, containsString("Tool execution succeeded"));
         assertThat(result, containsString("Success"));
     }
 
     @Test
     public void testExecuteCommandWithoutParameters() {
-        String result = command.executeToString("execute");
+        String result = command.execute("execute");
         assertThat(result, containsString("Error: Tool name required"));
-    }
-
-    @Test
-    public void testExecuteToStream() {
-        InputStream stream = command.executeToStream("list");
-        assertNotNull(stream);
-        
-        // Convert stream to string to verify content
-        Scanner scanner = new Scanner(stream, StandardCharsets.UTF_8.name()).useDelimiter("\\A");
-        String result = scanner.hasNext() ? scanner.next() : "";
-        assertThat(result, containsString("Available tools:"));
     }
 
     @Test
@@ -110,36 +99,36 @@ public class ToolCommandTest {
         assertFalse(integrationStatus);
         
         // Turn on
-        String resultOn = command.executeToString("integration on");
+        String resultOn = command.execute("integration on");
         assertTrue(integrationStatus);
         assertThat(resultOn, containsString("enabled"));
         
         // Turn off
-        String resultOff = command.executeToString("integration off");
+        String resultOff = command.execute("integration off");
         assertFalse(integrationStatus);
         assertThat(resultOff, containsString("disabled"));
         
         // Toggle (should turn on)
-        String resultToggle = command.executeToString("integration");
+        String resultToggle = command.execute("integration");
         assertTrue(integrationStatus);
         assertThat(resultToggle, containsString("enabled"));
     }
 
     @Test
     public void testInvalidIntegrationParameter() {
-        String result = command.executeToString("integration invalid");
+        String result = command.execute("integration invalid");
         assertThat(result, containsString("Invalid parameter"));
     }
 
     @Test
     public void testStatusCommand() {
-        String result = command.executeToString("status");
+        String result = command.execute("status");
         assertThat(result, containsString("LLM tool integration is currently disabled"));
     }
 
     @Test
     public void testUnknownSubcommand() {
-        String result = command.executeToString("unknown");
+        String result = command.execute("unknown");
         assertThat(result, containsString("Unknown subcommand"));
     }
 
@@ -151,10 +140,10 @@ public class ToolCommandTest {
         );
         
         // Integration commands should indicate not supported
-        String result = simpleCommand.executeToString("integration on");
+        String result = simpleCommand.execute("integration on");
         assertThat(result, containsString("not supported"));
         
-        String statusResult = simpleCommand.executeToString("status");
+        String statusResult = simpleCommand.execute("status");
         assertThat(statusResult, containsString("not available"));
     }
 

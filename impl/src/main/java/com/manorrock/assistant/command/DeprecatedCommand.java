@@ -1,9 +1,6 @@
 package com.manorrock.assistant.command;
 
 import com.manorrock.assistant.api.Command;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Command implementation for deprecated commands that provides a message indicating
@@ -40,11 +37,6 @@ public class DeprecatedCommand implements Command {
 
     @Override
     public String execute(String input) {
-        return executeToString(input);
-    }
-    
-    @Override
-    public String executeToString(String input) {
         StringBuilder result = new StringBuilder();
         result.append("WARNING: The command '/")
               .append(deprecatedCommandName)
@@ -54,15 +46,10 @@ public class DeprecatedCommand implements Command {
         
         if (delegateCommand != null) {
             // If a delegate command is provided, execute it and append its result
-            result.append(delegateCommand.executeToString(input));
+            result.append(delegateCommand.execute(input));
         }
         
         return result.toString();
-    }
-
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
 
     @Override

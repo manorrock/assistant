@@ -1,10 +1,7 @@
 package com.manorrock.assistant.command;
 
 import com.manorrock.assistant.api.Command;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,11 +18,6 @@ public class SourceCommand implements Command {
 
   @Override
   public String execute(String input) {
-    return executeToString(input);
-  }
-  
-  @Override
-  public String executeToString(String input) {
     if (input == null || input.trim().isEmpty()) {
       return "Usage: /source <file_path>";
     }
@@ -71,11 +63,6 @@ public class SourceCommand implements Command {
     } catch (IOException e) {
       return "Error reading source file: " + e.getMessage();
     }
-  }
-
-  @Override
-  public InputStream executeToStream(String input) {
-    return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
   }
 
   @Override

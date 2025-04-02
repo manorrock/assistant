@@ -35,11 +35,6 @@ public class CoreToolCommand implements Command {
 
     @Override
     public String execute(String input) {
-        return executeToString(input);
-    }
-
-    @Override
-    public String executeToString(String input) {
         if (input == null || input.trim().isEmpty()) {
             // List available tools if no argument provided
             return listTools();
@@ -88,11 +83,6 @@ public class CoreToolCommand implements Command {
                 return "Unknown subcommand: " + subCommand + "\n" +
                         "Available subcommands: list, execute, info, status";
         }
-    }
-
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
 
     /**

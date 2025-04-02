@@ -21,23 +21,7 @@ public class NewCommandTest {
         boolean[] handlerCalled = {false};
         NewCommand command = new NewCommand(() -> handlerCalled[0] = true);
         
-        String result = command.executeToString("any input");
-        
-        assertThat(result, is("Started new chat session"));
-        assertTrue("New session handler should be called", handlerCalled[0]);
-    }
-
-    @Test
-    public void testExecuteToStream() throws IOException {
-        boolean[] handlerCalled = {false};
-        NewCommand command = new NewCommand(() -> handlerCalled[0] = true);
-        
-        InputStream resultStream = command.executeToStream("any input");
-        
-        // Read the stream content
-        byte[] buffer = new byte[100];
-        int bytesRead = resultStream.read(buffer);
-        String result = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
+        String result = command.execute("any input");
         
         assertThat(result, is("Started new chat session"));
         assertTrue("New session handler should be called", handlerCalled[0]);
@@ -57,23 +41,7 @@ public class NewCommandTest {
         boolean[] handlerCalled = {false};
         NewCommand command = new NewCommand(() -> handlerCalled[0] = true);
         
-        String result = command.executeToString(null);
-        
-        assertThat(result, is("Started new chat session"));
-        assertTrue("New session handler should be called even with null input", handlerCalled[0]);
-    }
-
-    @Test
-    public void testExecuteToStreamWithNullInput() throws IOException {
-        boolean[] handlerCalled = {false};
-        NewCommand command = new NewCommand(() -> handlerCalled[0] = true);
-        
-        InputStream resultStream = command.executeToStream(null);
-        
-        // Read the stream content
-        byte[] buffer = new byte[100];
-        int bytesRead = resultStream.read(buffer);
-        String result = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
+        String result = command.execute(null);
         
         assertThat(result, is("Started new chat session"));
         assertTrue("New session handler should be called even with null input", handlerCalled[0]);

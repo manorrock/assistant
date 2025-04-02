@@ -2,9 +2,6 @@ package com.manorrock.assistant.command;
 
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.llm.LlmConfiguration;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,12 +20,7 @@ public class OllamaCommand implements Command {
     }
     
     @Override
-    public String execute(String input) {
-        return executeToString(input);
-    }
-    
-    @Override
-    public String executeToString(String args) {
+    public String execute(String args) {
         try {
             // First validate the configuration
             LlmConfiguration config = configSupplier.get();
@@ -87,11 +79,6 @@ public class OllamaCommand implements Command {
         } catch (Exception e) {
             return "Failed to execute Ollama command: " + e.getMessage();
         }
-    }
-    
-    @Override
-    public InputStream executeToStream(String input) {
-        return new ByteArrayInputStream(executeToString(input).getBytes(StandardCharsets.UTF_8));
     }
     
     @Override
