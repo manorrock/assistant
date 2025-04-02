@@ -6,14 +6,7 @@
 
 - [x] Add --no-banner to CLI
 - [x] Remove deprecated methods from Command
-- [ ] Fix release workflow
-
-```bash
-Run # Get all releases sorted by creation date (newest first)
-jq: error (at <stdin>:881): string ("2025-04-01...) cannot be negated
-Error: Process completed with exit code 5.
-```
-
+- [x] Fix release workflow
 - [ ] Refactor NetBeans plugin to use the CoreAssistant directly
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly

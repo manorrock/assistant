@@ -74,7 +74,7 @@ jobs:
           # Get all releases sorted by creation date (newest first)
           RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases" | \
-            jq -r 'sort_by(-.created_at) | .[] | "\(.id)|\(.tag_name)"')
+            jq -r 'sort_by(.created_at) | reverse | .[] | "\(.id)|\(.tag_name)"')
           
           # Current release ID
           CURRENT_TAG="v${{ env.VERSION }}"
