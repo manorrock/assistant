@@ -7,7 +7,7 @@
 - [x] Add --no-banner to CLI
 - [x] Remove deprecated methods from Command
 - [x] Fix release workflow
-- [ ] Refactor NetBeans plugin to use the CoreAssistant directly
+- [x] Refactor NetBeans plugin to use the CoreAssistant directly
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the

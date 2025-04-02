@@ -402,6 +402,9 @@ public class MainWindowController {
         handleSessionNew();
     }
 
+    /**
+     * Handle the theme toggle action.
+     */
     @FXML
     private void handleThemeToggle() {
         isDarkMode = themeToggle.isSelected();

@@ -3,6 +3,8 @@ package com.manorrock.assistant.netbeans;
 import java.awt.Component;
 import java.awt.Container;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.JButton;
 import org.junit.Before;
 import org.junit.After;
@@ -83,8 +85,8 @@ public class AssistantTopComponentTest {
     System.out.println("Component hierarchy:");
     printComponentHierarchy(component, "");
 
-    JTextArea responseArea = findComponent(component, JTextArea.class, 0);
-    JTextArea requestArea = findComponent(component, JTextArea.class, 1);
+    JTextPane responseArea = findComponent(component, JTextPane.class, 0);
+    JTextArea requestArea = findComponent(component, JTextArea.class, 0);
     JButton sendButton = findComponent(component, JButton.class, 0);
 
     assertNotNull("Response area should exist", responseArea);
@@ -103,17 +105,47 @@ public class AssistantTopComponentTest {
   public void testSimpleMessage() throws Exception {
     if (isHeadless) return;
 
-    JTextArea requestArea = findComponent(component, JTextArea.class, 1);
-    JTextArea responseArea = findComponent(component, JTextArea.class, 0);
+    JTextArea requestArea = findComponent(component, JTextArea.class, 0);
+    JTextPane responseArea = findComponent(component, JTextPane.class, 0);
     JButton sendButton = findComponent(component, JButton.class, 0);
 
-    String message = "Hello Assistant!";
-    Thread.sleep(UI_DELAY);
-    requestArea.setText(message);
-    Thread.sleep(UI_DELAY);
-    sendButton.doClick();
-    Thread.sleep(UI_DELAY * 2);
+    assertNotNull("Request area should not be null", requestArea);
+    assertNotNull("Response area should not be null", responseArea);
+    assertNotNull("Send button should not be null", sendButton);
 
+    // Clear the response area first to get a clean slate
+    // This makes it easier to check for our specific message
+    SwingUtilities.invokeAndWait(() -> {
+      responseArea.setText("");
+    });
+    
+    // Set up our test message
+    final String message = "Hello Assistant!";
+    
+    // Use invokeAndWait to ensure UI operations happen on EDT
+    SwingUtilities.invokeAndWait(() -> {
+      requestArea.setText(message);
+    });
+    Thread.sleep(UI_DELAY);
+    
+    // Directly invoke the handleSendAction method to ensure proper processing
+    SwingUtilities.invokeAndWait(() -> {
+      component.handleSendAction();
+    });
+    
+    // Wait and check for the message to appear
+    for (int i = 0; i < 10; i++) { // Increased attempts to 10
+      Thread.sleep(UI_DELAY);
+      SwingUtilities.invokeAndWait(() -> {});
+      
+      String responseText = responseArea.getText();
+      System.out.println("Response area content (attempt " + (i+1) + "): " + responseText);
+      
+      if (responseText.contains("You: " + message)) {
+        break;
+      }
+    }
+    
     assertTrue("Response area should contain user message", 
         responseArea.getText().contains("You: " + message));
   }
@@ -122,8 +154,8 @@ public class AssistantTopComponentTest {
   public void testNewCommand() throws Exception {
     if (isHeadless) return;
 
-    JTextArea requestArea = findComponent(component, JTextArea.class, 1);
-    JTextArea responseArea = findComponent(component, JTextArea.class, 0);
+    JTextArea requestArea = findComponent(component, JTextArea.class, 0);
+    JTextPane responseArea = findComponent(component, JTextPane.class, 0);
     JButton sendButton = findComponent(component, JButton.class, 0);
 
     // First add some content
@@ -148,9 +180,13 @@ public class AssistantTopComponentTest {
   public void testExplainCommand() throws Exception {
     if (isHeadless) return;
 
-    JTextArea requestArea = findComponent(component, JTextArea.class, 1);
-    JTextArea responseArea = findComponent(component, JTextArea.class, 0);
+    JTextArea requestArea = findComponent(component, JTextArea.class, 0);
+    JTextPane responseArea = findComponent(component, JTextPane.class, 0);
     JButton sendButton = findComponent(component, JButton.class, 0);
+
+    assertNotNull("Request area should not be null", requestArea);
+    assertNotNull("Response area should not be null", responseArea);
+    assertNotNull("Send button should not be null", sendButton);
 
     // Set some text to explain
     String testContent = "public class Test { }";

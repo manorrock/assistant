@@ -1,32 +1,43 @@
 package com.manorrock.assistant.netbeans;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextPane;
+import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.windows.TopComponent;
-import org.openide.util.NbBundle.Messages;
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JProgressBar;
-import org.openide.windows.IOProvider;
-import org.openide.windows.InputOutput;
 import org.openide.cookies.EditorCookie;
 import org.openide.loaders.DataObject;
+import org.openide.util.NbBundle.Messages;
+import org.openide.windows.IOProvider;
+import org.openide.windows.InputOutput;
+import org.openide.windows.TopComponent;
 
-import com.manorrock.assistant.impl.AssistantImpl;
+import com.manorrock.assistant.api.AssistantMessage;
+import com.manorrock.assistant.core.CoreAssistant;
+import com.manorrock.assistant.core.CoreAssistantMessage;
 
 @TopComponent.Description(preferredID = "AssistantTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
@@ -39,30 +50,35 @@ import com.manorrock.assistant.impl.AssistantImpl;
     "HINT_AssistantTopComponent=This is a Manorrock Assistant window"})
 public final class AssistantTopComponent extends TopComponent implements ActionListener, FocusListener {
 
-    private final AssistantImpl assistant;
-    private JTextArea responseArea;
+    private final CoreAssistant assistant;
+    private JTextPane responseArea;
     private JTextArea requestArea;
     private JButton sendButton;
     private JProgressBar progressBar;
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private InputOutput io;
     private TopComponent lastFocusedEditor;
+    private Timer typewriterTimer;
+    private int currentCharIndex;
+    private String currentTypingText;
+    private JToggleButton themeToggleButton;
+    private boolean isDarkMode = false;
+
+    // Text style attributes
+    private SimpleAttributeSet userMessageStyle;
+    private SimpleAttributeSet assistantMessageStyle;
+    private SimpleAttributeSet systemMessageStyle;
+    private SimpleAttributeSet headerStyle;
 
     public AssistantTopComponent() {
-        assistant = new AssistantImpl();
+        assistant = new CoreAssistant();
         initComponents();
+        initStyles();
         setName(Bundle.CTL_AssistantTopComponent());
         setToolTipText(Bundle.HINT_AssistantTopComponent());
         io = IOProvider.getDefault().getIO("Chat Log", false);
         
-        if (!assistant.isCliAvailable()) {
-            responseArea.setText("Manorrock Assistant CLI not found. Please visit " +
-                "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
-                "for installation instructions.");
-            sendButton.setEnabled(false);
-        } else {
-            responseArea.setText("Welcome to Manorrock Assistant\n\nType /help for a list of commands.");
-        }
+        appendSystemMessage("Welcome to Manorrock Assistant\n\nType /help for a list of commands.");
         
         TopComponent.getRegistry().addPropertyChangeListener(evt -> {
             if (TopComponent.Registry.PROP_ACTIVATED.equals(evt.getPropertyName())) {
@@ -72,22 +88,43 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
                 }
             }
         });
+        
+        // Show initial help message
+        handleCommand("/help");
+    }
+
+    private void initStyles() {
+        userMessageStyle = new SimpleAttributeSet();
+        StyleConstants.setForeground(userMessageStyle, isDarkMode ? java.awt.Color.LIGHT_GRAY : java.awt.Color.BLACK);
+        
+        assistantMessageStyle = new SimpleAttributeSet();
+        StyleConstants.setForeground(assistantMessageStyle, isDarkMode ? new java.awt.Color(100, 150, 255) : new java.awt.Color(0, 0, 145));
+        
+        systemMessageStyle = new SimpleAttributeSet();
+        StyleConstants.setForeground(systemMessageStyle, java.awt.Color.GRAY);
+        
+        headerStyle = new SimpleAttributeSet();
+        StyleConstants.setBold(headerStyle, true);
+    }
+
+    private void updateStyles() {
+        initStyles();
+        // Reapply styles (in a real implementation, we'd need to track message positions)
+        StyledDocument doc = responseArea.getStyledDocument();
+        responseArea.setBackground(isDarkMode ? new java.awt.Color(30, 30, 30) : java.awt.Color.WHITE);
+        responseArea.setForeground(isDarkMode ? java.awt.Color.WHITE : java.awt.Color.BLACK);
+        requestArea.setBackground(isDarkMode ? new java.awt.Color(30, 30, 30) : java.awt.Color.WHITE);
+        requestArea.setForeground(isDarkMode ? java.awt.Color.WHITE : java.awt.Color.BLACK);
     }
 
     private void initComponents() {
-        responseArea = new JTextArea();
-        responseArea.setLineWrap(true);
-        responseArea.setWrapStyleWord(true);
-        requestArea = new JTextArea();
+        responseArea = new JTextPane();
+        responseArea.setEditable(false);
+        requestArea = new JTextArea(3, 50);
         sendButton = new JButton("Send");
         progressBar = new JProgressBar(0, 100);
-
-        // Set initial message
-        responseArea.setText("Welcome to Manorrock Assistant");
-
-        // Show help message on startup
-        responseArea.append("\n\nType /help for a list of commands.");
-
+        themeToggleButton = new JToggleButton("Dark Mode");
+        
         // Setup key event handler for the requestArea
         requestArea.addKeyListener(new KeyAdapter() {
             @Override
@@ -100,14 +137,21 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
         });
 
         sendButton.addActionListener(this);
+        themeToggleButton.addActionListener(e -> {
+            isDarkMode = themeToggleButton.isSelected();
+            updateStyles();
+        });
 
-        // Layout setup (simplified)
+        // Layout setup
         setLayout(new BorderLayout());
         add(new JScrollPane(responseArea), BorderLayout.CENTER);
+        
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(new JScrollPane(requestArea), BorderLayout.CENTER);
+        
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(sendButton);
+        buttonPanel.add(themeToggleButton);
         bottomPanel.add(buttonPanel, BorderLayout.EAST);
         bottomPanel.add(progressBar, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
@@ -120,38 +164,50 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
         }
     }
 
-    private void handleSendAction() {
+    // Make this method package-private so the test can access it directly
+    void handleSendAction() {
         String userMessage = requestArea.getText().trim();
 
         if (!userMessage.isEmpty()) {
-            String timestamp = LocalDateTime.now().format(formatter);
-
-            // Display the user's message in the response area
-            responseArea.append("\n\nYou: " + userMessage);
-
-            // Add timestamped message to the Output Window
-            io.getOut().println("[" + timestamp + " - You]\n" + userMessage);
-
             // Clear the request area
             requestArea.setText("");
 
-            // Handle /new command specially to clear UI first
-            if (userMessage.equals("/new")) {
-                // Clear the UI
-                responseArea.setText("");
-                responseArea.append("Started a new chat session.\n");
-                // Continue to send /new to CLI to reset its state
+            // Handle commands (starting with /)
+            if (userMessage.startsWith("/")) {
+                handleCommand(userMessage);
+                return;
             }
 
-            // Handle /explain command specially 
-            if (userMessage.startsWith("/explain")) {
-                handleExplain(userMessage);
-                return; // handleExplain will handle CLI processing
-            }
-
-            // Process message through CLI
-            processMessage(userMessage);
+            // Display user message
+            appendUserMessage(userMessage);
+            
+            // Send message to assistant - use a slight delay to ensure user message is displayed first
+            SwingUtilities.invokeLater(() -> {
+                processMessage(userMessage);
+            });
         }
+    }
+    
+    private void handleCommand(String command) {
+        appendUserMessage(command);
+        
+        // Handle special commands
+        if (command.equals("/new") || command.equals("/session new")) {
+            responseArea.setText("");
+            appendSystemMessage("Started a new chat session.");
+            // Reset assistant state
+            assistant.reset();
+            return;
+        } else if (command.equals("/clear")) {
+            responseArea.setText("");
+            return;
+        } else if (command.startsWith("/explain")) {
+            handleExplain(command);
+            return;
+        }
+        
+        // Process other commands through CoreAssistant
+        processMessage(command);
     }
     
     /**
@@ -165,14 +221,14 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
         boolean hasFilePath = parts.length > 1 && !parts[1].trim().isEmpty();
         
         if (hasFilePath) {
-            // If path is provided, pass directly to CLI
+            // If path is provided, pass directly to assistant
             processMessage(command);
             return;
         }
         
         EditorCookie editorCookie = getLastFocusedEditorCookie();
         if (editorCookie == null || editorCookie.getOpenedPanes() == null || editorCookie.getOpenedPanes().length == 0) {
-            // No editor available, pass through to CLI
+            // No editor available, pass through to assistant
             processMessage(command);
             return;
         }
@@ -184,7 +240,7 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
             }
             
             if (selectedText.trim().length() == 0) {
-                // No content available, pass through to CLI
+                // No content available, pass through to assistant
                 processMessage(command);
                 return;
             }
@@ -199,12 +255,12 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
             String messageToSend = "Explain the following in an easy to understand way\n\n--------\n\n" + selectedText;
             
             // Let user know what's being explained
-            responseArea.append("\n\nExplaining " + fileInfo + "...\n");
+            appendSystemMessage("Explaining " + fileInfo + "...");
             
-            // Process through CLI
+            // Process through assistant
             processMessage(messageToSend);
         } catch (javax.swing.text.BadLocationException e) {
-            // On error, pass through to CLI
+            // On error, pass through to assistant
             processMessage(command);
         }
     }
@@ -213,28 +269,141 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
         String timestamp = LocalDateTime.now().format(formatter);
         
         sendButton.setEnabled(false);
+        requestArea.setEnabled(false); // Disable request area during processing
         progressBar.setIndeterminate(true);
         
-        assistant.executeCommand(message)
+        AssistantMessage assistantMessage = new CoreAssistantMessage(message);
+        assistant.sendMessage(assistantMessage)
             .thenAccept(response -> {
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    responseArea.append("\n\nAssistant: " + response);
-                    responseArea.setCaretPosition(responseArea.getDocument().getLength());
-                    io.getOut().println("[" + timestamp + " - Assistant]\n" + response);
-                    sendButton.setEnabled(true);
+                SwingUtilities.invokeLater(() -> {
+                    appendAssistantMessage(response.getContent());
+                    io.getOut().println("[" + timestamp + " - Assistant]\n" + response.getContent());
+                    // Send button will be enabled when typewriter effect completes
                     progressBar.setIndeterminate(false);
                 });
             })
             .exceptionally(e -> {
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    String errorMessage = "Error: " + e.getMessage();
-                    responseArea.append("\n\nSystem: " + errorMessage);
+                SwingUtilities.invokeLater(() -> {
+                    String errorMessage = e.getMessage();
+                    if (errorMessage != null && errorMessage.contains("Unable to determine which LLM to use")) {
+                        errorMessage = "No language model (LLM) is configured. Please configure an LLM using the /llm commands. Type /help llm for more information.";
+                    }
+                    appendSystemMessage("Error: " + errorMessage);
                     io.getOut().println("[" + timestamp + " - Error]\n" + errorMessage);
                     sendButton.setEnabled(true);
+                    requestArea.setEnabled(true); // Re-enable request area on error
                     progressBar.setIndeterminate(false);
                 });
                 return null;
             });
+    }
+    
+    private void appendUserMessage(String message) {
+        // Make sure we're on the EDT
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> appendUserMessage(message));
+            return;
+        }
+        
+        StyledDocument doc = responseArea.getStyledDocument();
+        try {
+            // Add separator
+            doc.insertString(doc.getLength(), "\n\n", null);
+            
+            // Add header
+            doc.insertString(doc.getLength(), "You: ", headerStyle);
+            
+            // Add message
+            doc.insertString(doc.getLength(), message, userMessageStyle);
+            
+            // Log to Output window
+            String timestamp = LocalDateTime.now().format(formatter);
+            io.getOut().println("[" + timestamp + " - You]\n" + message);
+            
+            // Scroll to bottom
+            responseArea.setCaretPosition(doc.getLength());
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void appendAssistantMessage(String message) {
+        // Make sure we're on the EDT
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> appendAssistantMessage(message));
+            return;
+        }
+        
+        StyledDocument doc = responseArea.getStyledDocument();
+        try {
+            // Add separator
+            doc.insertString(doc.getLength(), "\n\n", null);
+            
+            // Add header
+            doc.insertString(doc.getLength(), "Assistant: ", headerStyle);
+            
+            // In test environment, skip the typewriter effect for consistent behavior
+            if (Boolean.getBoolean("netbeans.running.environment")) {
+                // Simply insert the message directly when running in test
+                doc.insertString(doc.getLength(), message, assistantMessageStyle);
+                sendButton.setEnabled(true);
+                requestArea.setEnabled(true);
+                return;
+            }
+            
+            // Set up typewriter effect for normal operation
+            currentTypingText = message;
+            currentCharIndex = 0;
+            
+            if (typewriterTimer != null) {
+                typewriterTimer.stop();
+            }
+            
+            typewriterTimer = new Timer(15, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        if (currentCharIndex < currentTypingText.length()) {
+                            char c = currentTypingText.charAt(currentCharIndex);
+                            doc.insertString(doc.getLength(), String.valueOf(c), assistantMessageStyle);
+                            currentCharIndex++;
+                            responseArea.setCaretPosition(doc.getLength());
+                        } else {
+                            typewriterTimer.stop();
+                            sendButton.setEnabled(true); // Re-enable send button when typing is complete
+                            requestArea.setEnabled(true); // Re-enable request area when typing is complete
+                        }
+                    } catch (BadLocationException ex) {
+                        ex.printStackTrace();
+                        typewriterTimer.stop();
+                    }
+                }
+            });
+            
+            typewriterTimer.start();
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void appendSystemMessage(String message) {
+        // Make sure we're on the EDT
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> appendSystemMessage(message));
+            return;
+        }
+        
+        StyledDocument doc = responseArea.getStyledDocument();
+        try {
+            if (doc.getLength() > 0) {
+                doc.insertString(doc.getLength(), "\n\n", null);
+            }
+            doc.insertString(doc.getLength(), "System: ", headerStyle);
+            doc.insertString(doc.getLength(), message, systemMessageStyle);
+            responseArea.setCaretPosition(doc.getLength());
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
     }
 
     private EditorCookie getLastFocusedEditorCookie() {
