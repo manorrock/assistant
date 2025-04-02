@@ -17,9 +17,21 @@
     <dependencies>
         <dependency>
             <groupId>com.manorrock.assistant</groupId>
-            <artifactId>impl</artifactId>
+            <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Add SLF4J API and implementation -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+        <!-- NetBeans dependencies -->
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-awt</artifactId>
@@ -89,6 +101,10 @@
                     <publicPackages>
                         <publicPackage>com.manorrock.assistant.netbeans</publicPackage>
                     </publicPackages>
+                    <!-- Configure dependency handling -->
+                    <verifyRuntime>false</verifyRuntime>
+                    <!-- Make sure SLF4J is properly bundled -->
+                    <moduleType>eager</moduleType>
                 </configuration>
             </plugin>
             <plugin>
