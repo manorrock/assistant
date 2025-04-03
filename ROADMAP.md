@@ -9,13 +9,14 @@
 - [x] Refactor NetBeans plugin to use the CoreAssistant directly
 - [x] Add /llm reset which resets the LLM and the memory
 - [x] Refactor to move VSCode extension into `vscode/extension` directory
-- [ ] Refactor Eclipse plugin to use the CoreAssistant directly
-- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [x] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
+- [ ] Add LICENSE file (VSCode extension)
+- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Add VSCode CLI to `vscode/cli` directory
 
-# Next+1 release
+# Backlog
+- [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Add VSCodeTool
 - [ ] Add LICENSE to VSCode extension
 - [ ] Add /llm reset model which resets the LLM model with updated properties
@@ -26,8 +27,6 @@
 - [ ] Add memory window controls
 - [ ] Implement ConversationContext interface
 - [ ] Add callback support for file attachment requests
-
-# Next+2 release
 - [ ] Add permission request/response system
 - [ ] Add conversation timeout handling
 - [ ] Add conversation metadata support (tags, categories)
@@ -38,8 +37,6 @@
 - [ ] Add support for conversation context persistence
 - [ ] Add support for conversation recovery after errors
 - [ ] Add support for parallel conversations
-
-# Next+3 release
 - [ ] Add conversation state validation system
 - [ ] Add conversation event system for monitoring
 - [ ] Add conversation awareness to Command interface
@@ -50,8 +47,6 @@
 - [ ] Add command timeout handling
 - [ ] Add command retry policies
 - [ ] Add command execution history
-
-## Next+4 release
 - [ ] Add conversation context support in CoreLlm
 - [ ] Add support for conversation state in LLM prompts
 - [ ] Add conversation memory management
@@ -62,8 +57,6 @@
 - [ ] Add support for conversation summarization
 - [ ] Add JSON schema validation for tool responses
 - [ ] Add tool parameter default values
-
-## Next+5 release
 - [ ] Add tool result caching
 - [ ] Add basic tool result transformation
 - [ ] Add tool registry state validation
@@ -74,8 +67,6 @@
 - [ ] Add tool error recovery mechanism
 - [ ] Add tool dependency validation
 - [ ] Add basic tool metrics collection
-
-## Next+6 release
 - [ ] Add tool discovery and dynamic loading
 - [ ] Add complex parameter type support (arrays, maps)
 - [ ] Add input sanitization for command parameters
@@ -86,8 +77,6 @@
 - [ ] Add basic message queue for async processing
 - [ ] Add configuration file support (.manorrock/assistant/config.json)
 - [ ] Add property validation in CoreLlm.setProperties
-
-## Next+7 release
 - [ ] Add model initialization error handling
 - [ ] Add chat memory persistence
 - [ ] Add basic retry mechanism for LLM calls
@@ -98,8 +87,6 @@
 - [ ] Add conversation state persistence
 - [ ] Add conversation migration support
 - [ ] Add conversation backup/restore
-
-## Next+8 release
 - [ ] Add conversation archiving
 - [ ] Add conversation import/export
 - [ ] Add conversation cleanup policies
@@ -110,8 +97,6 @@
 - [ ] Add LLM manager state validation
 - [ ] Add circular dependency detection for tools
 - [ ] Add conversation event logging
-
-## Next+9 release
 - [ ] Add conversation performance metrics
 - [ ] Add conversation error tracking
 - [ ] Add conversation analytics
@@ -121,8 +106,6 @@
 - [ ] Add multi-channel conversation support
 - [ ] Add Spring Boot REST API application
 - [ ] Add web interface
-
-## Next+10 release
 - [ ] Implement MCP server functionality
 - [ ] Create mobile applications (iPhone, Android)
 - [ ] Create chat platform integrations (Discord, Slack, Teams)
@@ -133,8 +116,6 @@
 - [ ] Add GitHubTool
 - [ ] Create tablet application (iPad, Android tablet)
 - [ ] Make sure request area keeps focus after submitting (VSCode)
-
-## Next+11 release
 - [ ] Make sure request area keeps focus after submitting (VSCode)
 - [ ] Make sure initial startup message shows as one block and renders properly (VSCode)
 - [ ] Make sure the version generated aligns with the rest of the project (VSCode)

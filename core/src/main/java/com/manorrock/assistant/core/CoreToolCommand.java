@@ -5,9 +5,6 @@ import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;
 import com.manorrock.assistant.api.ToolResult;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
