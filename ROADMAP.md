@@ -7,13 +7,13 @@
 - [x] Remove deprecated methods from Command
 - [x] Fix release workflow
 - [x] Refactor NetBeans plugin to use the CoreAssistant directly
+- [x] Add /llm reset which resets the LLM and the memory
+- [x] Refactor to move VSCode extension into `vscode/extension` directory
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [x] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
-- [ ] Refactor to move VSCode extension into `vscode/extension` directory
 - [ ] Add VSCode CLI to `vscode/cli` directory
-- [ ] Add /llm reset which resets the LLM and the memory
 
 # Next+1 release
 - [ ] Add VSCodeTool
@@ -134,7 +134,8 @@
 - [ ] Create tablet application (iPad, Android tablet)
 - [ ] Make sure request area keeps focus after submitting (VSCode)
 
-## To be scheduled
+## Next+11 release
+- [ ] Make sure request area keeps focus after submitting (VSCode)
 - [ ] Make sure initial startup message shows as one block and renders properly (VSCode)
 - [ ] Make sure the version generated aligns with the rest of the project (VSCode)
 - [ ] Add /llm help that shows proper help

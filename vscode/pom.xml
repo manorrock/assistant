@@ -8,50 +8,11 @@
     <artifactId>project</artifactId>
     <version>25.4.2-SNAPSHOT</version>
   </parent>
-  <groupId>com.manorrock.assistant</groupId>
-  <artifactId>vscode</artifactId>
+  <groupId>com.manorrock.assistant.vscode</groupId>
+  <artifactId>project</artifactId>
   <packaging>pom</packaging>
-  <name>Manorrock Assistant - VSCode</name>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.github.eirslett</groupId>
-        <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.15.1</version>
-        <configuration>
-          <nodeVersion>v18.0.0</nodeVersion>
-          <npmVersion>8.1.0</npmVersion>
-        </configuration>
-        <executions>
-          <execution>
-            <id>install node and npm</id>
-            <goals>
-              <goal>install-node-and-npm</goal>
-            </goals>
-            <configuration>
-              <arguments>install</arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>npm install</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <configuration>
-              <arguments>install</arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>vsce package</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <configuration>
-              <arguments>run package</arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+  <name>Manorrock Assistant - VSCode Project</name>
+  <modules>
+    <module>extension</module>
+  </modules>
 </project>

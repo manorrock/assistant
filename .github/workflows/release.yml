@@ -35,7 +35,7 @@ jobs:
       - name: Standardize file names
         run: |
           mkdir -p standardized
-          cp vscode/*.vsix standardized/Manorrock-Assistant.vsix
+          cp vscode/extension/*.vsix standardized/Manorrock-Assistant.vsix
           cp cli/target/cli.jar standardized/Manorrock-Assistant.jar
 
       - name: Create GitHub Release
