@@ -40,6 +40,8 @@ public class CoreLlmCommand implements Command {
                  /llm endpoint <url>           - Set LLM endpoint
                  /llm functionCalling <on|off> - Enable or disable function calling
                  /llm model <string>           - Set LLM model name
+                 /llm reset                    - Reset the LLM and clear memory
+                 /llm set <llm-name>           - Set the active LLM by name
                  /llm temperature <number>.    - Set temperature parameter (0.0-1.0)
                  /llm vendor <string>          - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
                """;
@@ -98,9 +100,18 @@ public class CoreLlmCommand implements Command {
                 }
                 return setFunctionCalling(parts[1].trim());
                 
+            case "reset":
+                return resetLlm();
+                
+            case "set":
+                if (parts.length < 2) {
+                    return "Current active LLM: " + (assistant.getActiveLlm() != null ? assistant.getActiveLlm() : "(none)");
+                }
+                return setActiveLlm(parts[1].trim());
+                
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling";
+                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, reset";
         }
     }
     
@@ -348,5 +359,41 @@ public class CoreLlmCommand implements Command {
         }
         
         return ((CoreLlm) activeLlm).isFunctionCallingEnabled();
+    }
+    
+    /**
+     * Reset the LLM and clear its memory.
+     *
+     * @return Result message
+     */
+    private String resetLlm() {
+        String activeLlmName = assistant.getActiveLlm();
+        if (activeLlmName == null) {
+            return "No active LLM set. Use '/llm set <llm-name>' to set an active LLM first.";
+        }
+        
+        Llm activeLlm = assistant.getLlmManager().getLlm(activeLlmName);
+        if (activeLlm == null) {
+            return "Active LLM '" + activeLlmName + "' is not registered.";
+        }
+        
+        activeLlm.destroy();
+        activeLlm.init();
+        return "LLM has been reset and memory cleared.";
+    }
+    
+    /**
+     * Set the active LLM by name.
+     *
+     * @param llmName The name of the LLM to set as active
+     * @return Result message
+     */
+    private String setActiveLlm(String llmName) {
+        if (assistant.getLlmManager().getLlm(llmName) != null) {
+            assistant.setActiveLlm(llmName);
+            return "Active LLM set to: " + llmName;
+        } else {
+            return "LLM '" + llmName + "' is not available.";
+        }
     }
 }

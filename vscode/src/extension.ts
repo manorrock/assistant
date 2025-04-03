@@ -202,10 +202,10 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
     // Start the persistent CLI process
     this.startCliProcess(cliPath);
 
-    // Show ready message if CLI exists
+    // Initialize a new session with the Manorrock Assistant welcome message
     webviewView.webview.postMessage({
-      type: 'cli-output',
-      text: 'Ready to answer! Use /help for help'
+      type: 'newSession',
+      message: '# Manorrock Assistant\n\nReady to answer! Use /help for help'
     });
 
     webviewView.webview.onDidReceiveMessage(async (message: { type: string; text: string }) => {
