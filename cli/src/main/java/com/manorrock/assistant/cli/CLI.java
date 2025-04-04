@@ -86,6 +86,8 @@ public class CLI implements Callable<Integer> {
     coreAssistant.setActiveLlm("llama3.2");
     coreAssistant.getCommandRegistry()
         .registerCommand("explain", new CLIExplainCommand(coreAssistant));
+    coreAssistant.getCommandRegistry()
+        .registerCommand("template", new CLISystemMessageCommand(coreAssistant));
   }
 
   /**
