@@ -11,9 +11,13 @@
 - [x] Add LICENSE file (VSCode extension)
 - [x] Add a CLI wrapper script (and shell completions) for commong coding prompts
 - [x] Add /template command for managing LLM system messages
-- [ ] 
+- [x] Add /context command to manage context files
+- [ ] Enhance /explain command
 
 # Backlog
+- [ ] Refactor /explain with clipboard to be /explain clipboard
+- [ ] Refactor /explain [filepath] to be /explain file <filepath>
+- [ ] Add /explain help that shows the help for the /explain command
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
