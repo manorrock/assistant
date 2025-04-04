@@ -176,7 +176,7 @@ public class CLI implements Callable<Integer> {
       if (readFromStdin) {
         // read the entire message from stdin
         message = new String(System.in.readAllBytes()).trim();
-      } else if (!interactive) {
+      } else if (!interactive && message == null) {
         // no message provided, show help
         message = "/help";
       }
