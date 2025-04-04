@@ -11,11 +11,12 @@
 - [x] Refactor to move VSCode extension into `vscode/extension` directory
 - [x] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
-- [ ] Add LICENSE file (VSCode extension)
+- [x] Add LICENSE file (VSCode extension)
+- [x] Add a CLI wrapper script (and shell completions) for commong coding prompts
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
-- [ ] Add VSCode CLI to `vscode/cli` directory
 
 # Backlog
+- [ ] Add VSCode CLI to `vscode/cli` directory
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Add VSCodeTool
 - [ ] Add LICENSE to VSCode extension
