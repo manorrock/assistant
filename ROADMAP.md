@@ -3,16 +3,7 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-- [x] Add --no-banner to CLI
-- [x] Remove deprecated methods from Command
-- [x] Fix release workflow
-- [x] Add /llm reset which resets the LLM and the memory
-- [x] Refactor to move VSCode extension into `vscode/extension` directory
-- [x] Add LICENSE file (VSCode extension)
-- [x] Add a CLI wrapper script (and shell completions) for commong coding prompts
-- [x] Add /template command for managing LLM system messages
-- [x] Add /context command to manage context files
-- [ ] Enhance /explain command
+
 
 # Backlog
 - [ ] Refactor /explain with clipboard to be /explain clipboard
@@ -22,8 +13,6 @@
       response area
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Refactor NetBeans plugin to use the CoreAssistant directly
-- [ ] Add a CLI wrapper script (and shell completions) for commong coding prompts
-- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Fix duplicate dependency declaration in impl POM (api dependency)
 - [ ] Remove usage of deprecated LlmConfiguration in LlmCommand and OllamaCommand
 - [ ] Fix unchecked cast in CsvTransformationTool
@@ -34,6 +23,17 @@
 - [ ] Upgrade Node.js to 18.17+ for VSCode extension to fix npm engine compatibility warnings
 - [ ] Add repository field to package.json in VSCode extension
 - [ ] Bundle VSCode extension for better performance
+- [x] Add --no-banner to CLI
+- [x] Remove deprecated methods from Command
+- [x] Fix release workflow
+- [x] Refactor NetBeans plugin to use the CoreAssistant directly
+- [x] Add /llm reset which resets the LLM and the memory
+- [x] Refactor to move VSCode extension into `vscode/extension` directory
+- [x] Rework VSCode extension UI to make title not fixed, but rather part of the
+      response area
+- [x] Add LICENSE file (VSCode extension)
+- [ ] Add a CLI wrapper script (and shell completions) for commong coding prompts
+- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Add VSCode CLI to `vscode/cli` directory
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Add VSCodeTool
