@@ -90,39 +90,144 @@ public class EnhancedCodeExplainCommand implements Command {
 
     @Override
     public String execute(String input) {
-        if (input == null || input.trim().isEmpty()) {
-            return "Please specify a file path to analyze.";
-        }
+        String textToExplain = null;
+        String filePathForContext = "clipboard"; // Default context name
+        String detectedExtension = "";
+        StringBuilder resultBuilder = new StringBuilder();
         
-        String filePath = input.trim();
-        Path path = Paths.get(filePath);
-        
-        if (!Files.exists(path)) {
-            return "Error: File not found: " + filePath;
-        }
-        
-        if (Files.isDirectory(path)) {
-            return "Error: Specified path is a directory, not a file: " + filePath;
-        }
-        
-        // Detect file extension and language
-        String fileExtension = getFileExtension(filePath);
-        String languagePrompt = getLanguagePrompt(fileExtension);
-        
-        try {
-            LOGGER.log(Level.INFO, "Analyzing file: {0} with detected type: {1}", new Object[]{filePath, fileExtension});
+        // Check if input is provided (file path)
+        if (input != null && !input.trim().isEmpty()) {
+            String filePath = input.trim();
+            Path path = Paths.get(filePath);
             
-            // Read file content
-            String fileContent = Files.readString(path, StandardCharsets.UTF_8);
-            
-            // Process the file content
-            return analyzeCode(fileContent, languagePrompt, filePath);
-            
-        } catch (IOException e) {
-            return "Error reading file: " + e.getMessage();
+            if (Files.exists(path)) {
+                if (Files.isDirectory(path)) {
+                    return "Error: Specified path is a directory, not a file: " + filePath;
+                }
+                
+                // Read file content
+                try {
+                    LOGGER.log(Level.INFO, "Analyzing file: {0}", filePath);
+                    textToExplain = Files.readString(path, StandardCharsets.UTF_8);
+                    filePathForContext = filePath;
+                    detectedExtension = getFileExtension(filePath);
+                    resultBuilder.append("Analysis of file: ").append(filePath).append("\n\n");
+                } catch (IOException e) {
+                    return "Error reading file: " + e.getMessage();
+                }
+            } else {
+                return "Error: File not found: " + filePath;
+            }
+        } else {
+            // No file path provided, try to read from clipboard
+            try {
+                LOGGER.log(Level.INFO, "Analyzing content from clipboard");
+                textToExplain = getClipboardContent();
+                resultBuilder.append("Analysis of clipboard content:\n\n");
+                
+                // Try to detect language from content for clipboard
+                detectedExtension = detectLanguageFromContent(textToExplain);
+            } catch (Exception e) {
+                return "Failed to access clipboard: " + e.getMessage() + 
+                       "\nUsage: /explain [file_path] - Explains code from clipboard or specified file";
+            }
         }
+        
+        if (textToExplain == null || textToExplain.trim().isEmpty()) {
+            return "No content found to explain.";
+        }
+        
+        // Get language-specific prompt based on detected extension
+        String languagePrompt = getLanguagePrompt(detectedExtension);
+        
+        // Analyze the code content
+        String analysis = analyzeCode(textToExplain, languagePrompt, filePathForContext);
+        return resultBuilder.toString() + analysis;
     }
     
+    /**
+     * Gets content from the system clipboard using platform-specific commands.
+     * 
+     * @return String content from clipboard
+     * @throws Exception if clipboard access fails
+     */
+    private String getClipboardContent() throws Exception {
+        // For Mac/Linux, we can use the 'pbpaste' or 'xclip' commands
+        String os = System.getProperty("os.name").toLowerCase();
+        ProcessBuilder pb;
+        
+        if (os.contains("mac")) {
+            pb = new ProcessBuilder("pbpaste");
+        } else if (os.contains("nix") || os.contains("nux")) {
+            pb = new ProcessBuilder("xclip", "-selection", "clipboard", "-o");
+        } else if (os.contains("win")) {
+            pb = new ProcessBuilder("powershell.exe", "-command", "Get-Clipboard");
+        } else {
+            throw new UnsupportedOperationException("Clipboard access not supported on this OS");
+        }
+        
+        Process process = pb.start();
+        String content = new String(process.getInputStream().readAllBytes());
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new IOException("Failed to get clipboard content, exit code: " + exitCode);
+        }
+        
+        return content;
+    }
+    
+    /**
+     * Attempt to detect programming language based on content.
+     * This uses simple heuristics to guess the language when extension is not available.
+     * 
+     * @param content The code content to analyze
+     * @return Best guess at file extension
+     */
+    private String detectLanguageFromContent(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Check for common language markers
+        if (content.contains("package ") && content.contains("import ") && 
+            (content.contains("public class ") || content.contains("private class "))) {
+            return "java";
+        } else if (content.contains("<?php")) {
+            return "php";
+        } else if (content.contains("import React") || content.contains("export default") || 
+                   content.contains("function(") || content.contains("() =>")) {
+            return "js";
+        } else if (content.contains(": string") || content.contains(": number") || 
+                   content.contains(": boolean") || content.contains("interface ")) {
+            return "ts";
+        } else if (content.contains("def ") && content.contains(":") && 
+                   (content.contains("    ") || content.contains("\t"))) {
+            return "py";
+        } else if (content.contains("#include <") || content.contains("int main(")) {
+            return "c";
+        } else if (content.contains("<html") && content.contains("<body")) {
+            return "html";
+        } else if (content.contains("{") && content.contains("}") && 
+                   content.contains(":") && !content.contains(";")) {
+            return "json";
+        } else if (content.contains("- name:") || content.contains("  - ")) {
+            return "yaml";
+        } else if (content.contains("<xml") || (content.contains("<") && content.contains("</") && 
+                   content.contains(">"))) {
+            return "xml";
+        } else if (content.contains("SELECT ") && content.contains(" FROM ") && 
+                   content.contains(" WHERE ")) {
+            return "sql";
+        } else if (content.contains("#!/bin/bash") || content.contains("echo $")) {
+            return "bash";
+        } else if (content.contains("#") && content.contains("##") && content.contains("###")) {
+            return "md";
+        }
+        
+        // Default to generic code analysis if no specific language detected
+        return "";
+    }
+
     /**
      * Analyze code content with appropriate language-specific prompt.
      * 
@@ -331,10 +436,11 @@ public class EnhancedCodeExplainCommand implements Command {
 
     @Override
     public String getDescription() {
-        return "Enhanced code analysis tool that provides language-specific understanding of source code files.\n\n" +
-               "Usage: /codeexplain <file_path>\n\n" +
+        return "Enhanced code analysis tool that provides language-specific understanding of source code files or clipboard content.\n\n" +
+               "Usage: /explain [file_path]\n" +
+               "       /explain  (analyzes clipboard content)\n\n" +
                "Features:\n" +
-               "- Language detection based on file extension\n" +
+               "- Language detection based on file extension or content\n" +
                "- Specialized analysis for different programming languages\n" +
                "- Handling of large files through chunking\n" +
                "- Focus on structure, patterns, and best practices";
@@ -342,6 +448,6 @@ public class EnhancedCodeExplainCommand implements Command {
 
     @Override
     public String getShortDescription() {
-        return "Analyzes source code with language-specific understanding";
+        return "Analyzes source code with language-specific understanding from files or clipboard";
     }
 }
