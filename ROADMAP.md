@@ -11,7 +11,8 @@
 - [x] Add LICENSE file (VSCode extension)
 - [x] Add a CLI wrapper script (and shell completions) for commong coding prompts
 - [x] Add /template command for managing LLM system messages
-- [ ] 
+- [x] Add /context command to manage context files
+- 
 
 # Backlog
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
