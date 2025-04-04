@@ -10,16 +10,29 @@
 - [x] Refactor to move VSCode extension into `vscode/extension` directory
 - [x] Add LICENSE file (VSCode extension)
 - [x] Add a CLI wrapper script (and shell completions) for commong coding prompts
+- [x] Add /template command for managing LLM system messages
+- [ ] 
 
 # Backlog
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Refactor NetBeans plugin to use the CoreAssistant directly
+- [ ] Add a CLI wrapper script (and shell completions) for commong coding prompts
+- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
+- [ ] Fix duplicate dependency declaration in impl POM (api dependency)
+- [ ] Remove usage of deprecated LlmConfiguration in LlmCommand and OllamaCommand
+- [ ] Fix unchecked cast in CsvTransformationTool
+- [ ] Update tests to use JUnit Jupiter assertions instead of deprecated JUnit 4 assertions
+- [ ] Fix 'this' escape in CoreAssistant, CoreCommandRegistry, and CoreToolManager
+- [ ] Fix serialization issues in NetBeans AssistantTopComponent (add serialVersionUID, mark fields transient)
+- [ ] Fix trailing whitespace in CLI and Desktop source files
+- [ ] Upgrade Node.js to 18.17+ for VSCode extension to fix npm engine compatibility warnings
+- [ ] Add repository field to package.json in VSCode extension
+- [ ] Bundle VSCode extension for better performance
 - [ ] Add VSCode CLI to `vscode/cli` directory
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Add VSCodeTool
-- [ ] Add LICENSE to VSCode extension
 - [ ] Add /llm reset model which resets the LLM model with updated properties
 - [ ] Add /llm reset memory which resets the memory
 - [ ] Update VSCode extension to pretty print code blocks
