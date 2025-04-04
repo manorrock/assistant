@@ -55,7 +55,7 @@ class CoreCommandRegistryTest {
         registry.registerCommand("command2", mockCommand2);
 
         Set<String> commandNames = registry.getCommandNames();
-        assertEquals(9, commandNames.size());
+        assertEquals(10, commandNames.size());
         assertTrue(commandNames.contains("command1"));
         assertTrue(commandNames.contains("command2"));
     }

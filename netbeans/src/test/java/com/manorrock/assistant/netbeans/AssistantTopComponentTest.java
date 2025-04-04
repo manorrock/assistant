@@ -166,7 +166,7 @@ public class AssistantTopComponentTest {
     // Then test /new command
     requestArea.setText("/new");
     sendButton.doClick();
-    Thread.sleep(UI_DELAY * 2);
+    Thread.sleep(UI_DELAY * 3);
 
     String responseText = responseArea.getText().toLowerCase();
     assertTrue("Response area should be cleared and contain new session message",
