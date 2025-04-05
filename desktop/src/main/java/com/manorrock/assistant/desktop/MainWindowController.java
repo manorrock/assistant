@@ -41,9 +41,6 @@ public class MainWindowController {
     private Button sendButton;
 
     @FXML
-    private Button startOverButton;
-
-    @FXML
     private ProgressBar progressBar;
     
     @FXML
@@ -280,7 +277,7 @@ public class MainWindowController {
     }
 
     private void handleClear() {
-        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
+        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, isDarkMode ? "dark" : "light", ""));
         requestArea.clear();
     }
 
@@ -390,16 +387,8 @@ public class MainWindowController {
      * Handle the /session new command.
      */
     private void handleSessionNew() {
-        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
+        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, isDarkMode ? "dark" : "light",""));
         handleMessage("/session new");
-    }
-
-    /**
-     * Handle the start over action.
-     */
-    @FXML
-    private void handleStartOverAction() {
-        handleSessionNew();
     }
 
     /**

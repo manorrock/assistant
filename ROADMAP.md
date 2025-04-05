@@ -11,6 +11,7 @@
 - [x] Upgrade Node.js to 18.17+ for VSCode extension to fix npm engine compatibility warnings
 - [x] Add compatibility check for wrapper script
 - [x] Add /issue-template command
+- [x] Add application launch test for Desktop application
 
 # Backlog
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
