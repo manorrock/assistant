@@ -8,9 +8,9 @@
       - Refactor clipboard to use /explain clipboard
       - Refactor /explain [filepath] to be /explain file <filepath>
       - Add /explain help that shows the help      
+- [x] Upgrade Node.js to 18.17+ for VSCode extension to fix npm engine compatibility warnings
 
 # Backlog
-
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
@@ -21,18 +21,8 @@
 - [ ] Fix 'this' escape in CoreAssistant, CoreCommandRegistry, and CoreToolManager
 - [ ] Fix serialization issues in NetBeans AssistantTopComponent (add serialVersionUID, mark fields transient)
 - [ ] Fix trailing whitespace in CLI and Desktop source files
-- [ ] Upgrade Node.js to 18.17+ for VSCode extension to fix npm engine compatibility warnings
 - [ ] Add repository field to package.json in VSCode extension
 - [ ] Bundle VSCode extension for better performance
-- [x] Add --no-banner to CLI
-- [x] Remove deprecated methods from Command
-- [x] Fix release workflow
-- [x] Refactor NetBeans plugin to use the CoreAssistant directly
-- [x] Add /llm reset which resets the LLM and the memory
-- [x] Refactor to move VSCode extension into `vscode/extension` directory
-- [x] Rework VSCode extension UI to make title not fixed, but rather part of the
-      response area
-- [x] Add LICENSE file (VSCode extension)
 - [ ] Add a CLI wrapper script (and shell completions) for commong coding prompts
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Add VSCode CLI to `vscode/cli` directory
