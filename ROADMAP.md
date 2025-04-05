@@ -3,17 +3,18 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-
+- [x] Create installation script for wrapper
+- [x] Refactor /explain 
+      - Refactor clipboard to use /explain clipboard
+      - Refactor /explain [filepath] to be /explain file <filepath>
+      - Add /explain help that shows the help      
 
 # Backlog
-- [ ] Refactor /explain with clipboard to be /explain clipboard
-- [ ] Refactor /explain [filepath] to be /explain file <filepath>
-- [ ] Add /explain help that shows the help for the /explain command
+
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Refactor NetBeans plugin to use the CoreAssistant directly
-- [ ] Fix duplicate dependency declaration in impl POM (api dependency)
 - [ ] Remove usage of deprecated LlmConfiguration in LlmCommand and OllamaCommand
 - [ ] Fix unchecked cast in CsvTransformationTool
 - [ ] Update tests to use JUnit Jupiter assertions instead of deprecated JUnit 4 assertions

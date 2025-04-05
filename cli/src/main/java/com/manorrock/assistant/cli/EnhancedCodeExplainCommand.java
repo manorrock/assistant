@@ -95,42 +95,85 @@ public class EnhancedCodeExplainCommand implements Command {
         String detectedExtension = "";
         StringBuilder resultBuilder = new StringBuilder();
         
-        // Check if input is provided (file path)
-        if (input != null && !input.trim().isEmpty()) {
-            String filePath = input.trim();
-            Path path = Paths.get(filePath);
-            
-            if (Files.exists(path)) {
-                if (Files.isDirectory(path)) {
-                    return "Error: Specified path is a directory, not a file: " + filePath;
-                }
+        // Check if input is null or empty
+        if (input == null || input.trim().isEmpty()) {
+            return getHelpText();
+        }
+        
+        String[] args = input.trim().split("\\s+", 2);
+        String subcommand = args[0].toLowerCase();
+        
+        // Process based on subcommand
+        switch (subcommand) {
+            case "help":
+                return getHelpText();
                 
-                // Read file content
+            case "clipboard":
                 try {
-                    LOGGER.log(Level.INFO, "Analyzing file: {0}", filePath);
-                    textToExplain = Files.readString(path, StandardCharsets.UTF_8);
-                    filePathForContext = filePath;
-                    detectedExtension = getFileExtension(filePath);
-                    resultBuilder.append("Analysis of file: ").append(filePath).append("\n\n");
-                } catch (IOException e) {
-                    return "Error reading file: " + e.getMessage();
+                    LOGGER.log(Level.INFO, "Analyzing content from clipboard");
+                    textToExplain = getClipboardContent();
+                    resultBuilder.append("Analysis of clipboard content:\n\n");
+                    
+                    // Try to detect language from content for clipboard
+                    detectedExtension = detectLanguageFromContent(textToExplain);
+                } catch (Exception e) {
+                    return "Failed to access clipboard: " + e.getMessage();
                 }
-            } else {
-                return "Error: File not found: " + filePath;
-            }
-        } else {
-            // No file path provided, try to read from clipboard
-            try {
-                LOGGER.log(Level.INFO, "Analyzing content from clipboard");
-                textToExplain = getClipboardContent();
-                resultBuilder.append("Analysis of clipboard content:\n\n");
+                break;
                 
-                // Try to detect language from content for clipboard
-                detectedExtension = detectLanguageFromContent(textToExplain);
-            } catch (Exception e) {
-                return "Failed to access clipboard: " + e.getMessage() + 
-                       "\nUsage: /explain [file_path] - Explains code from clipboard or specified file";
-            }
+            case "file":
+                if (args.length < 2) {
+                    return "Error: Missing file path.\nUsage: /explain file <file_path>";
+                }
+                
+                String filePath = args[1].trim();
+                Path path = Paths.get(filePath);
+                
+                if (Files.exists(path)) {
+                    if (Files.isDirectory(path)) {
+                        return "Error: Specified path is a directory, not a file: " + filePath;
+                    }
+                    
+                    // Read file content
+                    try {
+                        LOGGER.log(Level.INFO, "Analyzing file: {0}", filePath);
+                        textToExplain = Files.readString(path, StandardCharsets.UTF_8);
+                        filePathForContext = filePath;
+                        detectedExtension = getFileExtension(filePath);
+                        resultBuilder.append("Analysis of file: ").append(filePath).append("\n\n");
+                    } catch (IOException e) {
+                        return "Error reading file: " + e.getMessage();
+                    }
+                } else {
+                    return "Error: File not found: " + filePath;
+                }
+                break;
+                
+            default:
+                // For backward compatibility, treat it as a file path
+                String defaultFilePath = input.trim();
+                Path defaultPath = Paths.get(defaultFilePath);
+                
+                if (Files.exists(defaultPath)) {
+                    if (Files.isDirectory(defaultPath)) {
+                        return "Error: Specified path is a directory, not a file: " + defaultFilePath;
+                    }
+                    
+                    // Read file content
+                    try {
+                        LOGGER.log(Level.INFO, "Analyzing file: {0}", defaultFilePath);
+                        textToExplain = Files.readString(defaultPath, StandardCharsets.UTF_8);
+                        filePathForContext = defaultFilePath;
+                        detectedExtension = getFileExtension(defaultFilePath);
+                        resultBuilder.append("Analysis of file: ").append(defaultFilePath).append("\n\n");
+                        resultBuilder.append("Note: This syntax is deprecated. Please use '/explain file " + defaultFilePath + "' instead.\n\n");
+                    } catch (IOException e) {
+                        return "Error reading file: " + e.getMessage();
+                    }
+                } else {
+                    return getHelpText() + "\n\nError: Unrecognized command or file not found: " + defaultFilePath;
+                }
+                break;
         }
         
         if (textToExplain == null || textToExplain.trim().isEmpty()) {
@@ -145,6 +188,24 @@ public class EnhancedCodeExplainCommand implements Command {
         return resultBuilder.toString() + analysis;
     }
     
+    /**
+     * Returns the help text for the command.
+     * 
+     * @return The help text
+     */
+    private String getHelpText() {
+        return "Enhanced code analysis tool that provides language-specific understanding of source code.\n\n" +
+               "Usage:\n" +
+               "  /explain help                  - Show this help information\n" +
+               "  /explain clipboard             - Analyze code from clipboard\n" +
+               "  /explain file <file_path>      - Analyze code from specified file\n\n" +
+               "Features:\n" +
+               "- Language detection based on file extension or content\n" +
+               "- Specialized analysis for different programming languages\n" +
+               "- Handling of large files through chunking\n" +
+               "- Focus on structure, patterns, and best practices";
+    }
+
     /**
      * Gets content from the system clipboard using platform-specific commands.
      * 
@@ -436,18 +497,11 @@ public class EnhancedCodeExplainCommand implements Command {
 
     @Override
     public String getDescription() {
-        return "Enhanced code analysis tool that provides language-specific understanding of source code files or clipboard content.\n\n" +
-               "Usage: /explain [file_path]\n" +
-               "       /explain  (analyzes clipboard content)\n\n" +
-               "Features:\n" +
-               "- Language detection based on file extension or content\n" +
-               "- Specialized analysis for different programming languages\n" +
-               "- Handling of large files through chunking\n" +
-               "- Focus on structure, patterns, and best practices";
+        return getHelpText();
     }
 
     @Override
     public String getShortDescription() {
-        return "Analyzes source code with language-specific understanding from files or clipboard";
+        return "Analyzes source code with language-specific understanding (use '/explain help' for options)";
     }
 }
