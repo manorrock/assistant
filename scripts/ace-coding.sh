@@ -3,10 +3,186 @@
 # Manorrock Coding Assistant - CLI Wrapper
 # A wrapper script that enhances the Manorrock Assistant CLI with specialized coding commands
 
+# Version information
+VERSION="25.4.2"
+MIN_JAVA_VERSION="11"
+MIN_CLI_VERSION="25.4.2"
+WRAPPER_NAME="Manorrock Coding Assistant"
+
 # Configuration
 CONFIG_DIR="$HOME/.manorrock/assistant/config"
 TEMPLATES_DIR="$HOME/.manorrock/assistant/templates"
 CONTEXT_FILE="$HOME/.manorrock/assistant/context.json"
+VERSION_FILE="$CONFIG_DIR/version_info.json"
+
+# Version compatibility check functions
+function check_java_version() {
+    if ! command -v java &> /dev/null; then
+        echo "Error: Java not found. Please install Java $MIN_JAVA_VERSION or later." >&2
+        return 1
+    fi
+    
+    # Extract Java version (works with both Java 8 and later versions)
+    java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
+    
+    if [[ -z "$java_version" ]]; then
+        echo "Warning: Could not determine Java version." >&2
+        return 0  # Continue anyway
+    fi
+    
+    if (( java_version < MIN_JAVA_VERSION )); then
+        echo "Error: Java version $java_version is not supported." >&2
+        echo "Please upgrade to Java $MIN_JAVA_VERSION or later." >&2
+        return 1
+    fi
+    
+    return 0
+}
+
+function check_cli_jar_version() {
+    local jar_path=$1
+    
+    if [ ! -f "$jar_path" ]; then
+        echo "Error: CLI JAR not found at $jar_path" >&2
+        return 1
+    fi
+    
+    # Extract version from JAR manifest
+    local jar_version=""
+    if command -v unzip &> /dev/null; then
+        jar_version=$(unzip -p "$jar_path" META-INF/MANIFEST.MF 2>/dev/null | grep "Implementation-Version" | cut -d: -f2 | tr -d ' \r\n')
+    fi
+    
+    # If we can't extract version from manifest, try running the JAR with --version
+    if [ -z "$jar_version" ]; then
+        if java -jar "$jar_path" --version &> /dev/null; then
+            jar_version=$(java -jar "$jar_path" --version 2>/dev/null | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
+        fi
+    fi
+    
+    # If we still can't get the version, treat it as an error
+    if [ -z "$jar_version" ]; then
+        echo "Error: Could not determine CLI JAR version. Unable to verify compatibility." >&2
+        return 1
+    fi
+    
+    # Parse versions into components
+    local min_version_parts=(${MIN_CLI_VERSION//./ })
+    local jar_version_parts=(${jar_version//./ })
+    
+    # Compare major version
+    if [ ${jar_version_parts[0]} -lt ${min_version_parts[0]} ]; then
+        echo "Error: CLI JAR version $jar_version is not compatible with this wrapper (version $VERSION)." >&2
+        echo "Please update your CLI JAR to version $MIN_CLI_VERSION or later." >&2
+        return 1
+    elif [ ${jar_version_parts[0]} -gt ${min_version_parts[0]} ]; then
+        # Major version is higher, should be compatible
+        :
+    else
+        # Major versions match, check minor version
+        if [ ${jar_version_parts[1]} -lt ${min_version_parts[1]} ]; then
+            echo "Error: CLI JAR version $jar_version is not compatible with this wrapper (version $VERSION)." >&2
+            echo "Please update your CLI JAR to version $MIN_CLI_VERSION or later." >&2
+            return 1
+        elif [ ${jar_version_parts[1]} -gt ${min_version_parts[1]} ]; then
+            # Minor version is higher, should be compatible
+            :
+        else
+            # Minor versions match, check patch version
+            if [ ${jar_version_parts[2]} -lt ${min_version_parts[2]} ]; then
+                echo "Error: CLI JAR version $jar_version is not compatible with this wrapper (version $VERSION)." >&2
+                echo "Please update your CLI JAR to version $MIN_CLI_VERSION or later." >&2
+                return 1
+            fi
+        fi
+    fi
+    
+    # Store CLI version for future reference
+    if [ ! -f "$VERSION_FILE" ]; then
+        echo "{}" > "$VERSION_FILE"
+    fi
+    
+    local temp_file=$(mktemp)
+    if command -v jq &> /dev/null; then
+        jq --arg path "$jar_path" --arg ver "$jar_version" \
+           '.cli_versions[$path] = $ver' "$VERSION_FILE" > "$temp_file" && \
+        mv "$temp_file" "$VERSION_FILE"
+    fi
+    
+    echo "CLI version check passed: $jar_version is compatible with wrapper version $VERSION" >&2
+    return 0
+}
+
+function check_dependencies() {
+    local missing_deps=()
+    
+    # Check for jq (used for JSON manipulation)
+    if ! command -v jq &> /dev/null; then
+        missing_deps+=("jq")
+    fi
+    
+    # Check for realpath (used in context management)
+    if ! command -v realpath &> /dev/null; then
+        missing_deps+=("realpath")
+    fi
+    
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        echo "Warning: The following dependencies are missing:" >&2
+        for dep in "${missing_deps[@]}"; do
+            echo "  - $dep" >&2
+        done
+        
+        echo "" >&2
+        echo "Some functionality may be limited. Install missing dependencies for full functionality." >&2
+        
+        case "$(uname -s)" in
+            Linux*)
+                echo "For Debian/Ubuntu: sudo apt-get install ${missing_deps[*]}" >&2
+                echo "For Fedora: sudo dnf install ${missing_deps[*]}" >&2
+                ;;
+            Darwin*)
+                echo "For macOS: brew install ${missing_deps[*]}" >&2
+                ;;
+            MINGW*|MSYS*|CYGWIN*)
+                echo "For Windows: Install these tools via chocolatey, msys2, or manually" >&2
+                ;;
+        esac
+        
+        # Ask user if they want to continue
+        read -p "Continue anyway? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
+function verify_compatibility() {
+    # Check Java version
+    if ! check_java_version; then
+        return 1
+    fi
+    
+    # Get CLI JAR path
+    local jar_path=$(get_cli_jar)
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    
+    # Check CLI JAR version
+    if ! check_cli_jar_version "$jar_path"; then
+        return 1
+    fi
+    
+    # Check for required dependencies
+    if ! check_dependencies; then
+        return 1
+    fi
+    
+    return 0
+}
 
 # Find the CLI JAR, looking in common locations
 function find_cli_jar() {
@@ -123,6 +299,7 @@ function help_command() {
     echo "  context list               List files in the current context"
     echo "  context clear              Clear the current context"
     echo "  context use <prompt>       Use the current context with a prompt"
+    echo "  version                    Display version information"
     echo "  help                       Show this help message"
     echo ""
     echo "Examples:"
@@ -388,6 +565,12 @@ function analyze_directory() {
 # Initialize configuration
 init_config
 
+# Check version compatibility before proceeding
+if ! verify_compatibility; then
+    echo "Error: Version compatibility check failed. Please resolve the issues before continuing." >&2
+    exit 1
+fi
+
 # Main command processing
 case "$1" in
     analyze)
@@ -419,6 +602,14 @@ case "$1" in
     context)
         shift
         handle_context "$@"
+        ;;
+    version)
+        echo "$WRAPPER_NAME version $VERSION"
+        CLI_JAR=$(get_cli_jar)
+        if [ $? -eq 0 ]; then
+            echo -n "CLI JAR: "
+            java -jar "$CLI_JAR" --version
+        fi
         ;;
     help|--help|-h)
         help_command
