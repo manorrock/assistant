@@ -40,7 +40,6 @@
          <TextArea fx:id="requestArea" wrapText="true" prefHeight="100" promptText="Type your message here..."/>
          <HBox spacing="10">
              <Button fx:id="sendButton" text="Send" onAction="#handleSendAction" maxWidth="Infinity"/>
-             <Button fx:id="startOverButton" text="Start Over" onAction="#handleStartOverAction" maxWidth="Infinity"/>
          </HBox>
       </VBox>
    </center>
