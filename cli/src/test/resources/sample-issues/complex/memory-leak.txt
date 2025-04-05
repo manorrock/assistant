@@ -1,0 +1,42 @@
+Title: Fix Memory Leak in Long-Running Background Tasks
+
+Description:
+Our application is experiencing memory leaks when background tasks run for extended periods 
+(over 30 minutes). This issue affects production servers, causing increased memory usage 
+until the application eventually crashes with OutOfMemoryError.
+
+Analysis:
+Initial heap dumps show a growing number of unclosed resources, particularly:
+1. Database connections not being properly closed in TransactionManager
+2. File handles remaining open in the FileProcessingService
+3. ThreadLocal variables not being cleared after task completion
+
+Stack trace from production:
+```
+java.lang.OutOfMemoryError: Java heap space
+  at java.util.Arrays.copyOf(Arrays.java:3332)
+  at java.io.ByteArrayOutputStream.grow(ByteArrayOutputStream.java:118)
+  at java.io.ByteArrayOutputStream.ensureCapacity(ByteArrayOutputStream.java:93)
+  at java.io.ByteArrayOutputStream.write(ByteArrayOutputStream.java:153)
+  at com.manorrock.assistant.processing.FileProcessingService.processLargeFile(FileProcessingService.java:285)
+  at com.manorrock.assistant.task.BackgroundTaskExecutor.execute(BackgroundTaskExecutor.java:127)
+  at com.manorrock.assistant.task.BackgroundTaskScheduler$Worker.run(BackgroundTaskScheduler.java:314)
+```
+
+Acceptance Criteria:
+- [ ] Memory usage remains stable during long-running tasks (verified with profiling)
+- [ ] All database connections are properly closed even when exceptions occur
+- [ ] File handles are released immediately after use
+- [ ] ThreadLocal variables are properly cleaned up after task completion
+- [ ] Add automated tests that verify resource cleanup
+- [ ] Add monitoring to detect potential memory leaks in the future
+
+Reproduction Steps:
+1. Schedule a file processing task with over 1000 files (at least 100MB total)
+2. Let the task run for at least 30 minutes
+3. Monitor memory usage with JVisualVM or similar tool
+4. Observe the steady increase in memory usage without garbage collection releasing it
+
+Priority: CRITICAL
+
+Labels: bug, memory-leak, performance, production-issue

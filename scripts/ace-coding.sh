@@ -300,12 +300,17 @@ function help_command() {
     echo "  context clear              Clear the current context"
     echo "  context use <prompt>       Use the current context with a prompt"
     echo "  version                    Display version information"
+    echo "  implement-issue file       Implement issue from a file"
+    echo "  implement-issue clipboard  Implement issue from clipboard content"
+    echo "  verify-implementation      Verify implementation against issue acceptance criteria"
     echo "  help                       Show this help message"
     echo ""
     echo "Examples:"
     echo "  $(basename "$0") analyze src/main/java/MyClass.java"
     echo "  $(basename "$0") debug buggy_code.js"
     echo "  $(basename "$0") generate \"Create a REST API endpoint for user registration\""
+    echo "  $(basename "$0") implement-issue file issue.txt"
+    echo "  $(basename "$0") verify-implementation issue.txt implementation_dir"
 }
 
 # Debug code with specialized system message
@@ -508,6 +513,126 @@ function context_use() {
     rm "$temp_file"
 }
 
+# Implement issue from a file
+function implement_from_issue_file() {
+    local issue_file=$1
+    local output_dir=$2
+    
+    if [ ! -f "$issue_file" ]; then
+        echo "Error: Issue file not found - $issue_file"
+        return 1
+    fi
+    
+    CLI_JAR=$(get_cli_jar)
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    
+    echo "Implementing issue from file: $issue_file"
+    
+    # Prepare command with options
+    if [ -n "$output_dir" ]; then
+        java -jar "$CLI_JAR" --no-banner "/implement-issue options output_dir=$output_dir"
+        java -jar "$CLI_JAR" --no-banner "/implement-issue file $issue_file"
+    else
+        # Use default target/test-output directory
+        local default_output="$(pwd)/target/test-output"
+        mkdir -p "$default_output"
+        java -jar "$CLI_JAR" --no-banner "/implement-issue options output_dir=$default_output"
+        java -jar "$CLI_JAR" --no-banner "/implement-issue file $issue_file"
+    fi
+}
+
+# Implement issue from clipboard content
+function implement_issue_from_clipboard() {
+    local output_dir=$1
+    
+    # Check for clipboard tools
+    if command -v pbpaste &> /dev/null; then
+        # macOS
+        clipboard_content=$(pbpaste)
+    elif command -v xsel &> /dev/null; then
+        # Linux with xsel
+        clipboard_content=$(xsel --clipboard)
+    elif command -v xclip &> /dev/null; then
+        # Linux with xclip
+        clipboard_content=$(xclip -selection clipboard -o)
+    else
+        echo "Error: No clipboard tool available. Please install xsel, xclip (Linux) or use macOS."
+        return 1
+    fi
+    
+    if [ -z "$clipboard_content" ]; then
+        echo "Error: Clipboard is empty"
+        return 1
+    fi
+    
+    CLI_JAR=$(get_cli_jar)
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    
+    echo "Implementing issue from clipboard content..."
+    
+    # Create temporary file for clipboard content
+    local temp_file=$(mktemp)
+    echo "$clipboard_content" > "$temp_file"
+    
+    # Implement the issue using the file command
+    implement_from_issue_file "$temp_file" "$output_dir"
+    
+    # Clean up
+    rm "$temp_file"
+}
+
+# Verify implementation against issue acceptance criteria
+function verify_implementation() {
+    local issue_file=$1
+    local implementation_dir=$2
+    
+    if [ ! -f "$issue_file" ]; then
+        echo "Error: Issue file not found - $issue_file"
+        return 1
+    fi
+    
+    if [ -z "$implementation_dir" ]; then
+        echo "Error: Implementation directory not specified"
+        echo "Usage: $(basename "$0") verify_implementation <issue_file> <implementation_directory>"
+        return 1
+    fi
+    
+    if [ ! -d "$implementation_dir" ]; then
+        echo "Error: Implementation directory not found - $implementation_dir"
+        return 1
+    fi
+    
+    CLI_JAR=$(get_cli_jar)
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    
+    echo "Verifying implementation against issue: $issue_file"
+    
+    # Create a temporary file to concatenate all implementation files
+    local temp_file=$(mktemp)
+    
+    echo "# Implementation Files\n\n" > "$temp_file"
+    
+    # Find and concatenate all implementation files
+    find "$implementation_dir" -type f -not -path "*/\.*" -not -path "*/node_modules/*" -not -path "*/target/*" -not -path "*/build/*" | while read -r file; do
+        echo -e "\n## File: $file\n\n\`\`\`\n" >> "$temp_file"
+        cat "$file" >> "$temp_file"
+        echo -e "\n\`\`\`\n" >> "$temp_file"
+    done
+    
+    # Get the issue content
+    local issue_content=$(cat "$issue_file")
+    
+    # Run verification with the implementation content against the issue
+    java -jar "$CLI_JAR" --no-banner "/implement-issue options verify_implementation=true"
+    echo "$issue_content" | java -jar "$CLI_JAR" --no-banner "/implement-issue"
+}
+
 # Process context-related commands
 function handle_context() {
     local subcommand=$1
@@ -609,6 +734,22 @@ case "$1" in
         if [ $? -eq 0 ]; then
             echo -n "CLI JAR: "
             java -jar "$CLI_JAR" --version
+    implement-issue)
+        if [ "$2" == "file" ] && [ -n "$3" ]; then
+            implement_from_issue_file "$3" "$4"
+        elif [ "$2" == "clipboard" ]; then
+            implement_issue_from_clipboard "$3"
+        else
+            echo "Usage:"
+            echo "  $(basename "$0") implement-issue file <issue_file_path> [output_directory]"
+            echo "  $(basename "$0") implement-issue clipboard [output_directory]"
+        fi
+        ;;
+    verify-implementation)
+        if [ -n "$2" ] && [ -n "$3" ]; then
+            verify_implementation "$2" "$3"
+        else
+            echo "Usage: $(basename "$0") verify-implementation <issue_file> <implementation_directory>"
         fi
         ;;
     help|--help|-h)
