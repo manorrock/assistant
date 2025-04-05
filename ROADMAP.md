@@ -11,9 +11,16 @@
 - [x] Upgrade Node.js to 18.17+ for VSCode extension to fix npm engine compatibility warnings
 - [x] Add compatibility check for wrapper script
 - [x] Add /issue-template command
+- [x] Add /implement-issue command
 - [x] Add application launch test for Desktop application
 
 # Backlog
+- [ ] Add /llm list command that lists the available LLMs
+- [ ] Add /llm add command that adds an LLM (not configured yet)
+- [ ] Add /llm remove command the removes an LLM
+- [ ] Add /llm info command that list the properties of the current active LLM (if any)
+- [ ] Refactor to use /llm use command to activate the specified LLM (if it exists)
+- [ ] Refactor to show help for /llm
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
@@ -27,7 +34,6 @@
 - [ ] Add repository field to package.json in VSCode extension
 - [ ] Bundle VSCode extension for better performance
 - [ ] Add a CLI wrapper script (and shell completions) for commong coding prompts
-- [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
 - [ ] Add VSCode CLI to `vscode/cli` directory
 - [ ] Refactor Eclipse plugin to use the CoreAssistant directly
 - [ ] Add VSCodeTool

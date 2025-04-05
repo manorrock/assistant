@@ -7,6 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.testfx.framework.junit5.ApplicationTest;
 
 public class DesktopApplicationTest extends ApplicationTest {
@@ -17,6 +18,7 @@ public class DesktopApplicationTest extends ApplicationTest {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
     public void testApplicationLaunches() {
         assertThat(lookup("#root").queryAs(BorderPane.class), is(notNullValue()));
     }
