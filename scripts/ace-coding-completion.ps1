@@ -61,6 +61,32 @@ Register-ArgumentCompleter -CommandName 'manorrock-coding-assistant.sh', 'manorr
                     [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
                 }
             }
+            'implement-issue' {
+                $subcommands = @('file', 'clipboard')
+                return $subcommands | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
+                    [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+                }
+            }
+            'verify-implementation' {
+                # Return files and directories for first argument of verify-implementation
+                $items = Get-ChildItem -Path (if ($wordToComplete) { $wordToComplete + '*' } else { '.' }) -ErrorAction SilentlyContinue
+                
+                # Format directories
+                $directories = $items | Where-Object { $_.PSIsContainer } | ForEach-Object {
+                    $completionText = $_.FullName -replace '\\', '/'
+                    if ($completionText -match ' ') { $completionText = "'$completionText'" }
+                    [System.Management.Automation.CompletionResult]::new($completionText, $_.Name, 'ParameterValue', $_.Name + '/')
+                }
+                
+                # Format files, preferring markdown and text files
+                $mdFiles = $items | Where-Object { -not $_.PSIsContainer -and ($_.Extension -eq '.md' -or $_.Extension -eq '.txt') } | ForEach-Object {
+                    $completionText = $_.FullName -replace '\\', '/'
+                    if ($completionText -match ' ') { $completionText = "'$completionText'" }
+                    [System.Management.Automation.CompletionResult]::new($completionText, $_.Name, 'ParameterValue', $_.Name)
+                }
+                
+                return @($directories) + @($mdFiles)
+            }
             default {
                 # No completion for other commands
                 return $null

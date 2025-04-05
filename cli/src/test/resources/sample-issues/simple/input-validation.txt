@@ -1,0 +1,15 @@
+Title: Add Input Validation
+
+Description:
+Implement input validation for the user registration form to ensure all required fields are filled and properly formatted.
+
+Acceptance Criteria:
+- [x] Email field validates proper email format
+- [ ] Password must be at least 8 characters long
+- [ ] Username must be alphanumeric
+- [ ] Error messages appear next to the invalid fields
+- [ ] Submit button is disabled until all fields are valid
+
+Priority: MEDIUM
+
+Tags: form-validation, user-experience, security
