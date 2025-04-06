@@ -42,6 +42,11 @@ public class CoreAssistant implements Assistant {
     private ToolManager toolManager;
 
     /**
+     * Stores the current context message
+     */
+    private String currentContext;
+
+    /**
      * Constructor.
      */
     public CoreAssistant() {
@@ -178,9 +183,40 @@ public class CoreAssistant implements Assistant {
         if (llmToUse == null) {
             return new CoreAssistantMessage("Active LLM is not registered");
         }
+
+        // If we have context, prepend it to the message
+        String prompt = message.getContent();
+        if (currentContext != null && !currentContext.trim().isEmpty()) {
+            prompt = currentContext + "\n\n" + prompt;
+        }
         
-        String llmResponse = llmToUse.process(message.getContent());
+        String llmResponse = llmToUse.process(prompt);
         return new CoreAssistantMessage(llmResponse);
+    }
+
+    /**
+     * Set the current context message
+     * 
+     * @param context The context message to set
+     */
+    public void setContext(String context) {
+        this.currentContext = context;
+    }
+
+    /**
+     * Get the current context message
+     * 
+     * @return The current context message
+     */
+    public String getContext() {
+        return currentContext;
+    }
+
+    /**
+     * Clear the current context
+     */
+    public void clearContext() {
+        this.currentContext = null;
     }
 
     /**

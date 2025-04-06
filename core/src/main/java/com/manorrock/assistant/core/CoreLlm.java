@@ -97,8 +97,12 @@ public class CoreLlm implements Llm {
      */
     private String processWithTools(String prompt) {
         StringBuilder resultBuilder = new StringBuilder();
-        chatMemory.add(SystemMessage.from(
-                properties.getProperty("systemMessage", "You are a helpful assistant.")));
+
+        // Only add system message if chat memory is empty
+        if (chatMemory.messages().isEmpty() && properties.getProperty("systemMessage") != null) {
+            chatMemory.add(SystemMessage.from(properties.getProperty("systemMessage")));
+        }
+
         chatMemory.add(userMessage(prompt));
 
         try {
@@ -410,10 +414,11 @@ public class CoreLlm implements Llm {
      * @return the response text
      */
     private String processWithoutTools(String prompt) {
-        if (properties.getProperty("systemMessage") != null) {
-            chatMemory.add(SystemMessage.from(
-                properties.getProperty("systemMessage")));
+        // Only add system message if chat memory is empty
+        if (chatMemory.messages().isEmpty() && properties.getProperty("systemMessage") != null) {
+            chatMemory.add(SystemMessage.from(properties.getProperty("systemMessage")));
         }
+
         chatMemory.add(userMessage(prompt));
         ChatResponse response = model.chat(chatMemory.messages());
         chatMemory.add(response.aiMessage());
