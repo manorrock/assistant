@@ -206,4 +206,70 @@ public class CoreLlmCommandTest {
         // Verify the result message
         assertEquals("LLM with name '" + existingLlmName + "' already exists.", result);
     }
+
+    @Test
+    public void testRemoveLlm_withNonExistentLlm() {
+        // Setup for an LLM name that doesn't exist
+        String nonExistentLlmName = "nonExistentLlm";
+        when(mockLlmManager.getLlm(nonExistentLlmName)).thenReturn(null);
+        
+        // Execute the remove command
+        String result = command.execute("remove " + nonExistentLlmName);
+        
+        // Verify the result message
+        assertEquals("LLM with name '" + nonExistentLlmName + "' does not exist.", result);
+    }
+    
+    @Test
+    public void testRemoveLlm_successful() {
+        // Setup for a valid LLM to remove
+        String llmName = "testLlm";
+        Llm mockLlm = mock(Llm.class);
+        when(mockLlmManager.getLlm(llmName)).thenReturn(mockLlm);
+        
+        // Execute the remove command
+        String result = command.execute("remove " + llmName);
+        
+        // Verify that the LLM was destroyed
+        verify(mockLlm).destroy();
+        
+        // Verify that unregisterLlm was called with the correct name
+        verify(mockLlmManager).unregisterLlm(llmName);
+        
+        // Verify the result message
+        assertEquals("LLM '" + llmName + "' has been removed.", result);
+    }
+    
+    @Test
+    public void testRemoveLlm_activeLlm() {
+        // Setup for removing the currently active LLM
+        String activeLlmName = "activeLlm";
+        Llm mockLlm = mock(Llm.class);
+        when(mockLlmManager.getLlm(activeLlmName)).thenReturn(mockLlm);
+        when(mockAssistant.getActiveLlm()).thenReturn(activeLlmName);
+        
+        // Execute the remove command
+        String result = command.execute("remove " + activeLlmName);
+        
+        // Verify the active LLM was unset
+        verify(mockAssistant).setActiveLlm(null);
+        
+        // Verify that the LLM was destroyed
+        verify(mockLlm).destroy();
+        
+        // Verify that unregisterLlm was called with the correct name
+        verify(mockLlmManager).unregisterLlm(activeLlmName);
+        
+        // Verify the result message
+        assertEquals("LLM '" + activeLlmName + "' has been removed.", result);
+    }
+    
+    @Test
+    public void testRemoveLlm_noArgument() {
+        // Execute the remove command without an argument
+        String result = command.execute("remove");
+        
+        // Verify the result is a usage message
+        assertEquals("Please provide the name of the LLM to remove. Usage: /llm remove <llm-name>", result);
+    }
 }
