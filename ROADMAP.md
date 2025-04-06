@@ -8,9 +8,12 @@
       - Use /explain clipboard to explain content on the clipboard
       - Use /explain <file> to explain a specific file
       - Use /explain to get the help text
-- [ ] Add /llm info command that list the properties of the current active LLM (if any)
+- [x] Add /llm info command that list the properties of the current active LLM (if any)
 - [ ] Refactor to use /llm use command to activate the specified LLM (if it exists)
 - [ ] Refactor to show help for /llm
+- [ ] Validate /context use does anything useful
+- [ ] Refactor to push body of cases into their respective methods in CoreLlmCommand
+- [ ] Add repository field to package.json in VSCode extension
 
 # Backlog
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
@@ -23,7 +26,6 @@
 - [ ] Fix 'this' escape in CoreAssistant, CoreCommandRegistry, and CoreToolManager
 - [ ] Fix serialization issues in NetBeans AssistantTopComponent (add serialVersionUID, mark fields transient)
 - [ ] Fix trailing whitespace in CLI and Desktop source files
-- [ ] Add repository field to package.json in VSCode extension
 - [ ] Bundle VSCode extension for better performance
 - [ ] Add a CLI wrapper script (and shell completions) for commong coding prompts
 - [ ] Add VSCode CLI to `vscode/cli` directory
@@ -130,4 +132,3 @@
 - [ ] Make sure initial startup message shows as one block and renders properly (VSCode)
 - [ ] Make sure the version generated aligns with the rest of the project (VSCode)
 - [ ] Add /llm help that shows proper help
-- [ ] Make sure /llm with invalid command shows same as /llm help
