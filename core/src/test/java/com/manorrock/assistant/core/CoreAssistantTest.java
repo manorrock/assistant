@@ -603,7 +603,7 @@ public class CoreAssistantTest {
         coreAssistant.setActiveLlm(testLlmName);
         
         // Test different ways to show configuration
-        String[] commands = {"/llm", "/llm status", "/llm show", "/llm info"};
+        String[] commands = {"/llm", "/llm info"};
         
         for (String cmd : commands) {
             AssistantMessage command = new CoreAssistantMessage(cmd);

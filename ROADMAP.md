@@ -12,8 +12,6 @@
 - [ ] Refactor to use /llm use command to activate the specified LLM (if it exists)
 - [ ] Refactor to show help for /llm
 - [ ] Validate /context use does anything useful
-- [ ] Remove /llm status
-- [ ] Remove /llm show
 - [ ] Refactor to push body of cases into their respective methods in CoreLlmCommand
 - [ ] Add repository field to package.json in VSCode extension
 
