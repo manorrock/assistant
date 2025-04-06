@@ -1,5 +1,8 @@
 package com.manorrock.assistant.api;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * The LLM Manager.
  */
@@ -12,6 +15,13 @@ public interface LlmManager {
      * @return the LLM (or null if not found)
      */
     Llm getLlm(String name);
+
+    /**
+     * Get the LLMs.
+     * 
+     * @return the LLMs.
+     */
+    Map<String, Llm> getLlms();
 
     /**
      * Register an LLM.

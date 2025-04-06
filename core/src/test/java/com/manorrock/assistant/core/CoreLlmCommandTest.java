@@ -113,4 +113,63 @@ public class CoreLlmCommandTest {
         // Verify the result message
         assertEquals("LLM '" + llmName + "' is not available.", result);
     }
+
+    @Test
+    public void testListLlms_empty() {
+        // Setup an empty LLM list
+        when(mockLlmManager.getLlms()).thenReturn(java.util.Collections.emptyMap());
+        
+        // Execute the list command
+        String result = command.execute("list");
+        
+        // Verify the result message for empty list
+        assertEquals("No LLMs are currently registered.", result);
+    }
+    
+    @Test
+    public void testListLlms_withMultipleLlms() {
+        // Setup multiple mock LLMs
+        String activeLlmName = "activeLlm";
+        Llm activeMockLlm = mock(CoreLlm.class);
+        Llm otherMockLlm = mock(CoreLlm.class);
+        
+        // Create properties for the LLMs
+        java.util.Properties activeProps = new java.util.Properties();
+        activeProps.setProperty("vendor", "OLLAMA");
+        activeProps.setProperty("modelName", "llama3.2");
+        
+        java.util.Properties otherProps = new java.util.Properties();
+        otherProps.setProperty("vendor", "OPENAI");
+        otherProps.setProperty("modelName", "gpt-4");
+        
+        // Setup the mocks to return the properties
+        when(activeMockLlm.getProperties()).thenReturn(activeProps);
+        when(otherMockLlm.getProperties()).thenReturn(otherProps);
+        
+        // Create the LLM map
+        java.util.Map<String, Llm> llmMap = new java.util.HashMap<>();
+        llmMap.put(activeLlmName, activeMockLlm);
+        llmMap.put("otherLlm", otherMockLlm);
+        
+        // Set the active LLM
+        when(mockAssistant.getActiveLlm()).thenReturn(activeLlmName);
+        when(mockLlmManager.getLlms()).thenReturn(llmMap);
+        
+        // Execute the list command
+        String result = command.execute("list");
+        
+        // Print the result to debug
+        System.out.println("Result: " + result);
+        
+        // Verify the result contains all expected elements
+        assert(result.contains("Available LLMs:"));
+        assert(result.contains("* " + activeLlmName));
+        assert(result.contains("OLLAMA"));
+        assert(result.contains("llama3.2"));
+        assert(result.contains("otherLlm"));
+        assert(result.contains("OPENAI"));
+        assert(result.contains("gpt-4"));
+        assert(result.contains("* = active LLM"));
+        assert(result.contains("Use '/llm set"));
+    }
 }

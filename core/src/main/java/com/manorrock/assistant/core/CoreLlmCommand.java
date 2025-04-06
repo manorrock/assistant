@@ -2,6 +2,7 @@ package com.manorrock.assistant.core;
 
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.Llm;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -39,6 +40,7 @@ public class CoreLlmCommand implements Command {
                  /llm apiKey <string>          - Set API key for authentication
                  /llm endpoint <url>           - Set LLM endpoint
                  /llm functionCalling <on|off> - Enable or disable function calling
+                 /llm list                     - List all available LLMs
                  /llm model <string>           - Set LLM model name
                  /llm reset                    - Reset the LLM and clear memory
                  /llm set <llm-name>           - Set the active LLM by name
@@ -99,6 +101,9 @@ public class CoreLlmCommand implements Command {
                     return "Function calling is currently: " + (isFunctionCallingEnabled() ? "ON" : "OFF");
                 }
                 return setFunctionCalling(parts[1].trim());
+            
+            case "list":
+                return listLlms();
                 
             case "reset":
                 return resetLlm();
@@ -111,7 +116,7 @@ public class CoreLlmCommand implements Command {
                 
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, reset";
+                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, list, reset, set";
         }
     }
     
@@ -395,5 +400,56 @@ public class CoreLlmCommand implements Command {
         } else {
             return "LLM '" + llmName + "' is not available.";
         }
+    }
+    
+    /**
+     * List all available LLMs.
+     *
+     * @return Formatted string with all LLMs
+     */
+    private String listLlms() {
+        Map<String, Llm> llms = assistant.getLlmManager().getLlms();
+        
+        if (llms.isEmpty()) {
+            return "No LLMs are currently registered.";
+        }
+        
+        StringBuilder result = new StringBuilder("Available LLMs:\n");
+        String activeLlm = assistant.getActiveLlm();
+        
+        for (Map.Entry<String, Llm> entry : llms.entrySet()) {
+            String llmName = entry.getKey();
+            Llm llm = entry.getValue();
+            
+            result.append("  ");
+            
+            // Mark the active LLM with an asterisk
+            if (llmName.equals(activeLlm)) {
+                result.append("* ");
+            } else {
+                result.append("  ");
+            }
+            
+            result.append(llmName);
+            
+            // Add basic information if it's a CoreLlm
+            if (llm instanceof CoreLlm) {
+                Properties props = llm.getProperties();
+                String vendor = props.getProperty("vendor", "unknown");
+                String model = props.getProperty("modelName", "unknown");
+                
+                result.append(" (").append(vendor).append(", ").append(model).append(")");
+            }
+            
+            result.append("\n");
+        }
+        
+        if (activeLlm != null) {
+            result.append("\n* = active LLM\n");
+        }
+        
+        result.append("\nUse '/llm set <name>' to set the active LLM");
+        
+        return result.toString();
     }
 }

@@ -51,7 +51,7 @@ public class CoreLlmManager implements LlmManager {
      * 
      * @return the LLMs
      */
-    public Map<String, Llm> getLLMs() {
+    public Map<String, Llm> getLlms() {
         return llms;
     }
 

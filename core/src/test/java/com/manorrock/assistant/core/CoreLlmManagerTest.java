@@ -51,7 +51,7 @@ class CoreLlmManagerTest {
         coreLlmManager.registerLlm("llm1", mockLlm1);
         coreLlmManager.registerLlm("llm2", mockLlm2);
 
-        Map<String, Llm> llms = coreLlmManager.getLLMs();
+        Map<String, Llm> llms = coreLlmManager.getLlms();
         assertEquals(2, llms.size());
         assertTrue(llms.containsKey("llm1"));
         assertTrue(llms.containsKey("llm2"));
