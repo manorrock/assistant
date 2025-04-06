@@ -90,8 +90,6 @@ public class CLI implements Callable<Integer> {
         .registerCommand("template", new CLISystemMessageCommand(coreAssistant));
     coreAssistant.getCommandRegistry()
         .registerCommand("issue-template", new CLIIssueTemplateCommand(coreAssistant));
-    coreAssistant.getCommandRegistry()
-        .registerCommand("implement-issue", new CLIImplementIssueCommand(coreAssistant));
   }
 
   /**

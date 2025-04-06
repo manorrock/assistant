@@ -4,11 +4,15 @@
 
 # Next release
 - [x] Add /llm remove command the removes an LLM
-
-# Backlog
+- [x] Refactor /explain
+      - Use /explain clipboard to explain content on the clipboard
+      - Use /explain <file> to explain a specific file
+      - Use /explain to get the help text
 - [ ] Add /llm info command that list the properties of the current active LLM (if any)
 - [ ] Refactor to use /llm use command to activate the specified LLM (if it exists)
 - [ ] Refactor to show help for /llm
+
+# Backlog
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
