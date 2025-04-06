@@ -10,7 +10,25 @@ permissions:
   packages: read
   actions: write
 jobs:
+  check_github_environment:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - id: check
+        name: Check if running on GitHub
+        run: |
+          if [[ "$GITHUB_SERVER_URL" == "https://github.com" && -n "$GITHUB_REF" ]]; then
+            echo "Running on GitHub.com with ref: $GITHUB_REF"
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "Not running on GitHub.com or missing ref"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
   build:
+    needs: check_github_environment
+    if: needs.check_github_environment.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     env:
       JAVA_OPTS: "-Djava.awt.headless=true"
@@ -69,6 +87,8 @@ jobs:
         compression-level: 9
         overwrite: true
   eclipse:
+    needs: check_github_environment
+    if: needs.check_github_environment.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -112,6 +132,8 @@ jobs:
           files: standardized/Manorrock-Assistant-Eclipse.jar
           draft: false
   intellij:
+    needs: check_github_environment
+    if: needs.check_github_environment.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -137,6 +159,8 @@ jobs:
           files: standardized/Manorrock-Assistant-IntelliJ.zip
           draft: false
   macos-arm64-dmg:
+    needs: check_github_environment
+    if: needs.check_github_environment.outputs.should_run == 'true'
     runs-on: macos-14
     steps:
     - uses: actions/checkout@v4
@@ -161,6 +185,8 @@ jobs:
         files: standardized/Manorrock-Assistant-arm64.dmg
         draft: false
   macos-amd64-dmg:
+    needs: check_github_environment
+    if: needs.check_github_environment.outputs.should_run == 'true'
     runs-on: macos-13
     steps:
     - uses: actions/checkout@v4
@@ -185,6 +211,8 @@ jobs:
         files: standardized/Manorrock-Assistant-amd64.dmg
         draft: false
   windows-amd64-msi:
+    needs: check_github_environment
+    if: needs.check_github_environment.outputs.should_run == 'true'
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
@@ -209,6 +237,8 @@ jobs:
         files: standardized/Manorrock-Assistant-amd64.msi
         draft: false
   nbm:
+    needs: check_github_environment
+    if: needs.check_github_environment.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -233,6 +263,8 @@ jobs:
           files: standardized/Manorrock-Assistant.nbm
           draft: false
   vsix:
+    needs: check_github_environment
+    if: needs.check_github_environment.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
