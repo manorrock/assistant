@@ -36,7 +36,7 @@ public class CoreCommandRegistry implements CommandRegistry {
         registerCommand("ollama", new CoreOllamaCommand(assistant));
         registerCommand("session", new CoreSessionCommand(assistant));
         registerCommand("tool", new CoreToolCommand(assistant));
-        registerCommand("context", new CoreContextManagerCommand(assistant));    
+        registerCommand("context", new CoreContextCommand(assistant));    
 
     }
 

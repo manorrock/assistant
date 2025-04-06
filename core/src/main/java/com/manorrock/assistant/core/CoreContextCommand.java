@@ -23,44 +23,21 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  * Context state is persisted between sessions.
  * </p>
  */
-public class CoreContextManagerCommand implements Command {
+public class CoreContextCommand implements Command {
     
-    /**
-     * Stores the logger.
-     */
-    private static final Logger LOGGER = Logger.getLogger(CoreContextManagerCommand.class.getName());
-    
-    /**
-     * Stores the core assistant reference.
-     */
+    private static final Logger LOGGER = Logger.getLogger(CoreContextCommand.class.getName());
     private final CoreAssistant assistant;
-    
-    /**
-     * Stores the list of context files.
-     */
     private final List<String> contextFiles = new ArrayList<>();
-    
-    /**
-     * Stores the path to the state directory.
-     */
     private final Path stateDir;
-    
-    /**
-     * Stores the JSON object mapper.
-     */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Constructor.
-     *
-     * @param assistant The core assistant instance
-     */
-    public CoreContextManagerCommand(CoreAssistant assistant) {
+    public CoreContextCommand(CoreAssistant assistant) {
         this.assistant = assistant;
         this.stateDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant");
         loadContext();
+        applyContext(); // Apply context on initialization
     }
-    
+
     @Override
     public String execute(String input) {
         if (input == null || input.trim().isEmpty()) {
@@ -71,23 +48,56 @@ public class CoreContextManagerCommand implements Command {
         String subCommand = parts[0].toLowerCase();
         String arguments = parts.length > 1 ? parts[1].trim() : "";
         
+        String result;
         switch (subCommand) {
             case "add":
-                return addToContext(arguments);
+                result = addToContext(arguments);
+                if (!result.startsWith("Error")) {
+                    applyContext();
+                }
+                return result;
             case "list":
                 return listContext();
             case "clear":
-                return clearContext();
-            case "use":
-                return useContext(arguments);
+                result = clearContext();
+                applyContext();
+                return result;
             case "remove":
-                return removeFromContext(arguments);
+                result = removeFromContext(arguments);
+                if (!result.startsWith("Error")) {
+                    applyContext();
+                }
+                return result;
             case "help":
             default:
                 return getHelp();
         }
     }
-    
+
+    private void applyContext() {
+        // Build context content from files
+        StringBuilder contextContent = new StringBuilder();
+        for (String filePath : contextFiles) {
+            try {
+                File file = new File(filePath);
+                if (file.exists() && file.isFile()) {
+                    String content = Files.readString(file.toPath());
+                    contextContent.append("===== File: ").append(filePath).append(" =====\n");
+                    contextContent.append(content).append("\n\n");
+                }
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Error reading context file: " + filePath, e);
+            }
+        }
+
+        // If we have context, set it in the assistant
+        if (contextContent.length() > 0) {
+            assistant.setContext(contextContent.toString());
+        } else {
+            assistant.clearContext();
+        }
+    }
+
     /**
      * Add a file to the context.
      * 
@@ -144,44 +154,6 @@ public class CoreContextManagerCommand implements Command {
         contextFiles.clear();
         saveContext();
         return "Cleared context (" + count + " files removed)";
-    }
-    
-    /**
-     * Use context files in a prompt.
-     * 
-     * @param prompt Additional prompt text
-     * @return Generated prompt with context
-     */
-    private String useContext(String prompt) {
-        if (contextFiles.isEmpty()) {
-            return "Error: No context files are currently added. Use '/context add <file>' to add files.";
-        }
-        
-        StringBuilder contextContent = new StringBuilder();
-        for (String filePath : contextFiles) {
-            try {
-                File file = new File(filePath);
-                if (file.exists() && file.isFile()) {
-                    String content = Files.readString(file.toPath());
-                    contextContent.append("===== File: ").append(filePath).append(" =====\n");
-                    contextContent.append(content).append("\n\n");
-                } else {
-                    contextContent.append("Error reading file: ").append(filePath).append(" (file not found)\n");
-                }
-            } catch (IOException e) {
-                LOGGER.log(Level.WARNING, "Error reading context file: " + filePath, e);
-                contextContent.append("Error reading file: ").append(filePath).append(" (").append(e.getMessage()).append(")\n");
-            }
-        }
-        
-        // Get active LLM and set system message with context
-        if (!prompt.isEmpty()) {
-            return "Context has been loaded. Use the following in your next prompt:\n\n" + 
-                   "Consider the following context:\n" + contextContent.toString() + "\n" + prompt;
-        } else {
-            return "Context has been loaded. Use the following in your next prompt:\n\n" + 
-                   "Consider the following context:\n" + contextContent.toString();
-        }
     }
     
     /**
@@ -272,7 +244,6 @@ public class CoreContextManagerCommand implements Command {
                  /context list           - List current context files
                  /context remove <n|path> - Remove a file by number or path
                  /context clear          - Clear all context files
-                 /context use [prompt]   - Use context in a prompt
                """;
     }
 
@@ -283,7 +254,8 @@ public class CoreContextManagerCommand implements Command {
                
                This command allows you to maintain a list of files that provide context
                for your prompts. You can add files to the context, list the current context,
-               remove files, clear the context, and use the context in prompts.
+               remove files, and clear the context. Context files are automatically included
+               in all conversations with the assistant.
                
                The context is persisted between sessions, so you can close and reopen
                the assistant without losing your context.
@@ -293,7 +265,6 @@ public class CoreContextManagerCommand implements Command {
                  /context list           - List current context files
                  /context remove <n|path> - Remove a file by number or path
                  /context clear          - Clear all context files
-                 /context use [prompt]   - Use context in a prompt
                """;
     }
 
