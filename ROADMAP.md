@@ -9,7 +9,7 @@
       - Use /explain <file> to explain a specific file
       - Use /explain to get the help text
 - [x] Add /llm info command that list the properties of the current active LLM (if any)
-- [ ] Refactor to use /llm use command to activate the specified LLM (if it exists)
+- [x] Refactor to use /llm use command to activate the specified LLM (if it exists)
 - [ ] Refactor to show help for /llm
 - [ ] Validate /context use does anything useful
 - [ ] Refactor to push body of cases into their respective methods in CoreLlmCommand
@@ -131,4 +131,3 @@
 - [ ] Make sure request area keeps focus after submitting (VSCode)
 - [ ] Make sure initial startup message shows as one block and renders properly (VSCode)
 - [ ] Make sure the version generated aligns with the rest of the project (VSCode)
-- [ ] Add /llm help that shows proper help
