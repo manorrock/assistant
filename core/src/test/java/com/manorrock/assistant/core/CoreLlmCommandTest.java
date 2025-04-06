@@ -172,4 +172,38 @@ public class CoreLlmCommandTest {
         assert(result.contains("* = active LLM"));
         assert(result.contains("Use '/llm set"));
     }
+
+    @Test
+    public void testAddLlm_successful() {
+        // Setup for a new LLM name that doesn't exist yet
+        String newLlmName = "newLlm";
+        when(mockLlmManager.getLlm(newLlmName)).thenReturn(null);
+        
+        // Execute the add command
+        String result = command.execute("add " + newLlmName);
+        
+        // Verify that registerLlm was called with the correct parameters
+        verify(mockLlmManager).registerLlm(eq(newLlmName), any(CoreLlm.class));
+        
+        // Verify the result message
+        assert(result.contains("New LLM '" + newLlmName + "' has been added"));
+        assert(result.contains("Use '/llm set " + newLlmName + "' to activate it"));
+    }
+    
+    @Test
+    public void testAddLlm_alreadyExists() {
+        // Setup for an LLM name that already exists
+        String existingLlmName = "existingLlm";
+        Llm mockLlm = mock(Llm.class);
+        when(mockLlmManager.getLlm(existingLlmName)).thenReturn(mockLlm);
+        
+        // Execute the add command
+        String result = command.execute("add " + existingLlmName);
+        
+        // Verify that registerLlm was NOT called
+        verify(mockLlmManager, never()).registerLlm(anyString(), any(Llm.class));
+        
+        // Verify the result message
+        assertEquals("LLM with name '" + existingLlmName + "' already exists.", result);
+    }
 }

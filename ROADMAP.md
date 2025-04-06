@@ -14,9 +14,10 @@
 - [x] Add /implement-issue command
 - [x] Add application launch test for Desktop application
 - [x] Add /llm list command that lists the available LLMs
+- [x] Add /llm add command that adds an LLM (not configured yet)
 
 # Backlog
-- [ ] Add /llm add command that adds an LLM (not configured yet)
+- [ ] Update build pipeline to only trigger when executed on GitHub
 - [ ] Add /llm remove command the removes an LLM
 - [ ] Add /llm info command that list the properties of the current active LLM (if any)
 - [ ] Refactor to use /llm use command to activate the specified LLM (if it exists)
