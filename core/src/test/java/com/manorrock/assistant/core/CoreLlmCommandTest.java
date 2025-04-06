@@ -80,15 +80,15 @@ public class CoreLlmCommandTest {
     }
 
     @Test
-    public void testSetActiveLlm_withValidLlm() {
+    public void testUseActiveLlm_withValidLlm() {
         // Setup a valid LLM
         String llmName = "validLlm";
         Llm mockLlm = mock(Llm.class);
         
         when(mockLlmManager.getLlm(llmName)).thenReturn(mockLlm);
         
-        // Execute the set command
-        String result = command.execute("set " + llmName);
+        // Execute the use command
+        String result = command.execute("use " + llmName);
         
         // Verify that setActiveLlm was called with the correct name
         verify(mockAssistant).setActiveLlm(llmName);
@@ -98,14 +98,14 @@ public class CoreLlmCommandTest {
     }
 
     @Test
-    public void testSetActiveLlm_withInvalidLlm() {
+    public void testUseActiveLlm_withInvalidLlm() {
         // Setup an invalid LLM
         String llmName = "invalidLlm";
         
         when(mockLlmManager.getLlm(llmName)).thenReturn(null);
         
-        // Execute the set command
-        String result = command.execute("set " + llmName);
+        // Execute the use command
+        String result = command.execute("use " + llmName);
         
         // Verify that setActiveLlm was NOT called
         verify(mockAssistant, never()).setActiveLlm(any());

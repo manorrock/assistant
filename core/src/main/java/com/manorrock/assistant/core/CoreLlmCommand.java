@@ -46,8 +46,8 @@ public class CoreLlmCommand implements Command {
                  /llm model <string>           - Set LLM model name
                  /llm remove <string>          - Remove an LLM with the specified name
                  /llm reset                    - Reset the LLM and clear memory
-                 /llm set <string>             - Set the active LLM by name
                  /llm temperature <number>     - Set temperature parameter (0.0-1.0)
+                 /llm use <string>             - Set the active LLM by name
                  /llm vendor <string>          - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
                """;
     }
@@ -115,21 +115,21 @@ public class CoreLlmCommand implements Command {
             case "reset":
                 return resetLlm();
                 
-            case "set":
-                if (parts.length < 2) {
-                    return "Current active LLM: " + (assistant.getActiveLlm() != null ? assistant.getActiveLlm() : "(none)");
-                }
-                return setActiveLlm(parts[1].trim());
-                
             case "remove":
                 if (parts.length < 2) {
                     return "Please provide the name of the LLM to remove. Usage: /llm remove <llm-name>";
                 }
                 return removeLlm(parts[1].trim());
+
+            case "use":
+                if (parts.length < 2) {
+                    return "Current active LLM: " + (assistant.getActiveLlm() != null ? assistant.getActiveLlm() : "(none)");
+                }
+                return setActiveLlm(parts[1].trim());
                 
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, add, list, reset, set, remove";
+                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, add, list, reset, remove, use";
         }
     }
     
