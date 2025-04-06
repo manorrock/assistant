@@ -37,6 +37,7 @@ public class CoreLlmCommand implements Command {
                
                Usage:
                  /llm                          - Show current configuration
+                 /llm add <name>               - Add a new unconfigured LLM with the given name
                  /llm apiKey <string>          - Set API key for authentication
                  /llm endpoint <url>           - Set LLM endpoint
                  /llm functionCalling <on|off> - Enable or disable function calling
@@ -101,6 +102,12 @@ public class CoreLlmCommand implements Command {
                     return "Function calling is currently: " + (isFunctionCallingEnabled() ? "ON" : "OFF");
                 }
                 return setFunctionCalling(parts[1].trim());
+                
+            case "add":
+                if (parts.length < 2) {
+                    return "Please provide a name for the new LLM. Usage: /llm add <name>";
+                }
+                return addLlm(parts[1].trim());
             
             case "list":
                 return listLlms();
@@ -116,7 +123,7 @@ public class CoreLlmCommand implements Command {
                 
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, list, reset, set";
+                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, add, list, reset, set";
         }
     }
     
@@ -451,5 +458,22 @@ public class CoreLlmCommand implements Command {
         result.append("\nUse '/llm set <name>' to set the active LLM");
         
         return result.toString();
+    }
+    
+    /**
+     * Add a new LLM with the given name.
+     *
+     * @param name The name of the new LLM
+     * @return Result message
+     */
+    private String addLlm(String name) {
+        if (assistant.getLlmManager().getLlm(name) != null) {
+            return "LLM with name '" + name + "' already exists.";
+        }
+        
+        Llm newLlm = new CoreLlm(assistant.getLlmManager());
+        newLlm.init();
+        assistant.getLlmManager().registerLlm(name, newLlm);
+        return "New LLM '" + name + "' has been added. Use '/llm set " + name + "' to activate it.";
     }
 }
