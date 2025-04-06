@@ -41,6 +41,7 @@ public class CoreLlmCommand implements Command {
                  /llm apiKey <string>          - Set API key for authentication
                  /llm endpoint <url>           - Set LLM endpoint
                  /llm functionCalling <on|off> - Enable or disable function calling
+                 /llm info                     - Show current configuration
                  /llm list                     - List all available LLMs
                  /llm model <string>           - Set LLM model name
                  /llm remove <string>          - Remove an LLM with the specified name
@@ -62,9 +63,7 @@ public class CoreLlmCommand implements Command {
         String subCommand = parts[0].toLowerCase();
         
         switch (subCommand) {
-            case "status":
             case "info":
-            case "show":
                 return getCurrentConfiguration();
                 
             case "vendor":
