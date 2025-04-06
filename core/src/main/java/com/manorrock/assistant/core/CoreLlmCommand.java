@@ -37,15 +37,16 @@ public class CoreLlmCommand implements Command {
                
                Usage:
                  /llm                          - Show current configuration
-                 /llm add <name>               - Add a new unconfigured LLM with the given name
+                 /llm add <string>             - Add a new unconfigured LLM with the given name
                  /llm apiKey <string>          - Set API key for authentication
                  /llm endpoint <url>           - Set LLM endpoint
                  /llm functionCalling <on|off> - Enable or disable function calling
                  /llm list                     - List all available LLMs
                  /llm model <string>           - Set LLM model name
+                 /llm remove <string>          - Remove an LLM with the specified name
                  /llm reset                    - Reset the LLM and clear memory
-                 /llm set <llm-name>           - Set the active LLM by name
-                 /llm temperature <number>.    - Set temperature parameter (0.0-1.0)
+                 /llm set <string>             - Set the active LLM by name
+                 /llm temperature <number>     - Set temperature parameter (0.0-1.0)
                  /llm vendor <string>          - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
                """;
     }
@@ -121,9 +122,15 @@ public class CoreLlmCommand implements Command {
                 }
                 return setActiveLlm(parts[1].trim());
                 
+            case "remove":
+                if (parts.length < 2) {
+                    return "Please provide the name of the LLM to remove. Usage: /llm remove <llm-name>";
+                }
+                return removeLlm(parts[1].trim());
+                
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, add, list, reset, set";
+                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, add, list, reset, set, remove";
         }
     }
     
@@ -475,5 +482,31 @@ public class CoreLlmCommand implements Command {
         newLlm.init();
         assistant.getLlmManager().registerLlm(name, newLlm);
         return "New LLM '" + name + "' has been added. Use '/llm set " + name + "' to activate it.";
+    }
+    
+    /**
+     * Remove an LLM with the given name.
+     *
+     * @param name The name of the LLM to remove
+     * @return Result message
+     */
+    private String removeLlm(String name) {
+        if (assistant.getLlmManager().getLlm(name) == null) {
+            return "LLM with name '" + name + "' does not exist.";
+        }
+        
+        // If the LLM to be removed is the active one, unset it first
+        if (name.equals(assistant.getActiveLlm())) {
+            assistant.setActiveLlm(null);
+        }
+        
+        // Get the LLM and destroy it before removing
+        Llm llmToRemove = assistant.getLlmManager().getLlm(name);
+        llmToRemove.destroy();
+        
+        // Unregister the LLM using the interface method
+        assistant.getLlmManager().unregisterLlm(name);
+        
+        return "LLM '" + name + "' has been removed.";
     }
 }

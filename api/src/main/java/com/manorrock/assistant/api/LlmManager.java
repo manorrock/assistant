@@ -30,6 +30,13 @@ public interface LlmManager {
      * @param llm the LLM
      */
     void registerLlm(String name, Llm llm);
+    
+    /**
+     * Unregister an LLM.
+     * 
+     * @param name the registered name of the LLM to unregister.
+     */
+    void unregisterLlm(String name);
 
     /**
      * Get the assistant.

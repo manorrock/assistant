@@ -70,8 +70,20 @@ public class CoreLlmManager implements LlmManager {
      * 
      * @param name the name of the LLM
      */
-    public void unregisterLLM(String name) {
+    @Override
+    public void unregisterLlm(String name) {
         llms.remove(name);
+    }
+
+    /**
+     * Unregister an LLM.
+     * 
+     * @param name the name of the LLM
+     * @deprecated Use {@link #unregisterLlm(String)} instead
+     */
+    @Deprecated
+    public void unregisterLLM(String name) {
+        unregisterLlm(name);
     }
 
     @Override

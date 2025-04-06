@@ -3,24 +3,9 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-- [x] Create installation script for wrapper
-- [x] Refactor /explain 
-      - Refactor clipboard to use /explain clipboard
-      - Refactor /explain [filepath] to be /explain file <filepath>
-      - Add /explain help that shows the help      
-- [x] Upgrade Node.js to 18.17+ for VSCode extension to fix npm engine compatibility warnings
-- [x] Add compatibility check for wrapper script
-- [x] Add /issue-template command
-- [x] Add /implement-issue command
-- [x] Add application launch test for Desktop application
-- [x] Add /llm list command that lists the available LLMs
-- [x] Add /llm add command that adds an LLM (not configured yet)
-- [x] Update build pipeline to only trigger when executed on GitHub
-      - Check GITHUB_REF for the checked out reference
-      - Verify GITHUB_SERVER_URL to ensure it's running on github.com
+- [x] Add /llm remove command the removes an LLM
 
 # Backlog
-- [ ] Add /llm remove command the removes an LLM
 - [ ] Add /llm info command that list the properties of the current active LLM (if any)
 - [ ] Refactor to use /llm use command to activate the specified LLM (if it exists)
 - [ ] Refactor to show help for /llm

@@ -85,13 +85,23 @@ public class CLI implements Callable<Integer> {
     coreAssistant = new CoreAssistant();
     coreAssistant.setActiveLlm("llama3.2");
     coreAssistant.getCommandRegistry()
-        .registerCommand("explain", new EnhancedCodeExplainCommand(coreAssistant));
+        .registerCommand("explain", new CLIExplainCommand(coreAssistant));
     coreAssistant.getCommandRegistry()
         .registerCommand("template", new CLISystemMessageCommand(coreAssistant));
     coreAssistant.getCommandRegistry()
         .registerCommand("issue-template", new CLIIssueTemplateCommand(coreAssistant));
     coreAssistant.getCommandRegistry()
         .registerCommand("implement-issue", new CLIImplementIssueCommand(coreAssistant));
+  }
+
+  /**
+   * Protected accessor method to allow subclasses to access the CoreAssistant instance.
+   * This supports extension by enterprise or specialized CLI implementations.
+   * 
+   * @return The CoreAssistant instance
+   */
+  protected CoreAssistant getCoreAssistant() {
+    return coreAssistant;
   }
 
   /**
