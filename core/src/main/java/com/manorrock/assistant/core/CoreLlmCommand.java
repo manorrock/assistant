@@ -36,7 +36,7 @@ public class CoreLlmCommand implements Command {
                Display and manage LLM configuration.
                
                Usage:
-                 /llm                          - Show current configuration
+                 /llm                          - Show the help message
                  /llm add <string>             - Add a new unconfigured LLM with the given name
                  /llm apiKey <string>          - Set API key for authentication
                  /llm endpoint <url>           - Set LLM endpoint
@@ -55,8 +55,7 @@ public class CoreLlmCommand implements Command {
     @Override
     public String execute(String input) {
         if (input == null || input.trim().isEmpty()) {
-            // Show current configuration if no arguments provided
-            return getCurrentConfiguration();
+            return getDescription();
         }
         
         String[] parts = input.trim().split("\\s+", 2);

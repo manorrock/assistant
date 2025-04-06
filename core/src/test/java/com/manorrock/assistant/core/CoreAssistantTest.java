@@ -295,10 +295,12 @@ public class CoreAssistantTest {
         assertEquals("Command executed with empty args", response.getContent(),
                 "Response should contain the result of the command execution without arguments");
     }
-    
+
+    /**
+     * Test the /llm info command.
+     */
     @Test
-    public void testLlmCommandList() {
-        // Register a test LLM
+    public void testLlmInfoCommand() {
         String testLlmName = "testLlm";
         Llm mockLlm = new Llm() {
             @Override
@@ -323,8 +325,7 @@ public class CoreAssistantTest {
         
         coreAssistant.getLlmManager().registerLlm(testLlmName, mockLlm);
         
-        // Test command without any args should show current configuration
-        AssistantMessage inputMessage = new CoreAssistantMessage("/llm");
+        AssistantMessage inputMessage = new CoreAssistantMessage("/llm info");
         AssistantMessage response = coreAssistant.processMessage(inputMessage);
         
         assertNotNull(response, "Response should not be null");
@@ -587,9 +588,12 @@ public class CoreAssistantTest {
                "Response should indicate an error or that no active LLM is set");
     }
 
+    /*
+     * Test the /llm info command to check if it shows the correct properties
+     * of the active LLM.
+     */
     @Test
-    public void testLlmCommandGetShowConfig() {
-        // Set up a test LLM with mock properties
+    public void testLlmInfoCommandCheckingProperties() {
         String testLlmName = "configTestLlm";
         Properties props = new Properties();
         props.setProperty("vendor", "TEST_VENDOR");
@@ -602,29 +606,24 @@ public class CoreAssistantTest {
         coreAssistant.getLlmManager().registerLlm(testLlmName, mockLlm);
         coreAssistant.setActiveLlm(testLlmName);
         
-        // Test different ways to show configuration
-        String[] commands = {"/llm", "/llm info"};
-        
-        for (String cmd : commands) {
-            AssistantMessage command = new CoreAssistantMessage(cmd);
-            AssistantMessage response = coreAssistant.processMessage(command);
+        AssistantMessage command = new CoreAssistantMessage("/llm info");
+        AssistantMessage response = coreAssistant.processMessage(command);
             
-            assertNotNull(response, "Response should not be null");
-            String content = response.getContent();
+        assertNotNull(response, "Response should not be null");
+        String content = response.getContent();
             
-            assertTrue(content.contains("Current LLM Configuration:"), 
-                    "Response should show configuration header");
-            assertTrue(content.contains("Vendor: TEST_VENDOR"), 
-                    "Response should show vendor");
-            assertTrue(content.contains("Model: test-model"), 
-                    "Response should show model");
-            assertTrue(content.contains("Endpoint: http://test.endpoint"), 
-                    "Response should show endpoint");
-            assertTrue(content.contains("API Key:"), 
-                    "Response should show API key label");
-            assertTrue(content.contains("Temperature: 0.5"), 
-                    "Response should show temperature");
-        }
+        assertTrue(content.contains("Current LLM Configuration:"), 
+                "Response should show configuration header");
+        assertTrue(content.contains("Vendor: TEST_VENDOR"), 
+                "Response should show vendor");
+        assertTrue(content.contains("Model: test-model"), 
+                "Response should show model");
+        assertTrue(content.contains("Endpoint: http://test.endpoint"), 
+                "Response should show endpoint");
+        assertTrue(content.contains("API Key:"), 
+                "Response should show API key label");
+        assertTrue(content.contains("Temperature: 0.5"), 
+                "Response should show temperature");
     }
 
     @Test

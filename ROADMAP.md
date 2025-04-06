@@ -10,7 +10,7 @@
       - Use /explain to get the help text
 - [x] Add /llm info command that list the properties of the current active LLM (if any)
 - [x] Refactor to use /llm use command to activate the specified LLM (if it exists)
-- [ ] Refactor to show help for /llm
+- [x] Refactor to show help for /llm
 - [ ] Validate /context use does anything useful
 - [ ] Refactor to push body of cases into their respective methods in CoreLlmCommand
 - [ ] Add repository field to package.json in VSCode extension
@@ -130,4 +130,3 @@
 - [ ] Make sure request area keeps focus after submitting (VSCode)
 - [ ] Make sure request area keeps focus after submitting (VSCode)
 - [ ] Make sure initial startup message shows as one block and renders properly (VSCode)
-- [ ] Make sure the version generated aligns with the rest of the project (VSCode)
