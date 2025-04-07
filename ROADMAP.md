@@ -3,29 +3,14 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-- [x] Add /llm remove command the removes an LLM
-- [x] Refactor /explain
-      - Use /explain clipboard to explain content on the clipboard
-      - Use /explain <file> to explain a specific file
-      - Use /explain to get the help text
-- [x] Add /llm info command that list the properties of the current active LLM (if any)
-- [x] Refactor to use /llm use command to activate the specified LLM (if it exists)
-- [x] Refactor to show help for /llm
-- [x] Refactor /context
-- [x] Add repository field to package.json in VSCode extension
-- [x] Refactor /template into /llm systemMessage
-- [x] Make sure request area keeps focus after submitting (VSCode)
-- [x] Remove Dark mode button (NetBeans)
-
-# Backlog
-- [ ] Remove Dark / light mode toggle (Desktop)
-- [ ] Add /theme command (NetBeans)
-      - Add /theme set 
-      - Add /theme list
-- [ ] Add /theme command (Desktop)
-      - Add /theme set
-      - Add /theme list
+- [x] Remove Dark / light mode toggle (Desktop)
+- [ ] Refactor to use CoreAssistant directly (Eclipse)
+- [ ] Refactor to use CoreAssistant directly (IntelliJ)
+- [ ] Merge iphone directory into mobile directory (Phone)
+- [ ] Move the progress indicator into the response area (VSCode)
 - [ ] Remove typewriter effect (Desktop)
+- [ ] Remove typewriter effect (NetBeans)
+- [ ] Add NBM as release artifact (NetBeans)
 
 ## Command Standardization
 - [ ] Create CommandParser interface with standardized parameter parsing
@@ -348,7 +333,3 @@
 - [ ] Add multi-channel conversation support
 - [ ] Add Spring Boot REST API application
 - [ ] Add web interface
-- [ ] Implement MCP server functionality
-- [ ] Create mobile applications (iPhone, Android)
-- [ ] Create chat platform integrations (Discord, Slack, Teams)
-- [ ] Add WebSearchTool (multiple providers)
