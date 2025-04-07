@@ -18,25 +18,27 @@ To install the latest stable release of Manorrock Assistant CLI, run:
 
 | Command | Description |
 |---------|-------------|
-| `/clear` | Clears the response window |
-| `/explain` | Explains text from clipboard, selection, or file |
+| `/context` | Manages context files for prompts |
+| `/explain` | Explains text from clipboard, editor selection, or specified file |
 | `/help` | Displays available commands |
-| `/llm` | Displays and configures LLM settings |
-| `/new` | Starts a new chat session |
+| `/llm` | Manages LLMs and their configuration |
+| `/ollama` | Manages Ollama models and server |
+| `/session` | Manages chat sessions (new sessions, clearing history) |
 | `/source` | Executes commands from a file |
-| `/tool` | Manages tool integrations |
+| `/tool` | Manages and executes tools |
 
 ## Command Support Matrix
 
 | Command | CLI | Desktop | VSCode | IntelliJ | Eclipse | NetBeans |
 |---------|-----|---------|--------|----------|---------|----------|
-| `/clear` | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
-| `/explain` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/context` | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
+| `/explain` | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
 | `/help` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/llm` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
-| `/new` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/llm` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
+| `/ollama` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
+| `/session` | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
 | `/source` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/tool` | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| `/tool` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 
 **Legend:**
 - ✅ Fully supported
@@ -45,11 +47,17 @@ To install the latest stable release of Manorrock Assistant CLI, run:
 
 ## Partial Support Notes
 
-- `/clear`: VSCode relies on CLI implementation
-- `/explain`: Eclipse fully supports editor selection and file content via CLI integration
-- `/llm`: VSCode and IntelliJ require manual configuration for some LLM settings
+- `/context`: IntelliJ has limited context file management capabilities
+- `/explain`: Each implementation has platform-specific differences:
+  - CLI: Uses platform-specific commands for clipboard access
+  - Desktop: Supports clipboard and file content
+  - IDE implementations (VSCode, Eclipse, NetBeans): Support editor selection along with clipboard and file content
+  - IntelliJ: Primarily supports editor selection and file content
+- `/llm`: IntelliJ requires manual configuration for some LLM settings
+- `/ollama`: Currently not supported in IntelliJ
+- `/session`: IntelliJ has limited session management capabilities
 - `/source`: All implementations except mobile fully support executing commands from a file
-- `/tool`: Supported in CLI, Eclipse, and NetBeans via CLI integration
+- `/tool`: Not currently available in IntelliJ
 
 ## Downloads
 

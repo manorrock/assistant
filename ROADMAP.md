@@ -13,10 +13,230 @@
 - [x] Refactor to show help for /llm
 - [x] Refactor /context
 - [x] Add repository field to package.json in VSCode extension
-- [ ] Refactor to push body of cases into their respective methods in CoreLlmCommand
+- [x] Refactor /template into /llm systemMessage
 - [ ] Make sure request area keeps focus after submitting (VSCode)
 
 # Backlog
+
+## Command Standardization
+- [ ] Create CommandParser interface with standardized parameter parsing
+      - Support for named parameters with -- prefix
+      - Support for positional parameters
+      - Support for flag parameters
+      - Support for repeated parameters (gathering into collections)
+      - Validation of required vs optional parameters
+- [ ] Implement BaseCommand abstract class with standard command patterns
+      - Standardize /command (show help) pattern
+      - Standardize /command help pattern
+      - Standardize help text formatting across all commands
+      - Implement parameter validation in base class
+      - Add standard error reporting mechanism
+- [ ] Refactor CoreLlmCommand to use new BaseCommand architecture
+      - Move subcommand implementations to separate methods
+      - Implement parameter parsing with CommandParser
+      - Update help text to use standard format
+- [ ] Refactor CoreContextCommand to use new BaseCommand architecture
+- [ ] Refactor CoreExplainCommand to use new BaseCommand architecture
+- [ ] Refactor CoreHelpCommand to use new BaseCommand architecture
+- [ ] Refactor CoreOllamaCommand to use new BaseCommand architecture
+- [ ] Refactor CoreSessionCommand to use new BaseCommand architecture
+- [ ] Refactor CoreSourceCommand to use new BaseCommand architecture
+- [ ] Refactor CoreToolCommand to use new BaseCommand architecture
+
+### CLI-specific Command Standardization
+- [ ] Refactor CLIExplainCommand to use BaseCommand architecture
+- [ ] Refactor CLIIssueTemplateCommand to use BaseCommand architecture
+- [ ] Add standard help text for CLI-specific commands
+- [ ] Implement consistent clipboard access pattern across platforms
+
+### Desktop-specific Command Standardization
+- [ ] Create standard pattern for desktop UI interaction commands
+- [ ] Add desktop component access from commands
+- [ ] Standardize file dialog interactions from commands
+
+### IDE-specific Command Standardization
+- [ ] Create standard pattern for editor interaction commands
+      - Standard access to editor selections
+      - Standard access to active files
+      - Standard access to project structure
+- [ ] Refactor VSCode extension commands to use BaseCommand
+- [ ] Refactor Eclipse plugin commands to use BaseCommand
+- [ ] Refactor NetBeans plugin commands to use BaseCommand
+- [ ] Refactor IntelliJ plugin commands to use BaseCommand
+- [ ] Standardize IDE-specific command registration process
+- [ ] Create adapter layer between BaseCommand and IDE-specific APIs
+
+- [ ] Implement CommandRegistry validation to enforce standards
+      - Verify all registered commands implement BaseCommand
+      - Validate consistency of command help texts
+      - Check for command naming conflicts
+- [ ] Add automated tests specifically for command standard compliance
+      - Test command parameter parsing for all standard cases
+      - Test help text generation matches expected format
+      - Test error handling follows standards
+- [ ] Create command documentation generation tool
+      - Extract standardized help from all commands
+      - Generate markdown documentation
+      - Include parameter descriptions and examples
+- [ ] Implement command usage analytics to identify common patterns
+      - Track command usage patterns
+      - Use data to refine command interface standards
+
+## Tool Standardization
+- [ ] Create BaseTool abstract class to standardize tool implementation
+      - Extend AbstractTool with improved error handling
+      - Add standardized parameter validation
+      - Add consistent logging patterns
+      - Implement platform detection for OS-specific tools
+      - Support for tool registration metadata
+- [ ] Implement ToolLifecycleManager to standardize tool state transitions
+      - Add proper lifecycle state validation
+      - Implement consistent error recovery
+      - Add event hooks for state transitions
+      - Create standard monitoring interface
+- [ ] Standardize cross-platform tool interfaces
+      - Create platform-agnostic path handling utilities
+      - Add UI platform detection and adaptation
+      - Implement consistent clipboard access across platforms
+      - Add platform-specific feature detection
+- [ ] Create uniform ToolResult response structure
+      - Standardize success/failure patterns
+      - Add structured data format for LLM consumption
+      - Implement consistent error reporting
+      - Add support for partial/progressive results
+- [ ] Standardize tool parameter definitions
+      - Create rich parameter type system (beyond simple strings)
+      - Add parameter validation framework
+      - Support for default values and transformations
+      - Add documentation generation for parameters
+- [ ] Implement ToolRegistry with dependency management
+      - Add tool dependency resolution
+      - Implement proper versioning
+      - Add dynamic tool discovery
+      - Create consistent registration across all platforms
+- [ ] Standardize Tool UI integration patterns
+      - Implement common patterns for tool status reporting
+      - Create consistent progress indication
+      - Add user permission request framework
+      - Standardize tool output rendering in UI
+- [ ] Add Tool testing framework
+      - Create mock framework for tool dependencies
+      - Implement cross-platform test utilities
+      - Add performance benchmarking
+      - Create standard test cases for all tools
+- [ ] Standardize file and system access tools
+      - Create uniform file access patterns
+      - Add standardized process execution and management
+      - Implement consistent error handling for system operations
+      - Add permission management for file/system access
+- [ ] Implement API tools standardization
+      - Create uniform HTTP request/response handling
+      - Add standardized authentication patterns
+      - Implement consistent rate limiting
+      - Add API response caching
+- [ ] Create Tool documentation generator
+      - Extract tool descriptions and parameters automatically
+      - Generate markdown documentation
+      - Add usage examples
+      - Create integration diagrams
+- [ ] Standardize IDE-specific tool integration
+      - Create adapter layer for VSCode tools
+      - Implement adapter layer for Eclipse tools
+      - Add adapter layer for NetBeans tools
+      - Create adapter layer for IntelliJ tools
+- [ ] Implement mobile-specific tool standards
+      - Add resource usage optimizations for mobile
+      - Create consistent UI patterns for mobile tools
+      - Implement touch-friendly interfaces
+      - Add offline mode support
+
+## MCP Integration
+- [ ] Implement MCP client capabilities using Java SDK
+      - Create MCPClient interface for standard protocol interactions
+      - Add support for JSON-RPC 2.0 message format
+      - Implement capability negotiation with MCP servers
+      - Add proper connection lifecycle management
+      - Support stateful connections with servers
+      - Implement version detection and compatibility layer
+      - Support both 2024-11-05 and 2025-03-26 protocol versions
+      - Integrate with the Java SDK (io.modelcontextprotocol.sdk:mcp) as base dependency
+      - Implement session-based architecture using McpSession for sync/async operations
+      - Add proper SDK version compatibility checks (currently at 0.8.x)
+- [ ] Implement transport layer integrations
+      - Add StdioTransport support for process-based communication
+      - Implement HTTP SSE transport using Java HttpClient
+      - Add support for Spring WebFlux transport (optional)
+      - Implement Spring WebMVC transport support (optional)
+      - Create custom transport extension framework
+      - Add transport security features
+      - Implement transport selection based on connection requirements
+- [ ] Implement MCP resource handling
+      - Add support for retrieving contextual information from MCP servers
+      - Implement resource caching for better performance
+      - Create user consent UI for resource access permissions
+      - Add security validations for external resources
+      - Implement resource pagination handling
+      - Support URI template-based resource access from Java SDK
+      - Implement resource subscription system for updates
+- [ ] Add MCP tool integration
+      - Create bridge between Manorrock tools and MCP tools
+      - Implement tool result mapping between protocols
+      - Add proper error handling for MCP tool executions
+      - Support tool parameter validation and transformation
+      - Create user authorization UI for MCP tool execution
+      - Implement SDK-based tool discovery mechanisms
+      - Add support for tool list change notifications
+- [ ] Implement MCP prompt features
+      - Add support for MCP templated messages
+      - Implement MCP workflow integration
+      - Create prompt management interface
+      - Add prompt authorization controls
+      - Support dynamic prompt variables
+      - Implement SDK-based prompt handling and management
+- [ ] Add MCP sampling support
+      - Implement client-side sampling capabilities
+      - Add recursive LLM interaction support
+      - Create proper authorization flows for sampling requests
+      - Implement controls for prompt visibility
+      - Add result filtering capabilities
+      - Use Java SDK sampling support for AI model interactions
+- [ ] Create MCP server implementation
+      - Implement server-side protocol handling using McpServer
+      - Add standard MCP server capabilities
+      - Create server resource providers
+      - Implement server tool providers
+      - Add server prompt providers
+      - Support server configuration options
+      - Add proper server capability negotiation
+- [ ] Implement roots management
+      - Add roots list management
+      - Implement roots change notification system
+      - Create roots discovery mechanisms
+      - Support SDK-based roots listing and management
+- [ ] Add MCP security and compliance features
+      - Implement robust consent workflows for all MCP operations
+      - Add clear documentation of security implications
+      - Create appropriate access controls for data protection
+      - Implement audit logging for MCP interactions
+      - Add privacy controls for MCP data handling
+- [ ] Create MCP protocol utilities
+      - Implement configuration management
+      - Add progress tracking for long-running operations
+      - Support operation cancellation
+      - Add standardized error reporting
+      - Implement diagnostic logging
+- [ ] Create MCP testing framework
+      - Implement protocol compliance tests
+      - Add mock MCP servers for testing
+      - Create integration test suite
+      - Add performance benchmarks
+      - Implement security validation tests
+      - Integrate with io.modelcontextprotocol.sdk:mcp-test for testing utilities
+
+## Other
+
+- [ ] Refactor to push body of cases into their respective methods in CoreLlmCommand
+
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
       response area
 - [ ] Refactor IntelliJ plugin to use the CoreAssistant directly
@@ -127,4 +347,3 @@
 - [ ] Add WorkflowTool
 - [ ] Add MCPTool
 - [ ] Add GitHubTool
-- [ ] Create tablet application (iPad, Android tablet)

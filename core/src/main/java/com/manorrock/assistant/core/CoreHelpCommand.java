@@ -2,7 +2,6 @@ package com.manorrock.assistant.core;
 
 import com.manorrock.assistant.api.Command;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 /**
  * Core Help command for the Core Assistant.
