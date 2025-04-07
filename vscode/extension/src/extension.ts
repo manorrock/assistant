@@ -502,6 +502,11 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
               statusArea.classList.toggle('active', processing);
               sendBtn.disabled = processing;
               inputBox.disabled = processing;
+              
+              // Set focus back to input when processing is complete
+              if (!processing) {
+                setTimeout(() => inputBox.focus(), 0);
+              }
             }
 
             function createChatMessage(text, isUser = false) {
@@ -561,6 +566,7 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
               setProcessing(true);
               vscode.postMessage({ type: 'sendMessage', text: message });
               inputBox.value = '';
+              // Focus is handled by setProcessing when it's set to false
             });
 
             inputBox.addEventListener('keydown', (event) => {
@@ -568,6 +574,11 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
                 event.preventDefault();
                 sendBtn.click();
               }
+            });
+
+            // Focus input box on initial load
+            window.addEventListener('load', () => {
+              setTimeout(() => inputBox.focus(), 100);
             });
 
             window.addEventListener('message', event => {
