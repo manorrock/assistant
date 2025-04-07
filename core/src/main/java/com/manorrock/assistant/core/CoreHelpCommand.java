@@ -2,6 +2,7 @@ package com.manorrock.assistant.core;
 
 import com.manorrock.assistant.api.Command;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * Core Help command for the Core Assistant.
@@ -26,7 +27,7 @@ public class CoreHelpCommand implements Command {
     @Override
     public String execute(String input) {
         StringBuilder result = new StringBuilder();
-        result.append("Manorrock Assistant 25.3.7\n\n");
+        result.append("Manorrock Assistant \n\n");
         result.append("Available commands:\n");
         
         var commandNames = assistant.getCommandRegistry().getCommandNames();

@@ -12,8 +12,9 @@
 - [x] Refactor to use /llm use command to activate the specified LLM (if it exists)
 - [x] Refactor to show help for /llm
 - [x] Refactor /context
+- [x] Add repository field to package.json in VSCode extension
 - [ ] Refactor to push body of cases into their respective methods in CoreLlmCommand
-- [ ] Add repository field to package.json in VSCode extension
+- [ ] Make sure request area keeps focus after submitting (VSCode)
 
 # Backlog
 - [ ] Rework VSCode extension UI to make title not fixed, but rather part of the
@@ -127,5 +128,3 @@
 - [ ] Add MCPTool
 - [ ] Add GitHubTool
 - [ ] Create tablet application (iPad, Android tablet)
-- [ ] Make sure request area keeps focus after submitting (VSCode)
-- [ ] Make sure request area keeps focus after submitting (VSCode)

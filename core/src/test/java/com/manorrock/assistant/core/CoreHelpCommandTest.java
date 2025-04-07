@@ -35,7 +35,7 @@ public class CoreHelpCommandTest {
         String result = helpCommand.execute("");
 
         // Assert
-        assertEquals("Manorrock Assistant 25.3.7\n\nAvailable commands:\n", result);
+        assertEquals("Manorrock Assistant \n\nAvailable commands:\n", result);
     }
 
     @Test
@@ -59,8 +59,8 @@ public class CoreHelpCommandTest {
 
         // Assert
         // Since Set doesn't guarantee order, we need to check for both possible orderings
-        String expected1 = "Manorrock Assistant 25.3.7\n\nAvailable commands:\n/cmd1 - Description for cmd1\n/cmd2 - Description for cmd2\n";
-        String expected2 = "Manorrock Assistant 25.3.7\n\nAvailable commands:\n/cmd2 - Description for cmd2\n/cmd1 - Description for cmd1\n";
+        String expected1 = "Manorrock Assistant \n\nAvailable commands:\n/cmd1 - Description for cmd1\n/cmd2 - Description for cmd2\n";
+        String expected2 = "Manorrock Assistant \n\nAvailable commands:\n/cmd2 - Description for cmd2\n/cmd1 - Description for cmd1\n";
         assertTrue(result.equals(expected1) || result.equals(expected2),
                 "Result should match one of the expected outputs");
     }
