@@ -15,9 +15,9 @@
 - [x] Add repository field to package.json in VSCode extension
 - [x] Refactor /template into /llm systemMessage
 - [x] Make sure request area keeps focus after submitting (VSCode)
+- [x] Remove Dark mode button (NetBeans)
 
 # Backlog
-- [ ] Remove Dark mode button (NetBeans)
 - [ ] Remove Dark / light mode toggle (Desktop)
 - [ ] Add /theme command (NetBeans)
       - Add /theme set 
@@ -25,6 +25,7 @@
 - [ ] Add /theme command (Desktop)
       - Add /theme set
       - Add /theme list
+- [ ] Remove typewriter effect (Desktop)
 
 ## Command Standardization
 - [ ] Create CommandParser interface with standardized parameter parsing
