@@ -14,9 +14,17 @@
 - [x] Refactor /context
 - [x] Add repository field to package.json in VSCode extension
 - [x] Refactor /template into /llm systemMessage
-- [ ] Make sure request area keeps focus after submitting (VSCode)
+- [x] Make sure request area keeps focus after submitting (VSCode)
 
 # Backlog
+- [ ] Remove Dark mode button (NetBeans)
+- [ ] Remove Dark / light mode toggle (Desktop)
+- [ ] Add /theme command (NetBeans)
+      - Add /theme set 
+      - Add /theme list
+- [ ] Add /theme command (Desktop)
+      - Add /theme set
+      - Add /theme list
 
 ## Command Standardization
 - [ ] Create CommandParser interface with standardized parameter parsing
@@ -343,7 +351,3 @@
 - [ ] Create mobile applications (iPhone, Android)
 - [ ] Create chat platform integrations (Discord, Slack, Teams)
 - [ ] Add WebSearchTool (multiple providers)
-- [ ] Add DatabaseTool
-- [ ] Add WorkflowTool
-- [ ] Add MCPTool
-- [ ] Add GitHubTool
