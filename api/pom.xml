@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.manorrock.assistant</groupId>
         <artifactId>project</artifactId>
-        <version>25.4.4-SNAPSHOT</version>
+        <version>25.4.5-SNAPSHOT</version>
     </parent>
     <artifactId>api</artifactId>
     <packaging>jar</packaging>

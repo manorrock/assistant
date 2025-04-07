@@ -9,7 +9,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -44,12 +43,7 @@ public class MainWindowController {
     private ProgressBar progressBar;
     
     @FXML
-    private ToggleButton themeToggle;
-
-    @FXML
     private BorderPane root;
-
-    private boolean isDarkMode = false;
 
     /**
      * Stores the assistant.
@@ -75,14 +69,6 @@ public class MainWindowController {
                         --separator-color: #ccc;
                         --user-header-color: #333;
                         --assistant-header-color: rgb(0, 0, 145);
-                    }
-                    
-                    [data-theme='dark'] {
-                        --bg-color: #1e1e1e;
-                        --text-color: #ffffff;
-                        --separator-color: #555;
-                        --user-header-color: #ccc;
-                        --assistant-header-color: rgb(100, 150, 255);
                     }
                     
                     body { 
@@ -113,7 +99,7 @@ public class MainWindowController {
                     .assistant .message-header { color: var(--assistant-header-color); }
                 </style>
             </head>
-            <body data-theme="%s">%s</body>
+            <body>%s</body>
             </html>
             """;
 
@@ -152,11 +138,8 @@ public class MainWindowController {
         
         // Set initial content
         updateWebViewContent("<div class='message assistant'>Welcome to Manorrock Assistant</div>");
-
-        // Initialize theme toggle
-        themeToggle.setSelected(isDarkMode);
         
-        // Wait for scene to be available before applying theme
+        // Wait for scene to be available
         root.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {
                 applyTheme();
@@ -175,7 +158,7 @@ public class MainWindowController {
                 Scene scene = root.getScene();
                 scene.getStylesheets().clear();
                 
-                String cssFile = isDarkMode ? "MainWindow_dark.css" : "MainWindow_light.css";
+                String cssFile = "MainWindow_light.css";
                 String cssUrl = getClass().getResource(cssFile).toExternalForm();
                 scene.getStylesheets().add(cssUrl);
             });
@@ -186,7 +169,6 @@ public class MainWindowController {
         Platform.runLater(() -> {
             responseArea.getEngine().loadContent(
                 String.format(HTML_TEMPLATE, 
-                    isDarkMode ? "dark" : "light",
                     String.join("\n", messageHistory))
             );
         });
@@ -195,9 +177,7 @@ public class MainWindowController {
     private void updateWebViewContent(String content) {
         Platform.runLater(() -> {
             responseArea.getEngine().loadContent(
-                String.format(HTML_TEMPLATE,
-                    isDarkMode ? "dark" : "light",
-                    content)
+                String.format(HTML_TEMPLATE, content)
             );
         });
     }
@@ -288,7 +268,7 @@ public class MainWindowController {
     }
 
     private void handleClear() {
-        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, isDarkMode ? "dark" : "light", ""));
+        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
         requestArea.clear();
     }
 
@@ -325,7 +305,7 @@ public class MainWindowController {
      */
     public void clearResponseArea() {
         messageHistory.clear();
-        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, isDarkMode ? "dark" : "light", ""));
+        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
         requestArea.clear();
     }
 
@@ -431,7 +411,7 @@ public class MainWindowController {
      * Handle the /session new command.
      */
     private void handleSessionNew() {
-        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, isDarkMode ? "dark" : "light",""));
+        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
         handleMessage("/session new");
     }
 
@@ -472,16 +452,6 @@ public class MainWindowController {
         
         // Delegate all other session commands to CoreAssistant
         handleMessage(command);
-    }
-
-    /**
-     * Handle the theme toggle action.
-     */
-    @FXML
-    private void handleThemeToggle() {
-        isDarkMode = themeToggle.isSelected();
-        applyTheme();
-        renderContent();
     }
 
     /**
