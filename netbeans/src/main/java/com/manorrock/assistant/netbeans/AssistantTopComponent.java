@@ -61,7 +61,6 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
     private Timer typewriterTimer;
     private int currentCharIndex;
     private String currentTypingText;
-    private JToggleButton themeToggleButton;
     private boolean isDarkMode = false;
 
     // Text style attributes
@@ -73,7 +72,6 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
     public AssistantTopComponent() {
         assistant = new CoreAssistant();
         initComponents();
-        initStyles();
         setName(Bundle.CTL_AssistantTopComponent());
         setToolTipText(Bundle.HINT_AssistantTopComponent());
         io = IOProvider.getDefault().getIO("Chat Log", false);
@@ -93,37 +91,12 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
         handleCommand("/help");
     }
 
-    private void initStyles() {
-        userMessageStyle = new SimpleAttributeSet();
-        StyleConstants.setForeground(userMessageStyle, isDarkMode ? java.awt.Color.LIGHT_GRAY : java.awt.Color.BLACK);
-        
-        assistantMessageStyle = new SimpleAttributeSet();
-        StyleConstants.setForeground(assistantMessageStyle, isDarkMode ? new java.awt.Color(100, 150, 255) : new java.awt.Color(0, 0, 145));
-        
-        systemMessageStyle = new SimpleAttributeSet();
-        StyleConstants.setForeground(systemMessageStyle, java.awt.Color.GRAY);
-        
-        headerStyle = new SimpleAttributeSet();
-        StyleConstants.setBold(headerStyle, true);
-    }
-
-    private void updateStyles() {
-        initStyles();
-        // Reapply styles (in a real implementation, we'd need to track message positions)
-        StyledDocument doc = responseArea.getStyledDocument();
-        responseArea.setBackground(isDarkMode ? new java.awt.Color(30, 30, 30) : java.awt.Color.WHITE);
-        responseArea.setForeground(isDarkMode ? java.awt.Color.WHITE : java.awt.Color.BLACK);
-        requestArea.setBackground(isDarkMode ? new java.awt.Color(30, 30, 30) : java.awt.Color.WHITE);
-        requestArea.setForeground(isDarkMode ? java.awt.Color.WHITE : java.awt.Color.BLACK);
-    }
-
     private void initComponents() {
         responseArea = new JTextPane();
         responseArea.setEditable(false);
         requestArea = new JTextArea(3, 50);
         sendButton = new JButton("Send");
         progressBar = new JProgressBar(0, 100);
-        themeToggleButton = new JToggleButton("Dark Mode");
         
         // Setup key event handler for the requestArea
         requestArea.addKeyListener(new KeyAdapter() {
@@ -137,10 +110,6 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
         });
 
         sendButton.addActionListener(this);
-        themeToggleButton.addActionListener(e -> {
-            isDarkMode = themeToggleButton.isSelected();
-            updateStyles();
-        });
 
         // Layout setup
         setLayout(new BorderLayout());
@@ -151,7 +120,6 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
         
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(sendButton);
-        buttonPanel.add(themeToggleButton);
         bottomPanel.add(buttonPanel, BorderLayout.EAST);
         bottomPanel.add(progressBar, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
