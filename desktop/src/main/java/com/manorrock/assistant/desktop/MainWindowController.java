@@ -54,7 +54,7 @@ public class MainWindowController {
     /**
      * Stores the assistant.
      */
-    private final CoreAssistant assistant;
+    private final DesktopAssistant assistant;
 
     /**
      * Stores the message history.
@@ -121,8 +121,11 @@ public class MainWindowController {
      * Constructor.
      */
     public MainWindowController() {
-        this.assistant = new CoreAssistant();
+        this.assistant = new DesktopAssistant();
         this.messageHistory = new ArrayList<>();
+        
+        // Set up bidirectional relationship between controller and assistant
+        this.assistant.setController(this);
     }
 
     /**
@@ -262,17 +265,25 @@ public class MainWindowController {
     private void handleCommand(String command) {
         appendMessage(command, "user");
         
+        // Handle UI-specific commands directly
         if (command.equals("/clear")) {
             handleClear();
-            return;
-        } else if (command.equals("/session new")) {
-            handleSessionNew();
             return;
         } else if (command.startsWith("/explain")) {
             handleExplain(command);
             return;
+        } else if (command.startsWith("/context")) {
+            handleContext(command);
+            return;
+        } else if (command.startsWith("/source")) {
+            handleSource(command);
+            return;
+        } else if (command.startsWith("/session")) {
+            handleSession(command);
+            return;
         }
         
+        // Delegate all other commands to CoreAssistant
         handleMessage(command);
     }
 
@@ -305,6 +316,16 @@ public class MainWindowController {
                 return null;
             });        
 
+        requestArea.clear();
+    }
+
+    /**
+     * Clear the response area.
+     * This method is called by DesktopClearCommand and other UI-specific commands.
+     */
+    public void clearResponseArea() {
+        messageHistory.clear();
+        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, isDarkMode ? "dark" : "light", ""));
         requestArea.clear();
     }
 
@@ -363,24 +384,47 @@ public class MainWindowController {
     }
 
     /**
-     * Handles the send action.
+     * Handle the /help command.
+     * 
+     * @param command the help command
      */
-    @FXML
-    private void handleSendAction() {
-        String userMessage = requestArea.getText().trim();
-        if (!userMessage.isEmpty()) {
-            if (userMessage.startsWith("/")) {
-                handleCommand(userMessage);
-                requestArea.clear();
-                requestArea.requestFocus();
-                return;
-            }
+    private void handleHelp(String command) {
+        // Delegate to CoreAssistant
+        handleMessage(command);
+    }
 
-            appendMessage(userMessage, "user");
-            handleMessage(userMessage);
-            requestArea.clear();
-            requestArea.requestFocus();
+    /**
+     * Handle the /llm command.
+     * 
+     * @param command the llm command
+     */
+    private void handleLlm(String command) {
+        // Delegate to CoreAssistant
+        handleMessage(command);
+    }
+
+    /**
+     * Handle the /ollama command.
+     * 
+     * @param command the ollama command
+     */
+    private void handleOllama(String command) {
+        String[] parts = command.trim().split("\\s+", 3);
+        String subCommand = parts.length > 1 ? parts[1].trim() : "";
+        
+        if (subCommand.isEmpty()) {
+            appendMessage("Please specify an Ollama subcommand. Use /help ollama for available options.", "assistant");
+            return;
         }
+        
+        // Route to CoreAssistant for Ollama commands
+        if (subCommand.equals("list") || subCommand.equals("pull") || 
+            subCommand.equals("status") || subCommand.equals("endpoint")) {
+            handleMessage(command);
+            return;
+        }
+        
+        appendMessage("Unknown Ollama subcommand: " + subCommand + ". Use /help ollama for available options.", "assistant");
     }
 
     /**
@@ -392,6 +436,45 @@ public class MainWindowController {
     }
 
     /**
+     * Handle the /context command.
+     * 
+     * @param command the context command
+     */
+    private void handleContext(String command) {
+        // Delegate to CoreAssistant
+        handleMessage(command);
+    }
+
+    /**
+     * Handle the /source command.
+     * 
+     * @param command the source command
+     */
+    private void handleSource(String command) {
+        // Delegate to CoreAssistant
+        handleMessage(command);
+    }
+
+    /**
+     * Handle the /session command.
+     * 
+     * @param command the session command
+     */
+    private void handleSession(String command) {
+        String[] parts = command.trim().split("\\s+", 2);
+        String subCommand = parts.length > 1 ? parts[1].trim() : "";
+        
+        // Only handle UI-specific aspects of session commands
+        if (subCommand.equals("new")) {
+            handleSessionNew();
+            return;
+        }
+        
+        // Delegate all other session commands to CoreAssistant
+        handleMessage(command);
+    }
+
+    /**
      * Handle the theme toggle action.
      */
     @FXML
@@ -399,5 +482,23 @@ public class MainWindowController {
         isDarkMode = themeToggle.isSelected();
         applyTheme();
         renderContent();
+    }
+
+    /**
+     * Handle the send action.
+     * This is called when the user presses Enter or clicks the send button.
+     */
+    @FXML
+    private void handleSendAction() {
+        String message = requestArea.getText().trim();
+        if (message.isEmpty()) {
+            return;
+        }
+        
+        if (message.startsWith("/")) {
+            handleCommand(message);
+        } else {
+            handleMessage(message);
+        }
     }
 }

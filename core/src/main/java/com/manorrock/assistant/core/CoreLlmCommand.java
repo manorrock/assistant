@@ -4,6 +4,16 @@ import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.Llm;
 import java.util.Map;
 import java.util.Properties;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Core LLM command for the Core Assistant.
@@ -17,9 +27,29 @@ import java.util.Properties;
 public class CoreLlmCommand implements Command {
     
     /**
+     * Stores the logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(CoreLlmCommand.class.getName());
+    
+    /**
      * Stores the core assistant.
      */
     private final CoreAssistant assistant;
+    
+    /**
+     * Stores the templates for different coding tasks.
+     */
+    private final Map<String, String> systemMessageTemplates = new HashMap<>();
+    
+    /**
+     * The path to the templates directory.
+     */
+    private final Path templatesDir;
+    
+    /**
+     * Object mapper for JSON parsing.
+     */
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Constructor.
@@ -28,6 +58,20 @@ public class CoreLlmCommand implements Command {
      */
     public CoreLlmCommand(CoreAssistant assistant) {
         this.assistant = assistant;
+        this.templatesDir = Paths.get(System.getProperty("user.home"), ".manorrock", "assistant", "templates");
+        
+        // Initialize with default templates
+        systemMessageTemplates.put("code-review", "You are a senior developer conducting a code review. Focus on identifying bugs, security issues, performance problems, and adherence to best practices. Be thorough but constructive in your feedback.");
+        systemMessageTemplates.put("debug", "You are a debugging specialist. Analyze the code or error messages provided and help identify the root cause of issues. Suggest specific fixes and explain your reasoning step by step.");
+        systemMessageTemplates.put("refactor", "You are a refactoring expert. Analyze the code provided and suggest improvements to make it more maintainable, efficient, and aligned with best practices. Preserve functionality while enhancing code quality.");
+        systemMessageTemplates.put("document", "You are a technical documentation specialist. Create clear, concise documentation for the code provided. Focus on explaining purpose, functionality, parameters, return values, and usage examples.");
+        systemMessageTemplates.put("test", "You are a test-driven development expert. Create comprehensive test cases for the provided code, focusing on edge cases, error conditions, and complete coverage. Suggest appropriate testing frameworks and methodologies.");
+        systemMessageTemplates.put("optimize", "You are a performance optimization specialist. Analyze the code for performance bottlenecks and suggest specific improvements to enhance efficiency, reduce resource consumption, and improve scalability.");
+        systemMessageTemplates.put("security", "You are a security expert. Analyze the code for potential security vulnerabilities including injection attacks, authentication issues, access control problems, and data validation concerns. Suggest specific security improvements.");
+        systemMessageTemplates.put("design-patterns", "You are a design pattern specialist. Analyze the code and suggest appropriate design patterns that could improve its structure, scalability, and maintainability. Explain the benefits of your suggestions.");
+        
+        // Load additional templates from config
+        loadTemplatesFromConfig();
     }
 
     @Override
@@ -49,6 +93,7 @@ public class CoreLlmCommand implements Command {
                  /llm temperature <number>     - Set temperature parameter (0.0-1.0)
                  /llm use <string>             - Set the active LLM by name
                  /llm vendor <string>          - Set LLM vendor (OPENAI, OLLAMA, AZURE_OPENAI)
+                 /llm systemMessage <string>   - Set system message template
                """;
     }
 
@@ -126,9 +171,15 @@ public class CoreLlmCommand implements Command {
                 }
                 return setActiveLlm(parts[1].trim());
                 
+            case "systemmessage":
+                if (parts.length < 2) {
+                    return "Available system message templates: " + String.join(", ", systemMessageTemplates.keySet());
+                }
+                return setSystemMessage(parts[1].trim());
+                
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, add, list, reset, remove, use";
+                       "Available subcommands: status, vendor, model, endpoint, apiKey, temperature, functionCalling, add, list, reset, remove, use, systemMessage";
         }
     }
     
@@ -506,5 +557,217 @@ public class CoreLlmCommand implements Command {
         assistant.getLlmManager().unregisterLlm(name);
         
         return "LLM '" + name + "' has been removed.";
+    }
+    
+    /**
+     * Set the system message template.
+     *
+     * @param input The user input (template name or subcommand)
+     * @return Result message
+     */
+    private String setSystemMessage(String input) {
+        if (input == null || input.isEmpty()) {
+            return "Available templates: " + String.join(", ", systemMessageTemplates.keySet());
+        }
+
+        String[] parts = input.trim().split("\\s+", 2);
+        String subCommand = parts[0];
+        
+        // Handle special cases
+        if (subCommand.equals("list")) {
+            return listTemplates();
+        } else if (subCommand.equals("create") && parts.length > 1) {
+            return createTemplate(parts[1]);
+        } else if (subCommand.equals("view") && parts.length > 1) {
+            return viewTemplate(parts[1]);
+        } else if (subCommand.equals("help")) {
+            return getTemplateHelpText();
+        }
+        
+        // Otherwise, treat it as a template name
+        String template = systemMessageTemplates.get(subCommand);
+        if (template == null) {
+            return "Template '" + subCommand + "' does not exist. Available templates: " + String.join(", ", systemMessageTemplates.keySet());
+        }
+        
+        String error = updateProperty("systemMessage", template);
+        if (error != null) {
+            return error;
+        }
+        return "System message template set to: " + subCommand;
+    }
+    
+    /**
+     * List all available templates with descriptions.
+     * 
+     * @return A formatted string listing all templates.
+     */
+    private String listTemplates() {
+        StringBuilder sb = new StringBuilder("Available templates:\n\n");
+        
+        systemMessageTemplates.forEach((name, template) -> {
+            sb.append("- ").append(name).append(": ");
+            // Extract first sentence for description
+            String firstSentence = template.split("\\. ")[0];
+            if (firstSentence.length() > 100) {
+                firstSentence = firstSentence.substring(0, 97) + "...";
+            }
+            sb.append(firstSentence).append("\n");
+        });
+        
+        sb.append("\nUse '/llm systemMessage view <name>' to see the full template.");
+        return sb.toString();
+    }
+    
+    /**
+     * View the full content of a template.
+     * 
+     * @param name The name of the template to view.
+     * @return The template content or an error message.
+     */
+    private String viewTemplate(String name) {
+        if (systemMessageTemplates.containsKey(name)) {
+            return "Template '" + name + "':\n\n" + systemMessageTemplates.get(name);
+        }
+        return "Template not found: " + name;
+    }
+    
+    /**
+     * Create a new template from a JSON file.
+     * 
+     * @param args Format: <name> <path_to_json>
+     * @return Success or error message.
+     */
+    private String createTemplate(String args) {
+        String[] parts = args.trim().split("\\s+", 2);
+        if (parts.length < 2) {
+            return "Usage: /llm systemMessage create <name> <path_to_json_file>";
+        }
+        
+        String name = parts[0];
+        String filePath = parts[1];
+        
+        try {
+            // Read and validate the JSON file
+            JsonNode root = objectMapper.readTree(new File(filePath));
+            if (!root.has("template")) {
+                return "Error: JSON file must contain a 'template' field";
+            }
+            
+            String template = root.get("template").asText();
+            if (template == null || template.isEmpty()) {
+                return "Error: Template content cannot be empty";
+            }
+            
+            // Save the template
+            systemMessageTemplates.put(name, template);
+            
+            // Write to disk
+            try {
+                if (!Files.exists(templatesDir)) {
+                    Files.createDirectories(templatesDir);
+                }
+                
+                Map<String, String> templateMap = new HashMap<>();
+                templateMap.put("name", name);
+                templateMap.put("template", template);
+                
+                objectMapper.writeValue(templatesDir.resolve(name + ".json").toFile(), templateMap);
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Error saving template to disk: " + e.getMessage(), e);
+                // Continue anyway since we've already updated the in-memory template
+            }
+            
+            return "Template '" + name + "' created successfully";
+        } catch (IOException e) {
+            return "Error creating template: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * Get help text for the template command.
+     * 
+     * @return The help text.
+     */
+    private String getTemplateHelpText() {
+        return """
+               System Message Template Help:
+               
+               /llm systemMessage                     - List available templates
+               /llm systemMessage <name>              - Use the specified template
+               /llm systemMessage list                - List all templates with descriptions
+               /llm systemMessage view <name>         - View the full content of a template
+               /llm systemMessage create <name> <file>- Create a new template from a JSON file
+               /llm systemMessage help                - Show this help text
+               
+               Template JSON format:
+               {
+                   "template": "You are a [role]. Focus on [specific instructions]..."
+               }
+               
+               Templates are stored in: """ + templatesDir;
+    }
+    
+    /**
+     * Load templates from the configuration directory.
+     */
+    private void loadTemplatesFromConfig() {
+        try {
+            // Create templates directory if it doesn't exist
+            if (!Files.exists(templatesDir)) {
+                Files.createDirectories(templatesDir);
+                LOGGER.info("Created templates directory: " + templatesDir);
+                
+                // Save default templates to files for reference
+                saveDefaultTemplatesToDisk();
+            }
+            
+            // Load all .json files from the templates directory
+            Files.list(templatesDir)
+                .filter(path -> path.toString().endsWith(".json"))
+                .forEach(this::loadTemplateFile);
+                
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Error loading templates from config: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Load a single template file.
+     * 
+     * @param path the path to the template file.
+     */
+    private void loadTemplateFile(Path path) {
+        try {
+            JsonNode root = objectMapper.readTree(path.toFile());
+            String name = root.path("name").asText();
+            String template = root.path("template").asText();
+            
+            if (name != null && !name.isEmpty() && template != null && !template.isEmpty()) {
+                systemMessageTemplates.put(name, template);
+                LOGGER.fine("Loaded template: " + name + " from " + path);
+            } else {
+                LOGGER.warning("Invalid template file: " + path + " - missing name or template content");
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Error parsing template file: " + path, e);
+        }
+    }
+    
+    /**
+     * Save default templates to disk for reference.
+     */
+    private void saveDefaultTemplatesToDisk() {
+        systemMessageTemplates.forEach((name, template) -> {
+            try {
+                Map<String, String> templateMap = new HashMap<>();
+                templateMap.put("name", name);
+                templateMap.put("template", template);
+                
+                objectMapper.writeValue(templatesDir.resolve(name + ".json").toFile(), templateMap);
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Error saving default template: " + name, e);
+            }
+        });
     }
 }
