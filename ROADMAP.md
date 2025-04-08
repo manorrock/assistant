@@ -7,7 +7,7 @@
 - [ ] Refactor to use CoreAssistant directly (Eclipse)
 - [ ] Refactor to use CoreAssistant directly (IntelliJ)
 - [x] Merge iphone directory into mobile directory (Phone)
-- [ ] Move the progress indicator into the response area (VSCode)
+- [x] Move the progress indicator into the response area (VSCode)
 - [x] Remove typewriter effect (Desktop)
 - [x] Remove typewriter effect (NetBeans)
 - [x] Add NBM as a release artifact (NetBeans)

@@ -435,26 +435,16 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
               opacity: 1;
             }
             
-            #statusArea {
-              padding: 8px;
-              border-top: 1px solid var(--vscode-editorGroup-border);
-              max-height: 0;
-              overflow: hidden;
-              transition: max-height 0.2s;
-              display: none;
-            }
-            #statusArea.active {
-              max-height: 40px;
-              display: block;
-            }
-            .progress {
+            /* Progress indicator that will be shown in the message area instead of a separate status area */
+            .progress-indicator {
+              margin-top: 8px;
               width: 100%;
               height: 2px;
               background: var(--vscode-editor-background);
               position: relative;
               overflow: hidden;
             }
-            .progress::before {
+            .progress-indicator::before {
               content: '';
               position: absolute;
               top: 0;
@@ -463,6 +453,11 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
               width: 50%;
               background: linear-gradient(90deg, transparent, var(--vscode-progressBar-background), transparent);
               animation: progress 2s infinite;
+            }
+            .thinking-message {
+              margin-top: 4px;
+              font-size: 0.9em;
+              opacity: 0.8;
             }
             @keyframes progress {
               0% { transform: translateX(0); }
@@ -476,10 +471,6 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
             <div id="messages">
               <div id="outputArea"></div>
             </div>
-            <div id="statusArea">
-              <div class="progress"></div>
-              <div id="statusText">Assistant is thinking...</div>
-            </div>
             <div id="inputContainer">
               <textarea id="inputBox" rows="3" placeholder="Type your message..."></textarea>
               <button id="sendBtn">Send</button>
@@ -490,7 +481,7 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
             const inputBox = document.getElementById('inputBox');
             const sendBtn = document.getElementById('sendBtn');
             const outputArea = document.getElementById('outputArea');
-            const statusArea = document.getElementById('statusArea');
+            let progressIndicator = null;
 
             marked.setOptions({
               gfm: true,
@@ -499,12 +490,58 @@ class AssistantViewProvider implements vscode.WebviewViewProvider {
             });
 
             function setProcessing(processing) {
-              statusArea.classList.toggle('active', processing);
               sendBtn.disabled = processing;
               inputBox.disabled = processing;
               
-              // Set focus back to input when processing is complete
-              if (!processing) {
+              if (processing) {
+                // Create and show progress indicator within the messages area
+                if (!progressIndicator) {
+                  const indicatorDiv = document.createElement('div');
+                  indicatorDiv.className = 'chat-message';
+                  
+                  const wrapper = document.createElement('div');
+                  wrapper.className = 'message-content-wrapper';
+                  
+                  const header = document.createElement('div');
+                  header.className = 'message-header';
+                  
+                  const title = document.createElement('span');
+                  title.textContent = 'Assistant';
+                  header.appendChild(title);
+                  
+                  const content = document.createElement('div');
+                  content.className = 'message-content';
+                  
+                  // Add the progress indicator
+                  const indicator = document.createElement('div');
+                  indicator.className = 'progress-indicator';
+                  
+                  // Add the thinking message
+                  const thinking = document.createElement('div');
+                  thinking.className = 'thinking-message';
+                  thinking.textContent = 'Assistant is thinking...';
+                  
+                  content.appendChild(thinking);
+                  content.appendChild(indicator);
+                  
+                  wrapper.appendChild(header);
+                  wrapper.appendChild(content);
+                  indicatorDiv.appendChild(wrapper);
+                  
+                  outputArea.appendChild(indicatorDiv);
+                  progressIndicator = indicatorDiv;
+                  
+                  // Scroll to the bottom to show the progress indicator
+                  outputArea.parentElement.scrollTop = outputArea.parentElement.scrollHeight;
+                }
+              } else {
+                // Remove progress indicator when processing is complete
+                if (progressIndicator && progressIndicator.parentNode) {
+                  progressIndicator.parentNode.removeChild(progressIndicator);
+                  progressIndicator = null;
+                }
+                
+                // Set focus back to input when processing is complete
                 setTimeout(() => inputBox.focus(), 0);
               }
             }
