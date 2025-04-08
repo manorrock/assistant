@@ -21,6 +21,8 @@ val projectVersion = gradle.extra["projectVersion"] as String
 dependencies {
     implementation("org.json:json:20231013")
     implementation("com.manorrock.assistant:impl:${projectVersion}")
+    implementation("com.manorrock.assistant:api:${projectVersion}")
+    implementation("com.manorrock.assistant:core:${projectVersion}")
     // ...other dependencies...
 }
 
