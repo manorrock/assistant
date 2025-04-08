@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.manorrock.assistant</groupId>
         <artifactId>project</artifactId>
-        <version>25.4.5-SNAPSHOT</version>
+        <version>25.4.6-SNAPSHOT</version>
     </parent>
     <artifactId>netbeans</artifactId>
     <packaging>nbm</packaging>
@@ -98,6 +98,8 @@
                 <version>14.2</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <licenseFile>${project.basedir}/LICENSE</licenseFile>
+                    <licenseName>Manorrock.com BSD 2-Clause License</licenseName>
                     <publicPackages>
                         <publicPackage>com.manorrock.assistant.netbeans</publicPackage>
                     </publicPackages>
