@@ -5,7 +5,7 @@
 # Next release
 - [x] Remove Dark / light mode toggle (Desktop)
 - [ ] Refactor to use CoreAssistant directly (Eclipse)
-- [ ] Refactor to use CoreAssistant directly (IntelliJ)
+- [x] Refactor to use CoreAssistant directly (IntelliJ)
 - [x] Merge iphone directory into mobile directory (Phone)
 - [x] Move the progress indicator into the response area (VSCode)
 - [x] Remove typewriter effect (Desktop)
@@ -333,5 +333,3 @@
 - [ ] Add tool parameter validation helpers
 - [ ] Add LLM manager state validation
 - [ ] Add circular dependency detection for tools
-- [ ] Add conversation event logging
-- [ ] Add conversation performance metrics
