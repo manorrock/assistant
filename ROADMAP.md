@@ -11,7 +11,7 @@
 - [x] Remove typewriter effect (Desktop)
 - [x] Remove typewriter effect (NetBeans)
 - [x] Add NBM as a release artifact (NetBeans)
-- [ ] Add Eclipse plugin as a release artifact (Eclipse)
+- [x] Add Eclipse plugin as a release artifact (Eclipse)
 - [x] Add IntelliJ plugin as a release artifact (IntelliJ)
 
 # Backlog
@@ -335,6 +335,3 @@
 - [ ] Add circular dependency detection for tools
 - [ ] Add conversation event logging
 - [ ] Add conversation performance metrics
-- [ ] Add conversation error tracking
-- [ ] Add conversation analytics
-- [ ] Add conversation health monitoring

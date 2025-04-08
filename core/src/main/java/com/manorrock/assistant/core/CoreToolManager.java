@@ -56,6 +56,7 @@ public class CoreToolManager implements ToolManager {
         // Register the CoreToolManagerTool to expose the ToolManager itself as a tool
         CoreToolManagerTool toolManagerTool = new CoreToolManagerTool(this);
         registerTool(toolManagerTool);
+        registerTool(new CoreEchoTool(), false);
         registerTool(new FileReadTool(), false);
         registerTool(new FileWriteTool(), false);
         registerTool(new DirectoryListTool(), false);

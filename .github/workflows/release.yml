@@ -37,6 +37,29 @@ jobs:
           cd intellij
           ./gradlew buildPlugin
 
+      - name: Install Ant
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ant
+          ant -version
+
+      - name: Install Eclipse SDK
+        run: |
+          wget "https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.35-202502280140/eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz&mirror_id=1" -O eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
+          tar -xzf eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz
+
+      - name: Setup Ant Contrib
+        working-directory: eclipse
+        run: |
+          export ECLIPSE_HOME=$GITHUB_WORKSPACE/eclipse
+          ant download-ant-contrib
+
+      - name: Build Eclipse Plugin
+        working-directory: eclipse
+        run: |
+          export ECLIPSE_HOME=$GITHUB_WORKSPACE/eclipse
+          ant jar
+
       - name: Standardize file names
         run: |
           mkdir -p standardized
@@ -44,6 +67,7 @@ jobs:
           cp cli/target/cli.jar standardized/Manorrock-Assistant.jar
           cp netbeans/target/*.nbm standardized/Manorrock-Assistant.nbm
           cp intellij/build/distributions/*.zip standardized/Manorrock-Assistant-IntelliJ.zip
+          cp eclipse/target/com.manorrock.assistant.eclipse_*.jar standardized/Manorrock-Assistant-Eclipse.jar
 
       - name: Create GitHub Release
         id: create_release
@@ -95,6 +119,16 @@ jobs:
           asset_path: ./standardized/Manorrock-Assistant-IntelliJ.zip
           asset_name: Manorrock-Assistant-IntelliJ.zip
           asset_content_type: application/zip
+          
+      - name: Upload Eclipse Plugin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./standardized/Manorrock-Assistant-Eclipse.jar
+          asset_name: Manorrock-Assistant-Eclipse.jar
+          asset_content_type: application/java-archive
 
       - name: Remove artifacts from older releases
         run: |

@@ -1,4 +1,4 @@
-package com.manorrock.assistant.tool;
+package com.manorrock.assistant.core;
 
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolParameter;
@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class EchoTool implements Tool {
+public class CoreEchoTool implements Tool {
     
     @Override
     public String getName() {
