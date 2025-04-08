@@ -1,17 +1,15 @@
-package com.manorrock.assistant.tool;
+package com.manorrock.assistant.core;
 
 import org.junit.jupiter.api.Test;
 
 import com.manorrock.assistant.api.ToolResult;
-import com.manorrock.assistant.tool.EchoTool;
 
 import java.util.Collections;
-import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
-class EchoToolTest {
+class CoreEchoToolTest {
 
-    private final EchoTool tool = new EchoTool();
+    private final CoreEchoTool tool = new CoreEchoTool();
 
     @Test
     void testMetadata() {

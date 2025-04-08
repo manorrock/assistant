@@ -1,6 +1,5 @@
 package com.manorrock.assistant.api;
 
-import java.util.List;
 import java.util.Map;
 
 /**
