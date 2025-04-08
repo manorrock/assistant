@@ -10,7 +10,7 @@
 - [ ] Move the progress indicator into the response area (VSCode)
 - [x] Remove typewriter effect (Desktop)
 - [x] Remove typewriter effect (NetBeans)
-- [ ] Add NBM as a release artifact (NetBeans)
+- [x] Add NBM as a release artifact (NetBeans)
 - [ ] Add Eclipse plugin as a release artifact (Eclipse)
 - [ ] Add IntelliJ plugin as a release artifact (IntelliJ)
 
@@ -18,6 +18,9 @@
 - [ ] Refactor mobile directory to phone directory (Phone)
 - [ ] Add VSCodeCLI (VSCode)
 - [ ] Include VSCodeCLI in extension (VSCode)
+- [ ] Add arm64 macOS CLI binary (CLI)
+- [ ] Add amd64 macOS CLI binary (CLI)
+- [ ] Optimize extensin download size (VSCode)
 
 ## Command Standardization
 - [ ] Create CommandParser interface with standardized parameter parsing
@@ -334,4 +337,3 @@
 - [ ] Add conversation performance metrics
 - [ ] Add conversation error tracking
 - [ ] Add conversation analytics
-- [ ] Add conversation health monitoring
