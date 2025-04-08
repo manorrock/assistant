@@ -65,13 +65,43 @@ import com.manorrock.assistant.core.CoreAssistantMessage;
 @TopComponent.Description(preferredID = "AssistantTopComponent", persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
 @ActionID(category = "Window", id = "com.manorrock.assistant.netbeans.AssistantTopComponent")
-@ActionRegistration(displayName = "#CTL_AssistantAction")
+@ActionRegistration(displayName = "#CTL_AssistantTopComponentAction")
 @ActionReferences({@ActionReference(path = "Menu/Window", position = 0)})
-@TopComponent.OpenActionRegistration(displayName = "#CTL_AssistantAction", preferredID = "AssistantTopComponent")
-@Messages({"CTL_AssistantAction=Manorrock Assistant",
+@TopComponent.OpenActionRegistration(displayName = "#CTL_AssistantTopComponentAction", preferredID = "AssistantTopComponent")
+@Messages({"CTL_AssistantTopComponentAction=Manorrock Assistant",
     "CTL_AssistantTopComponent=Manorrock Assistant Window",
     "HINT_AssistantTopComponent=This is a Manorrock Assistant window"})
 public final class AssistantTopComponent extends TopComponent implements ActionListener, FocusListener {
+
+    // Static instance for Singleton pattern required by NetBeans
+    private static AssistantTopComponent instance;
+    
+    // Static method to get the default instance (required by NetBeans)
+    public static synchronized AssistantTopComponent getDefault() {
+        if (instance == null) {
+            instance = new AssistantTopComponent();
+        }
+        return instance;
+    }
+    
+    // Method to find an instance (required by NetBeans layer.xml)
+    public static synchronized AssistantTopComponent findInstance() {
+        return getDefault();
+    }
+    
+    // Required for proper serialization of TopComponent
+    protected Object writeReplace() {
+        return new ResolvableHelper();
+    }
+    
+    // Helper class for serialization
+    private static final class ResolvableHelper implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
+        
+        private Object readResolve() {
+            return AssistantTopComponent.getDefault();
+        }
+    }
 
     private final CoreAssistant assistant;
     private JTextPane responseArea;

@@ -14,6 +14,12 @@
     <dependencies>
         <dependency>
             <groupId>com.manorrock.assistant</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.manorrock.assistant</groupId>
             <artifactId>impl</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
@@ -36,7 +42,7 @@
                             <outputDirectory>${project.basedir}/lib</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>
-                            <excludeTransitive>true</excludeTransitive>
+                            <excludeTransitive>false</excludeTransitive>
                         </configuration>
                     </execution>
                 </executions>
