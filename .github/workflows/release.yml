@@ -37,6 +37,7 @@ jobs:
           mkdir -p standardized
           cp vscode/extension/*.vsix standardized/Manorrock-Assistant.vsix
           cp cli/target/cli.jar standardized/Manorrock-Assistant.jar
+          cp netbeans/target/*.nbm standardized/Manorrock-Assistant.nbm
 
       - name: Create GitHub Release
         id: create_release
@@ -67,6 +68,16 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./standardized/Manorrock-Assistant.vsix
           asset_name: Manorrock-Assistant.vsix
+          asset_content_type: application/octet-stream
+          
+      - name: Upload NetBeans NBM Plugin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./standardized/Manorrock-Assistant.nbm
+          asset_name: Manorrock-Assistant.nbm
           asset_content_type: application/octet-stream
 
       - name: Remove artifacts from older releases
