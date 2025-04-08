@@ -10,7 +10,14 @@
 - [ ] Move the progress indicator into the response area (VSCode)
 - [ ] Remove typewriter effect (Desktop)
 - [ ] Remove typewriter effect (NetBeans)
-- [ ] Add NBM as release artifact (NetBeans)
+- [ ] Add NBM as a release artifact (NetBeans)
+- [ ] Add Eclipse plugin as a release artifact (Eclipse)
+- [ ] Add IntelliJ plugin as a release artifact (IntelliJ)
+
+# Backlog
+- [ ] Refactor mobile directory to phone directory (Phone)
+- [ ] Add VSCodeCLI (VSCode)
+- [ ] Include VSCodeCLI in extension (VSCode)
 
 ## Command Standardization
 - [ ] Create CommandParser interface with standardized parameter parsing
@@ -330,6 +337,3 @@
 - [ ] Add conversation health monitoring
 - [ ] Add conversation export to third-party platforms
 - [ ] Add conversation import from third-party platforms
-- [ ] Add multi-channel conversation support
-- [ ] Add Spring Boot REST API application
-- [ ] Add web interface
