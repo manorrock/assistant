@@ -1,2 +1,3 @@
 Manifest-Version: 1.0
 OpenIDE-Module-Localizing-Bundle: com/manorrock/assistant/netbeans/Bundle.properties
+OpenIDE-Module-Layer: com/manorrock/assistant/netbeans/layer.xml

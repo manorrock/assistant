@@ -54,7 +54,9 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-import com.manorrock.assistant.impl.AssistantImpl;
+import com.manorrock.assistant.api.AssistantMessage;
+import com.manorrock.assistant.core.CoreAssistant;
+import com.manorrock.assistant.core.CoreAssistantMessage;
 
 public class AssistantView extends ViewPart implements ISelectionListener {
     public static final String ID = "com.manorrock.assistant.eclipse.AssistantView";
@@ -68,7 +70,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private MessageConsole console;
     private MessageConsoleStream consoleStream;
-    private AssistantImpl assistant;
+    private CoreAssistant assistant;
     
     @Override
     public void createPartControl(Composite parent) {
@@ -76,8 +78,8 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         console = findConsole("Manorrock Assistant Log");
         consoleStream = console.newMessageStream();
         
-        // Initialize AssistantImpl
-        assistant = new AssistantImpl();
+        // Initialize CoreAssistant directly
+        assistant = new CoreAssistant();
         
         // Set up UI layout
         GridLayout layout = new GridLayout();
@@ -112,15 +114,8 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         progressBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         progressBar.setVisible(false);
         
-        // Set initial message based on CLI availability
-        if (!assistant.isCliAvailable()) {
-            responseArea.setText("Manorrock Assistant CLI not found. Please visit " +
-                "https://github.com/manorrock/assistant?tab=readme-ov-file#quick-install " +
-                "for installation instructions.");
-            sendButton.setEnabled(false);
-        } else {
-            responseArea.setText("Welcome to Manorrock Assistant\n\nType /help for a list of commands.");
-        }
+        // Set initial welcome message
+        responseArea.setText("Welcome to Manorrock Assistant\n\nType /help for a list of commands.");
         
         // Add listeners
         requestArea.addKeyListener(new KeyAdapter() {
@@ -190,7 +185,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
                 return;
             }
             
-            // Process message through CLI
+            // Process message using CoreAssistant
             processMessage(userMessage);
         }
     }
@@ -279,11 +274,13 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         sendButton.setEnabled(false);
         progressBar.setVisible(true);
 
-        assistant.executeCommand(message)
+        // Create an AssistantMessage and send it through CoreAssistant
+        AssistantMessage assistantMessage = new CoreAssistantMessage(message);
+        assistant.sendMessage(assistantMessage)
             .thenAccept(response -> {
                 Display.getDefault().asyncExec(() -> {
-                    responseArea.append("\n\nAssistant: " + response);
-                    consoleStream.println("[" + timestamp + " - Assistant]\n" + response);
+                    responseArea.append("\n\nAssistant: " + response.getContent());
+                    consoleStream.println("[" + timestamp + " - Assistant]\n" + response.getContent());
                     sendButton.setEnabled(true);
                     progressBar.setVisible(false);
                     responseArea.setTopIndex(responseArea.getLineCount() - 1);

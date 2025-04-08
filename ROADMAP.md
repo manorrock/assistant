@@ -4,7 +4,7 @@
 
 # Next release
 - [x] Remove Dark / light mode toggle (Desktop)
-- [ ] Refactor to use CoreAssistant directly (Eclipse)
+- [x] Refactor to use CoreAssistant directly (Eclipse)
 - [x] Refactor to use CoreAssistant directly (IntelliJ)
 - [x] Merge iphone directory into mobile directory (Phone)
 - [x] Move the progress indicator into the response area (VSCode)
