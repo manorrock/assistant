@@ -13,6 +13,7 @@
     <module>eclipse</module>
     <module>impl</module>
     <module>intellij</module>
+    <module>mobile</module>
     <module>netbeans</module>
     <module>vscode</module>
   </modules>
