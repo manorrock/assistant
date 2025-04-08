@@ -56,7 +56,7 @@ public class DesktopSessionCommand implements Command {
         
         // Then clear the UI
         if (assistant.getController() != null) {
-            assistant.getController().clearResponseArea();
+            assistant.getController().handleClear();
         }
         
         return "Started a new session. Conversation history cleared.";
