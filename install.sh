@@ -188,12 +188,12 @@ if [ "$INSTALL_ACE" = true ]; then
         fi
         
         # Download PowerShell completion
-        if curl -L -f -s "https://raw.githubusercontent.com/manorrock/assistant/main/scripts/ace-coding-completion.ps1" \
-                -o "$CONFIG_DIR/completions/ace-coding-completion.ps1"; then
-            echo "Downloaded PowerShell completion for ACE."
-        else
-            echo "Warning: Could not download PowerShell completion for ACE."
-        fi
+        # if curl -L -f -s "https://raw.githubusercontent.com/manorrock/assistant/main/scripts/ace-coding-completion.ps1" \
+        #        -o "$CONFIG_DIR/completions/ace-coding-completion.ps1"; then
+        #    echo "Downloaded PowerShell completion for ACE."
+        #else
+        #    echo "Warning: Could not download PowerShell completion for ACE."
+        #fi
     fi
 fi
 

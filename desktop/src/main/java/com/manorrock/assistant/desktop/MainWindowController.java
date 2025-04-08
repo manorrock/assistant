@@ -1,8 +1,5 @@
 package com.manorrock.assistant.desktop;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -24,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
 
-import com.manorrock.assistant.core.CoreAssistant;
 import com.manorrock.assistant.api.AssistantMessage;
 import com.manorrock.assistant.core.CoreAssistantMessage;
 
@@ -66,9 +62,9 @@ public class MainWindowController {
                     :root {
                         --bg-color: #ffffff;
                         --text-color: #000000;
-                        --separator-color: #ccc;
-                        --user-header-color: #333;
-                        --assistant-header-color: rgb(0, 0, 145);
+                        --separator-color: #000000;
+                        --user-header-color: #000000;
+                        --assistant-header-color: rgb(0, 0, 0);
                     }
                     
                     body { 
@@ -186,54 +182,23 @@ public class MainWindowController {
         String escapedContent = StringEscapeUtils.escapeHtml4(content);
         
         if (type.equals("user")) {
-            // User messages appear immediately
             String messageHtml = String.format(
                 "<div class='message %s'><div class='message-header'>%s</div><div class='message-separator'></div><pre>%s</pre></div>",
                 type, "You", escapedContent);
             messageHistory.add(messageHtml);
             renderContent();
         } else {
-            // For assistant messages, animate character by character
-            StringBuilder currentContent = new StringBuilder();
-            
-            // Add initial empty message
-            String initialHtml = String.format(
-                "<div class='message %s'><div class='message-header'>%s</div><div class='message-separator'></div><pre></pre></div>",
-                type, "Assistant");
-            messageHistory.add(initialHtml);
+            String messageHtml = String.format(
+                "<div class='message %s'><div class='message-header'>%s</div><div class='message-separator'></div><pre>%s</pre></div>",
+                type, "Assistant", escapedContent);
+            messageHistory.add(messageHtml);
             renderContent();
             
-            Timeline timeline = new Timeline();
-            timeline.setCycleCount(1);
-            
-            // Add a keyframe for each character
-            char[] chars = escapedContent.toCharArray();
-            for (int i = 0; i < chars.length; i++) {
-                final int index = i;
-                KeyFrame keyFrame = new KeyFrame(
-                    Duration.millis(i * 15), // 15ms delay between characters for typewriter effect
-                    event -> {
-                        currentContent.append(chars[index]);
-                        
-                        // Update the last message's content
-                        String updatedHtml = String.format(
-                            "<div class='message %s'><div class='message-header'>%s</div><div class='message-separator'></div><pre>%s</pre></div>",
-                            type, "Assistant", currentContent.toString());
-                        messageHistory.set(messageHistory.size() - 1, updatedHtml);
-                        renderContent();
-                    }
-                );
-                timeline.getKeyFrames().add(keyFrame);
-            }
-            
-            // Once animation is complete, enable controls
-            timeline.setOnFinished(event -> {
+            Platform.runLater(() -> {
                 progressBar.setProgress(0);
                 sendButton.setDisable(false);
                 requestArea.requestFocus();
             });
-            
-            Platform.runLater(() -> timeline.play());
         }
     }
 
@@ -246,17 +211,11 @@ public class MainWindowController {
         appendMessage(command, "user");
         
         // Handle UI-specific commands directly
-        if (command.equals("/clear")) {
-            handleClear();
-            return;
-        } else if (command.startsWith("/explain")) {
+        if (command.startsWith("/explain")) {
             handleExplain(command);
             return;
-        } else if (command.startsWith("/context")) {
-            handleContext(command);
-            return;
-        } else if (command.startsWith("/source")) {
-            handleSource(command);
+        } else if (command.startsWith("/clear")) {
+            handleClear();
             return;
         } else if (command.startsWith("/session")) {
             handleSession(command);
@@ -265,11 +224,6 @@ public class MainWindowController {
         
         // Delegate all other commands to CoreAssistant
         handleMessage(command);
-    }
-
-    private void handleClear() {
-        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
-        requestArea.clear();
     }
 
     private void handleMessage(String message) {
@@ -281,31 +235,19 @@ public class MainWindowController {
             .thenAccept(response -> {
                 Platform.runLater(() -> {
                     appendMessage(response.getContent(), "assistant");
+                    sendButton.setDisable(false);
+                    progressBar.setProgress(0);
                 });
             })
             .exceptionally(error -> {
                 Platform.runLater(() -> {
-                    String errorMessage = error.getMessage();
-                    if (errorMessage != null && errorMessage.contains("Unable to determine which LLM to use")) {
-                        errorMessage = "No language model (LLM) is configured. Please configure an LLM using the /llm commands. Type /help llm for more information.";
-                    }
-                    appendMessage(errorMessage, "system");
+                    appendMessage(error.getMessage(), "assistant");
                     sendButton.setDisable(false);
                     progressBar.setProgress(0);
                 });
                 return null;
-            });        
+            });
 
-        requestArea.clear();
-    }
-
-    /**
-     * Clear the response area.
-     * This method is called by DesktopClearCommand and other UI-specific commands.
-     */
-    public void clearResponseArea() {
-        messageHistory.clear();
-        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
         requestArea.clear();
     }
 
@@ -364,78 +306,6 @@ public class MainWindowController {
     }
 
     /**
-     * Handle the /help command.
-     * 
-     * @param command the help command
-     */
-    private void handleHelp(String command) {
-        // Delegate to CoreAssistant
-        handleMessage(command);
-    }
-
-    /**
-     * Handle the /llm command.
-     * 
-     * @param command the llm command
-     */
-    private void handleLlm(String command) {
-        // Delegate to CoreAssistant
-        handleMessage(command);
-    }
-
-    /**
-     * Handle the /ollama command.
-     * 
-     * @param command the ollama command
-     */
-    private void handleOllama(String command) {
-        String[] parts = command.trim().split("\\s+", 3);
-        String subCommand = parts.length > 1 ? parts[1].trim() : "";
-        
-        if (subCommand.isEmpty()) {
-            appendMessage("Please specify an Ollama subcommand. Use /help ollama for available options.", "assistant");
-            return;
-        }
-        
-        // Route to CoreAssistant for Ollama commands
-        if (subCommand.equals("list") || subCommand.equals("pull") || 
-            subCommand.equals("status") || subCommand.equals("endpoint")) {
-            handleMessage(command);
-            return;
-        }
-        
-        appendMessage("Unknown Ollama subcommand: " + subCommand + ". Use /help ollama for available options.", "assistant");
-    }
-
-    /**
-     * Handle the /session new command.
-     */
-    private void handleSessionNew() {
-        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
-        handleMessage("/session new");
-    }
-
-    /**
-     * Handle the /context command.
-     * 
-     * @param command the context command
-     */
-    private void handleContext(String command) {
-        // Delegate to CoreAssistant
-        handleMessage(command);
-    }
-
-    /**
-     * Handle the /source command.
-     * 
-     * @param command the source command
-     */
-    private void handleSource(String command) {
-        // Delegate to CoreAssistant
-        handleMessage(command);
-    }
-
-    /**
      * Handle the /session command.
      * 
      * @param command the session command
@@ -446,11 +316,9 @@ public class MainWindowController {
         
         // Only handle UI-specific aspects of session commands
         if (subCommand.equals("new")) {
-            handleSessionNew();
-            return;
+            responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
         }
         
-        // Delegate all other session commands to CoreAssistant
         handleMessage(command);
     }
 
@@ -470,5 +338,14 @@ public class MainWindowController {
         } else {
             handleMessage(message);
         }
+    }
+
+    /**
+     * Handle the /clear command.
+     */
+    protected void handleClear() {
+        messageHistory.clear();
+        responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
+        requestArea.clear();
     }
 }

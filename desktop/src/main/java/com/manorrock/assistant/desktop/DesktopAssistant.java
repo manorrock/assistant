@@ -57,9 +57,6 @@ public class DesktopAssistant extends CoreAssistant {
         // Register explain command with UI integration
         getCommandRegistry().registerCommand("explain", new DesktopExplainCommand(this));
         
-        // Register clear command (UI-specific)
-        getCommandRegistry().registerCommand("clear", new DesktopClearCommand(this));
-        
         // Register session command with UI integration
         getCommandRegistry().registerCommand("session", new DesktopSessionCommand(this));
     }

@@ -6,9 +6,9 @@
 - [x] Remove Dark / light mode toggle (Desktop)
 - [ ] Refactor to use CoreAssistant directly (Eclipse)
 - [ ] Refactor to use CoreAssistant directly (IntelliJ)
-- [ ] Merge iphone directory into mobile directory (Phone)
+- [x] Merge iphone directory into mobile directory (Phone)
 - [ ] Move the progress indicator into the response area (VSCode)
-- [ ] Remove typewriter effect (Desktop)
+- [x] Remove typewriter effect (Desktop)
 - [ ] Remove typewriter effect (NetBeans)
 - [ ] Add NBM as a release artifact (NetBeans)
 - [ ] Add Eclipse plugin as a release artifact (Eclipse)
@@ -336,4 +336,3 @@
 - [ ] Add conversation analytics
 - [ ] Add conversation health monitoring
 - [ ] Add conversation export to third-party platforms
-- [ ] Add conversation import from third-party platforms
