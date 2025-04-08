@@ -9,7 +9,7 @@
 - [x] Merge iphone directory into mobile directory (Phone)
 - [ ] Move the progress indicator into the response area (VSCode)
 - [x] Remove typewriter effect (Desktop)
-- [ ] Remove typewriter effect (NetBeans)
+- [x] Remove typewriter effect (NetBeans)
 - [ ] Add NBM as a release artifact (NetBeans)
 - [ ] Add Eclipse plugin as a release artifact (Eclipse)
 - [ ] Add IntelliJ plugin as a release artifact (IntelliJ)
@@ -335,4 +335,3 @@
 - [ ] Add conversation error tracking
 - [ ] Add conversation analytics
 - [ ] Add conversation health monitoring
-- [ ] Add conversation export to third-party platforms

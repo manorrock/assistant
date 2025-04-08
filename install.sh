@@ -172,12 +172,12 @@ if [ "$INSTALL_ACE" = true ]; then
         mkdir -p "$CONFIG_DIR/completions"
         
         # Download Bash completion
-        if curl -L -f -s "https://raw.githubusercontent.com/manorrock/assistant/main/scripts/ace-coding-completion.bash" \
-                -o "$CONFIG_DIR/completions/ace-coding-completion.bash"; then
-            echo "Downloaded Bash completion for ACE."
-        else
-            echo "Warning: Could not download Bash completion for ACE."
-        fi
+        #if curl -L -f -s "https://raw.githubusercontent.com/manorrock/assistant/main/scripts/ace-coding-completion.bash" \
+        #        -o "$CONFIG_DIR/completions/ace-coding-completion.bash"; then
+        #    echo "Downloaded Bash completion for ACE."
+        #else
+        #    echo "Warning: Could not download Bash completion for ACE."
+        #fi
         
         # Download Zsh completion
         if curl -L -f -s "https://raw.githubusercontent.com/manorrock/assistant/main/scripts/ace-coding-completion.zsh" \
@@ -188,7 +188,7 @@ if [ "$INSTALL_ACE" = true ]; then
         fi
         
         # Download PowerShell completion
-        # if curl -L -f -s "https://raw.githubusercontent.com/manorrock/assistant/main/scripts/ace-coding-completion.ps1" \
+        #if curl -L -f -s "https://raw.githubusercontent.com/manorrock/assistant/main/scripts/ace-coding-completion.ps1" \
         #        -o "$CONFIG_DIR/completions/ace-coding-completion.ps1"; then
         #    echo "Downloaded PowerShell completion for ACE."
         #else
@@ -202,10 +202,10 @@ SHELL_NAME=$(basename "$SHELL")
 if [[ "$SHELL_NAME" == "bash" ]]; then
     SHELL_RC="~/.bashrc"
     ALIAS_COMMAND="echo \"alias assistant=\\\"$SCRIPT_PATH\\\"\" >> ~/.bashrc"
-    if [ "$INSTALL_ACE" = true ]; then
-        ACE_ALIAS_COMMAND="echo \"alias ace-coding=\\\"$ACE_SCRIPT_PATH\\\"\" >> ~/.bashrc"
-        COMPLETION_COMMAND="echo \"source $CONFIG_DIR/completions/ace-coding-completion.bash\" >> ~/.bashrc"
-    fi
+#    if [ "$INSTALL_ACE" = true ]; then
+#        ACE_ALIAS_COMMAND="echo \"alias ace-coding=\\\"$ACE_SCRIPT_PATH\\\"\" >> ~/.bashrc"
+#        COMPLETION_COMMAND="echo \"source $CONFIG_DIR/completions/ace-coding-completion.bash\" >> ~/.bashrc"
+#    fi
 elif [[ "$SHELL_NAME" == "zsh" ]]; then
     SHELL_RC="~/.zshrc"
     ALIAS_COMMAND="echo \"alias assistant=\\\"$SCRIPT_PATH\\\"\" >> ~/.zshrc"
