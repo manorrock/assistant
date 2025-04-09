@@ -20,12 +20,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.manorrock.assistant</groupId>
-            <artifactId>impl</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
             <scope>compile</scope>

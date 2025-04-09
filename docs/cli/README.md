@@ -4,168 +4,46 @@ The CLI (Command Line Interface) module provides a text-based interface for inte
 
 ## Overview
 
-The CLI module is a standalone Java application that:
-- Provides a terminal-based user interface to Manorrock Assistant
-- Processes user input and displays responses
-- Handles command parsing and execution
-- Supports ANSI terminal features for enhanced display
+The CLI module is a simple Java application that:
+- Provides a terminal-based interface to Manorrock Assistant
+- Processes user input and displays AI responses
+- Supports both single-query and interactive modes
+- Includes basic command functionality
 
 ```mermaid
 graph TD
     User[User] -->|enters text| CLI[CLI Module]
-    CLI -->|processes| Input[Input Handler]
-    Input -->|command?| CommandProcessor[Command Processor]
-    Input -->|prompt?| LLMProcessor[LLM Processor]
-    CommandProcessor -->|executes| Commands[Command Registry]
-    LLMProcessor -->|sends prompt to| Core[Core Module]
-    Core -->|processes with| LLM[Active LLM]
+    CLI -->|processes| CoreAssistant[Core Assistant]
+    CoreAssistant -->|sends to| LLM[Active LLM]
     LLM -->|returns| Response[LLM Response]
-    Response -->|formatted for| Terminal[Terminal Display]
-    Terminal -->|shown to| User
+    Response -->|displayed to| User
 ```
 
 ## Key Components
 
 ### CLI Application
 
-The main application class that:
-- Initializes the assistant
-- Sets up the terminal environment
-- Handles the main input/output loop
-- Processes user commands and prompts
+The main `CLI` class:
+- Initializes the core assistant
+- Processes command-line arguments
+- Handles interactive mode
+- Routes commands and messages
 
-### Terminal Handler
+### Command Support
 
-Manages the terminal interface:
-- Handles ANSI color codes for formatted output
-- Processes keyboard input
-- Supports command history navigation
-- Manages clipboard integration for the `/explain` command
+Currently supports:
+- Command interface implementation
+- `/explain` command for explaining clipboard or file content
 
-### Command Processor
+## Usage Modes
 
-Detects and routes commands:
-- Identifies when input starts with `/` to trigger command handling
-- Routes commands to appropriate handlers in the core module
-- Formats and displays command results
+The CLI supports different modes of operation:
 
-## Usage Workflow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant CLI as CLI Interface
-    participant Core as Core Module
-    participant LLM as LLM Component
-    
-    User->>CLI: Start application
-    CLI->>Core: Initialize Core Assistant
-    CLI->>User: Display welcome message
-    
-    loop Interaction Loop
-        User->>CLI: Enter input
-        
-        alt Command (starts with "/")
-            CLI->>Core: Process command
-            Core->>CLI: Return command result
-            CLI->>User: Display formatted result
-        else Regular prompt
-            CLI->>Core: Send prompt to assistant
-            Core->>LLM: Process with active LLM
-            LLM->>Core: Return LLM response
-            Core->>CLI: Return formatted response
-            CLI->>User: Display response
-        end
-    end
-    
-    User->>CLI: Enter exit command
-    CLI->>User: Terminate application
-```
+1. **Single Query Mode**: Pass a message as a command-line argument
+2. **Interactive Mode**: Start a conversation session with continuous input/output
+3. **Stdin Mode**: Read input from standard input
 
 ## Installation and Usage
-
-### Quick Install
-
-To install the latest stable release of Manorrock Assistant CLI:
-
-```shell
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/manorrock/assistant/current/install.sh)"
-```
-
-### Running the CLI
-
-Once installed, you can run the CLI:
-
-```shell
-manorrock-assistant
-```
-
-### Basic Commands
-
-| Command | Description |
-|---------|-------------|
-| `/help` | Shows available commands |
-| `/llm` | Manages LLMs and their configuration |
-| `/ollama` | Manages Ollama models and server |
-| `/session` | Manages chat sessions |
-| `/context` | Manages context files for prompts |
-| `/tool` | Manages and executes tools |
-
-## Configuration
-
-The CLI stores configuration in the user's home directory:
-
-```
-~/.manorrock/assistant/
-  ├── config.properties  # General configuration
-  ├── llms/              # LLM configurations
-  ├── sessions/          # Chat session history
-  ├── contexts/          # Context files
-  └── templates/         # System message templates
-```
-
-## Clipboard Integration
-
-The CLI supports clipboard integration for the `/explain` command:
-
-- On macOS: Uses `pbpaste` to access clipboard content
-- On Linux: Uses `xclip` or `xsel` (if available)
-- On Windows: Uses native clipboard access
-
-## Example Session
-
-Below is an example of a typical CLI session:
-
-```
-$ manorrock-assistant
-Welcome to Manorrock Assistant CLI!
-Type your questions or use / commands (try /help)
-
-> /llm list
-Available LLMs:
-  * default (OLLAMA, llama3.2)
-
-Use '/llm set <name>' to set the active LLM
-
-> /llm info
-Current LLM Configuration:
-  API Key: ********
-  Endpoint: http://localhost:11434
-  Function Calling: OFF
-  Model: llama3.2
-  Temperature: 0.7
-  Vendor: OLLAMA
-
-> Hello, who are you?
-I am Manorrock Assistant, an AI assistant powered by the Llama model. I'm running 
-locally on your machine through Ollama. I can help answer questions, assist with 
-tasks, and provide information on a wide range of topics. How can I help you today?
-
-> /session clear
-Session cleared successfully.
-```
-
-## Development
 
 ### Building from Source
 
@@ -176,69 +54,125 @@ cd cli
 mvn clean package
 ```
 
-This will create an executable JAR file in the `target` directory.
+This will create the executable JAR file in the `target` directory.
 
-### Customizing the CLI
+### Running the CLI
+
+Once built, you can run the CLI:
+
+```shell
+java -jar cli/target/cli.jar [options] [message]
+```
+
+### Command-line Options
+
+| Option | Description |
+|--------|-------------|
+| `-i, --interactive` | Start in interactive mode |
+| `--stdin` | Read message from standard input |
+| `--no-banner` | Do not show the banner |
+| `--no-prefix` | Do not show You/Assistant: prefix |
+| `--debug` | Enable debug logging |
+| `-h, --help` | Show help message |
+| `-V, --version` | Show version information |
+
+## Available Commands
+
+Currently, the CLI implements the following commands:
+
+| Command | Description |
+|---------|-------------|
+| `/explain clipboard` | Explains text from the clipboard |
+| `/explain file <path>` | Explains text from the specified file |
+| `/exit` | Exits the interactive mode |
+| `/help` | Shows help information |
+
+## Clipboard Integration
+
+The `/explain clipboard` command supports platform-specific clipboard integration:
+
+- On macOS: Uses `pbpaste` to access clipboard content
+- On Linux: Uses `xclip` to access clipboard content
+- On Windows: Uses PowerShell's `Get-Clipboard` command
+
+## Example Session
+
+Below is an example of a typical CLI session in interactive mode:
+
+```
+$ java -jar cli.jar -i
+Entering interactive mode. Type /exit to quit, or /help for commands.
+Use \ at end of line for multi-line input.
+
+You: Hello, who are you?
+Assistant: I'm an AI assistant powered by the Manorrock Assistant. I can help answer questions and provide information on a variety of topics. How can I assist you today?
+
+You: /explain clipboard
+Assistant: Original text:
+public int add(int a, int b) {
+    return a + b;
+}
+
+Explanation:
+This is a Java method named "add" that takes two integer parameters (a and b) and returns their sum as an integer value.
+
+You: /exit
+Exiting interactive mode.
+```
+
+## Multi-line Input
+
+In interactive mode, you can enter multi-line input by ending a line with a backslash `\`:
+
+```
+You: Tell me about \
+... Java programming \
+... in three bullet points.
+```
+
+## Development
+
+### Extending the CLI
 
 You can extend the CLI by:
 
-1. Adding new commands by implementing the `Command` interface
-2. Registering those commands with the CoreAssistant
-3. Customizing the terminal display by extending the terminal handler
+1. Creating new command classes that implement the `Command` interface
+2. Registering commands with the CoreAssistant in the CLI constructor
 
-### Architecture Details
+Example of implementing a custom command:
 
-```mermaid
-classDiagram
-    class App {
-        +main(String[] args)
-        -initializeAssistant()
-        -processInput(String input)
-        -displayWelcome()
-        -isCommand(String input)
+```java
+public class CustomCommand implements Command {
+    @Override
+    public String execute(String input) {
+        // Command implementation
     }
     
-    class CoreAssistant {
-        -LlmManager llmManager
-        -Map~String, Command~ commands
-        +getResponse(String prompt)
-        +registerCommand(String name, Command command)
+    @Override
+    public String getDescription() {
+        return "Description of the command";
     }
     
-    class TerminalHandler {
-        +readInput() String
-        +displayOutput(String text)
-        +formatResponse(String response)
-        +getClipboardContent() String
+    @Override
+    public String getShortDescription() {
+        return "Short description";
     }
-    
-    App --> CoreAssistant : uses
-    App --> TerminalHandler : uses
-    CoreAssistant --> Command : executes
+}
 ```
-
-## Platform-Specific Features
-
-The CLI adapts to different operating systems:
-
-- **Color Support**: Uses ANSI escape codes on terminals that support them
-- **Clipboard Access**: Uses platform-specific commands for clipboard integration
-- **History Navigation**: Supports up/down arrow keys for history traversal on supported terminals
 
 ## Troubleshooting
 
-### Common Issues
+### Debug Logging
 
-1. **Ollama Connection**: If you see connection errors, ensure Ollama is running (`ollama serve`)
-2. **Memory Issues**: For large models, you may need to increase Java heap size (`java -Xmx4g -jar cli.jar`)
-3. **Clipboard Access**: The `/explain` command requires clipboard utilities (varies by platform)
+To enable debug logging, use the `--debug` flag:
 
-### Logs
-
-The CLI logs information to:
-
-```
-~/.manorrock/assistant/logs/
+```shell
+java -jar cli.jar --debug
 ```
 
-Check these logs for troubleshooting connection issues or unexpected behavior.
+### Clipboard Issues
+
+If the `/explain clipboard` command fails:
+- On macOS: Ensure `pbpaste` is available
+- On Linux: Install `xclip` package
+- On Windows: Ensure PowerShell is available and can run `Get-Clipboard`
