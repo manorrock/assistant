@@ -1,6 +1,9 @@
 package com.manorrock.assistant.cli;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.logging.ConsoleHandler;
@@ -41,6 +44,11 @@ public class CLI implements Callable<Integer> {
    * Stores the assistant.
    */
   private CoreAssistant coreAssistant;
+  
+  /**
+   * Stores the conversation history.
+   */
+  private final List<AssistantMessage> conversationHistory = new ArrayList<>();
 
   /**
    * Stores the command line flag that specifieds to read the message from stdin.
@@ -86,6 +94,8 @@ public class CLI implements Callable<Integer> {
     coreAssistant.setActiveLlm("llama3.2");
     coreAssistant.getCommandRegistry()
         .registerCommand("explain", new CLIExplainCommand(coreAssistant));
+    coreAssistant.getCommandRegistry()
+        .registerCommand("export", new CLIExportCommand(this));
   }
 
   /**
@@ -96,6 +106,15 @@ public class CLI implements Callable<Integer> {
    */
   protected CoreAssistant getCoreAssistant() {
     return coreAssistant;
+  }
+  
+  /**
+   * Get the conversation history.
+   * 
+   * @return The conversation history as a list of AssistantMessage objects
+   */
+  public List<AssistantMessage> getConversationHistory() {
+    return conversationHistory;
   }
 
   /**
@@ -159,9 +178,25 @@ public class CLI implements Callable<Integer> {
     if (!userMessage.isEmpty()) {
       // Create the message for CoreAssistant
       AssistantMessage message = new CoreAssistantMessage(userMessage);
+      
+      // Ensure timestamp is set for user message
+      if (message.getTimestamp() == null) {
+        message.setTimestamp(LocalDateTime.now());
+      }
+      
+      // Add user message to conversation history
+      conversationHistory.add(message);
 
       // Process using the CoreAssistant
       AssistantMessage response = coreAssistant.processMessage(message);
+      
+      // Ensure timestamp is set for assistant response
+      if (response.getTimestamp() == null) {
+        response.setTimestamp(LocalDateTime.now());
+      }
+      
+      // Add assistant response to conversation history
+      conversationHistory.add(response);
 
       // Display the response
       if (!noPrefix) {
