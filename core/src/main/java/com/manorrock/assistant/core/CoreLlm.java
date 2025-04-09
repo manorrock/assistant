@@ -2,11 +2,14 @@ package com.manorrock.assistant.core;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
+import com.manorrock.assistant.api.TokenUsageTracker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -87,6 +90,7 @@ public class CoreLlm implements Llm {
      */
     public CoreLlm(LlmManager manager) {
         this.manager = manager;
+        init();
     }
 
     /**
@@ -400,11 +404,37 @@ public class CoreLlm implements Llm {
             return "I need some input to provide a helpful response.";
         }
 
+        String response;
+        String modelName = properties.getProperty("modelName", "unknown");
+        int promptTokens = CoreTokenCounterUtil.countTokens(prompt, modelName);
+        
+        // Process based on whether function calling is enabled
         if (functionCallingEnabled) {
-            return processWithTools(prompt);
+            response = processWithTools(prompt);
         } else {
-            return processWithoutTools(prompt);
+            response = processWithoutTools(prompt);
         }
+        
+        // Track token usage
+        int completionTokens = CoreTokenCounterUtil.countTokens(response, modelName);
+        int totalTokens = promptTokens + completionTokens;
+        
+        // Record usage in the token tracker if available
+        if (manager instanceof CoreLlmManager) {
+            TokenUsageTracker tracker = ((CoreLlmManager) manager).getTokenTracker();
+            if (tracker != null) {
+                // Create a map of token usage data
+                Map<String, Integer> usageData = new HashMap<>();
+                usageData.put("promptTokens", promptTokens);
+                usageData.put("completionTokens", completionTokens);
+                usageData.put("totalTokens", totalTokens);
+                
+                // Record the usage data
+                tracker.recordUsage(modelName, usageData);
+            }
+        }
+        
+        return response;
     }
 
     /**

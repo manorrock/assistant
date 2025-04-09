@@ -1,5 +1,6 @@
 package com.manorrock.assistant.core;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import com.manorrock.assistant.api.Assistant;
@@ -8,6 +9,7 @@ import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.CommandRegistry;
 import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
+import com.manorrock.assistant.api.TokenUsageTracker;
 import com.manorrock.assistant.api.ToolManager;
 
 /**
@@ -45,6 +47,11 @@ public class CoreAssistant implements Assistant {
      * Stores the current context message
      */
     private String currentContext;
+    
+    /**
+     * Flag to determine if token usage should be displayed after each conversation.
+     */
+    private boolean showTokenUsage = false;
 
     /**
      * Constructor.
@@ -191,7 +198,60 @@ public class CoreAssistant implements Assistant {
         }
         
         String llmResponse = llmToUse.process(prompt);
+        
+        // Check if token usage display is enabled
+        if (showTokenUsage) {
+            // Get the token usage statistics
+            String tokenUsageStats = getTokenUsageStats();
+            if (tokenUsageStats != null) {
+                llmResponse += "\n\n--- Token Usage ---\n" + tokenUsageStats;
+            }
+        }
+        
         return new CoreAssistantMessage(llmResponse);
+    }
+    
+    /**
+     * Check if token usage display is enabled.
+     * 
+     * @return true if token usage display is enabled, false otherwise
+     */
+    private boolean isTokenUsageDisplayEnabled() {
+        return shouldShowTokenUsage();
+    }
+    
+    /**
+     * Get the latest token usage statistics in a compact format.
+     * 
+     * @return a compact string with token usage statistics for the last interaction, or null if not available
+     */
+    private String getTokenUsageStats() {
+        if (!(llmManager instanceof CoreLlmManager)) {
+            return null;
+        }
+        
+        TokenUsageTracker tracker = ((CoreLlmManager) llmManager).getTokenTracker();
+        if (tracker == null) {
+            return null;
+        }
+        
+        Map<String, Map<String, Object>> usageByModel = tracker.getUsageStatistics();
+        if (usageByModel.isEmpty()) {
+            return "No token usage recorded yet.";
+        }
+        
+        // For the sake of brevity in the conversation, just show the most recent usage for the active model
+        if (usageByModel.containsKey(activeLlm)) {
+            Map<String, Object> modelStats = usageByModel.get(activeLlm);
+            int promptTokens = ((Number) modelStats.getOrDefault("totalPromptTokens", 0)).intValue();
+            int completionTokens = ((Number) modelStats.getOrDefault("totalCompletionTokens", 0)).intValue();
+            int totalTokens = ((Number) modelStats.getOrDefault("totalTokens", 0)).intValue();
+            
+            return String.format("Model: %s\nPrompt: %,d tokens\nCompletion: %,d tokens\nTotal: %,d tokens", 
+                activeLlm, promptTokens, completionTokens, totalTokens);
+        }
+        
+        return null;
     }
 
     /**
@@ -217,6 +277,24 @@ public class CoreAssistant implements Assistant {
      */
     public void clearContext() {
         this.currentContext = null;
+    }
+
+    /**
+     * Set whether to show token usage after each conversation.
+     *
+     * @param showTokenUsage true to show token usage, false otherwise
+     */
+    public void setShowTokenUsage(boolean showTokenUsage) {
+        this.showTokenUsage = showTokenUsage;
+    }
+
+    /**
+     * Check if token usage should be displayed after conversations.
+     *
+     * @return true if token usage should be displayed, false otherwise
+     */
+    public boolean shouldShowTokenUsage() {
+        return showTokenUsage;
     }
 
     /**
