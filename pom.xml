@@ -11,10 +11,9 @@
     <module>cli</module>
     <module>desktop</module>
     <module>eclipse</module>
-    <module>impl</module>
     <module>intellij</module>
-    <module>mobile</module>
     <module>netbeans</module>
+    <module>phone</module>
     <module>vscode</module>
   </modules>
   <properties>

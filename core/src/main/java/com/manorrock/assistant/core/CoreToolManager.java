@@ -3,15 +3,6 @@ package com.manorrock.assistant.core;
 import com.manorrock.assistant.api.Tool;
 import com.manorrock.assistant.api.ToolManager;
 import com.manorrock.assistant.api.ToolResult;
-import com.manorrock.assistant.tool.DependencyAnalysisTool;
-import com.manorrock.assistant.tool.DirectoryListTool;
-import com.manorrock.assistant.tool.FileReadTool;
-import com.manorrock.assistant.tool.FileWriteTool;
-import com.manorrock.assistant.tool.MavenArchetypeTool;
-import com.manorrock.assistant.tool.ProcessExecutionTool;
-import com.manorrock.assistant.tool.ProjectStructureAnalysisTool;
-import com.manorrock.assistant.tool.ShellExecutionTool;
-import com.manorrock.assistant.tool.WebScraperTool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,15 +48,6 @@ public class CoreToolManager implements ToolManager {
         CoreToolManagerTool toolManagerTool = new CoreToolManagerTool(this);
         registerTool(toolManagerTool);
         registerTool(new CoreEchoTool(), false);
-        registerTool(new FileReadTool(), false);
-        registerTool(new FileWriteTool(), false);
-        registerTool(new DirectoryListTool(), false);
-        registerTool(new ShellExecutionTool(), false);
-        registerTool(new ProcessExecutionTool(), false);
-        registerTool(new ProjectStructureAnalysisTool(), false);
-        registerTool(new DependencyAnalysisTool(), false);
-        registerTool(new WebScraperTool(), false);
-        registerTool(new MavenArchetypeTool(), false);
     }
 
     public void registerTool(Tool tool, boolean enable) {
