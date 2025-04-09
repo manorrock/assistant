@@ -3,16 +3,26 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-- [x] Refactor mobile directory to phone directory (Phone)
-- [ ] Add VSCodeCLI (VSCode)
-- [ ] Include VSCodeCLI in extension (VSCode)
-- [ ] Add arm64 macOS CLI binary (CLI)
-- [ ] Add amd64 macOS CLI binary (CLI)
-- [ ] Optimize extensin download size (VSCode)
-- [x] Add LICENSE to plugin (NetBeans)
 - [x] Implement token usage tracking and analytics (Core)
+- [x] Add LICENSE to plugin (NetBeans)
+- [x] Refactor mobile directory to phone directory (Phone)
+- [x] Optimize extensin download size (VSCode)
 
 # Backlog
+
+## CLI
+- [ ] Add arm64 macOS CLI binary (CLI)
+- [ ] Add amd64 macOS CLI binary (CLI)
+- [ ] Add amd64 Windows CLI binary (CLI)
+- [ ] Add amd64 Linux CLI binary (CLI)
+- [ ] Add command history and recall functionality in interactive mode (CLI)
+- [ ] Add file completion support for file-based commands (CLI)
+- [ ] Implement configuration command for managing assistant settings (CLI)
+- [ ] Add conversation export functionality to text or JSON format (CLI)
+- [ ] Support multiple personalities/profiles via command line flags (CLI)
+- [ ] Implement plugin system for adding custom commands (CLI)
+- [ ] Add chat session persistence between CLI invocations (CLI)
+- [ ] Implement markdown rendering in terminal output (CLI)
 
 ## Core
 - [ ] Implement streaming response support for real-time token generation (Core)
@@ -26,18 +36,6 @@
 - [ ] Add support for Claude and other LLM providers (Core)
 - [ ] Create evaluation framework for comparing model outputs (Core)
 - [ ] Implement agent framework with planning capabilities (Core)
-
-## CLI
-- [ ] Add amd64 Windows CLI binary (CLI)
-- [ ] Add amd64 Linux CLI binary (CLI)
-- [ ] Add command history and recall functionality in interactive mode (CLI)
-- [ ] Add file completion support for file-based commands (CLI)
-- [ ] Implement configuration command for managing assistant settings (CLI)
-- [ ] Add conversation export functionality to text or JSON format (CLI)
-- [ ] Support multiple personalities/profiles via command line flags (CLI)
-- [ ] Implement plugin system for adding custom commands (CLI)
-- [ ] Add chat session persistence between CLI invocations (CLI)
-- [ ] Implement markdown rendering in terminal output (CLI)
 
 ## Desktop
 - [ ] Add dark mode support with theme toggle (Desktop)
@@ -91,19 +89,6 @@
 - [ ] Implement custom themes for assistant window (NetBeans)
 - [ ] Add keyboard shortcut customization for assistant commands (NetBeans)
 
-## VSCode
-- [ ] Implement WebView-based markdown rendering with syntax highlighting (VSCode)
-- [ ] Add conversation history persistence with search functionality (VSCode)
-- [ ] Integrate with VSCode's existing chat interface (VSCode)
-- [ ] Implement code snippet insertion directly from suggestions (VSCode)
-- [ ] Add support for code refactoring with previews (VSCode)
-- [ ] Create settings UI for LLM configuration (VSCode)
-- [ ] Implement inline code actions in editor (VSCode)
-- [ ] Add support for multi-file context in prompts (VSCode)
-- [ ] Implement language-specific code generation (VSCode)
-- [ ] Add integration with workspace symbol search (VSCode)
-- [ ] Implement workspace indexing for better context awareness (VSCode)
-
 ## Phone
 - [ ] Create native iOS assistant application (Phone)
 - [ ] Implement native Android assistant application (Phone)
@@ -115,3 +100,18 @@
 - [ ] Add support for camera input for document analysis (Phone)
 - [ ] Implement battery-efficient background processing (Phone)
 - [ ] Add biometric authentication for secure conversations (Phone)
+
+## VSCode
+- [ ] Add VSCode CLI
+- [ ] Include VSCode CLI in extension
+- [ ] Implement WebView-based markdown rendering with syntax highlighting (VSCode)
+- [ ] Add conversation history persistence with search functionality (VSCode)
+- [ ] Integrate with VSCode's existing chat interface (VSCode)
+- [ ] Implement code snippet insertion directly from suggestions (VSCode)
+- [ ] Add support for code refactoring with previews (VSCode)
+- [ ] Create settings UI for LLM configuration (VSCode)
+- [ ] Implement inline code actions in editor (VSCode)
+- [ ] Add support for multi-file context in prompts (VSCode)
+- [ ] Implement language-specific code generation (VSCode)
+- [ ] Add integration with workspace symbol search (VSCode)
+- [ ] Implement workspace indexing for better context awareness (VSCode)

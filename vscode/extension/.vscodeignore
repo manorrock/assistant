@@ -1,0 +1,67 @@
+# Source code
+src/**
+tsconfig.json
+
+# Development files
+.vscode/**
+.vscode-test/**
+.gitignore
+.eslintrc.json
+.editorconfig
+.prettierrc
+.prettierignore
+.github/**
+
+# Build output not needed in the package
+node_modules/**
+# Only include runtime dependencies that are actually needed
+!node_modules/keytar/**
+
+# Node installation from frontend-maven-plugin
+node/**
+
+# Package files (already built VSIXs)
+*.vsix
+com-manorrock-assistant-*.vsix
+
+# Tests
+test/**
+**/*.test.js
+**/*.test.ts
+**/*.spec.js
+**/*.spec.ts
+
+# Maven/Java build files
+target/**
+pom.xml
+dependency-reduced-pom.xml
+*.jar
+*.class
+.mvn/**
+
+# Documentation
+docs/**
+*.md
+!README.md
+!CHANGELOG.md
+
+# CI configuration
+.travis.yml
+appveyor.yml
+azure-pipelines.yml
+*.yml
+*.yaml
+
+# IDE specific files
+.idea/**
+*.iml
+.project
+.classpath
+.settings/**
+
+# Others
+**/.DS_Store
+**/.git
+**/.svn
+**/CVS
+**/Thumbs.db
