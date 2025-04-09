@@ -100,6 +100,11 @@ public class MainWindowController {
             """;
 
     /**
+     * Current theme (light or dark).
+     */
+    private String currentTheme = "light";
+
+    /**
      * Constructor.
      */
     public MainWindowController() {
@@ -148,16 +153,51 @@ public class MainWindowController {
         });
     }
 
+    /**
+     * Apply the current theme to the application.
+     */
     private void applyTheme() {
         if (root != null && root.getScene() != null) {
             Platform.runLater(() -> {
                 Scene scene = root.getScene();
                 scene.getStylesheets().clear();
                 
-                String cssFile = "MainWindow_light.css";
+                String cssFile = "MainWindow_" + currentTheme + ".css";
                 String cssUrl = getClass().getResource(cssFile).toExternalForm();
                 scene.getStylesheets().add(cssUrl);
+                
+                // Update WebView with appropriate theme CSS variables
+                updateWebViewTheme();
             });
+        }
+    }
+    
+    /**
+     * Update the WebView theme variables.
+     */
+    private void updateWebViewTheme() {
+        if (responseArea != null && responseArea.getEngine() != null) {
+            String cssVars = "";
+            
+            if ("dark".equals(currentTheme)) {
+                cssVars = """
+                    document.documentElement.style.setProperty('--bg-color', '#2a2a2a');
+                    document.documentElement.style.setProperty('--text-color', '#e0e0e0');
+                    document.documentElement.style.setProperty('--separator-color', '#5a5a5a');
+                    document.documentElement.style.setProperty('--user-header-color', '#81c995');
+                    document.documentElement.style.setProperty('--assistant-header-color', '#7aa2f7');
+                """;
+            } else {
+                cssVars = """
+                    document.documentElement.style.setProperty('--bg-color', '#ffffff');
+                    document.documentElement.style.setProperty('--text-color', '#000000');
+                    document.documentElement.style.setProperty('--separator-color', '#000000');
+                    document.documentElement.style.setProperty('--user-header-color', '#000000');
+                    document.documentElement.style.setProperty('--assistant-header-color', '#000000');
+                """;
+            }
+            
+            responseArea.getEngine().executeScript(cssVars);
         }
     }
 
@@ -167,6 +207,15 @@ public class MainWindowController {
                 String.format(HTML_TEMPLATE, 
                     String.join("\n", messageHistory))
             );
+            // Apply theme variables after content is loaded
+            responseArea.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                if (newState == State.SUCCEEDED) {
+                    updateWebViewTheme();
+                    responseArea.getEngine().executeScript(
+                        "window.scrollTo(0, document.body.scrollHeight);"
+                    );
+                }
+            });
         });
     }
 
@@ -175,6 +224,15 @@ public class MainWindowController {
             responseArea.getEngine().loadContent(
                 String.format(HTML_TEMPLATE, content)
             );
+            // Apply theme variables after content is loaded
+            responseArea.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                if (newState == State.SUCCEEDED) {
+                    updateWebViewTheme();
+                    responseArea.getEngine().executeScript(
+                        "window.scrollTo(0, document.body.scrollHeight);"
+                    );
+                }
+            });
         });
     }
 
@@ -347,5 +405,28 @@ public class MainWindowController {
         messageHistory.clear();
         responseArea.getEngine().loadContent(String.format(HTML_TEMPLATE, ""));
         requestArea.clear();
+    }
+
+    /**
+     * Set the application theme.
+     * 
+     * @param theme the theme to set ("light" or "dark")
+     */
+    public void setTheme(String theme) {
+        if ("light".equals(theme) || "dark".equals(theme)) {
+            this.currentTheme = theme;
+            applyTheme();
+        }
+    }
+    
+    /**
+     * Toggle between light and dark themes.
+     * 
+     * @return true if the new theme is dark, false if it's light
+     */
+    public boolean toggleTheme() {
+        currentTheme = "light".equals(currentTheme) ? "dark" : "light";
+        applyTheme();
+        return "dark".equals(currentTheme);
     }
 }
