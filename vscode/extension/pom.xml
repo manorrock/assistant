@@ -47,6 +47,9 @@
             </goals>
             <configuration>
               <arguments>run package</arguments>
+              <environmentVariables>
+                <VSCE_IGNORE_WARNINGS>true</VSCE_IGNORE_WARNINGS>
+              </environmentVariables>
             </configuration>
           </execution>
         </executions>
