@@ -3,6 +3,7 @@ package com.manorrock.assistant.core;
 import com.manorrock.assistant.api.Assistant;
 import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
+import com.manorrock.assistant.api.TokenUsageTracker;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +27,11 @@ public class CoreLlmManager implements LlmManager {
      * Stores the Assistant.
      */
     private Assistant assistant;
+    
+    /**
+     * Stores the token usage tracker.
+     */
+    private CoreTokenUsageTracker tokenTracker;
 
     /**
      * Constructor.
@@ -34,6 +40,7 @@ public class CoreLlmManager implements LlmManager {
      */
     public CoreLlmManager(Assistant assistant) {
         this.assistant = assistant;
+        this.tokenTracker = new CoreTokenUsageTracker();
     }
 
     /**
@@ -94,5 +101,14 @@ public class CoreLlmManager implements LlmManager {
     @Override
     public Assistant getAssistant() {
         return assistant;
+    }
+    
+    /**
+     * Get the token usage tracker.
+     * 
+     * @return the token usage tracker
+     */
+    public TokenUsageTracker getTokenTracker() {
+        return tokenTracker;
     }
 }

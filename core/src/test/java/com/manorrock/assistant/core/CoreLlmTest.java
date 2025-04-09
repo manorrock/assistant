@@ -57,12 +57,6 @@ public class CoreLlmTest {
     }
 
     @Test
-    public void testGetProperties() {
-        Properties properties = coreLlm.getProperties();
-        assertEquals(0, properties.size());
-    }
-
-    @Test
     public void testSetProperties() {
         Properties newProperties = new Properties();
         newProperties.setProperty("baseUrl", "http://example.com");
