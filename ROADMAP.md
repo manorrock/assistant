@@ -11,7 +11,8 @@
 - [x] Add LICENSE to plugin (NetBeans)
 - [x] Refactor mobile directory to phone directory (Phone)
 - [x] Optimize extensin download size (VSCode)
-- [ ] Implement markdown rendering in terminal output (CLI)
+- [x] Implement markdown rendering in terminal output (CLI)
+- [x] Implement streaming response support for real-time token generation (Core)
 
 # Backlog
 
@@ -28,7 +29,6 @@
 - [ ] Add chat session persistence between CLI invocations
 
 ## Core
-- [ ] Implement streaming response support for real-time token generation
 - [ ] Add memory/chat history with token management for context windows
 - [ ] Implement RAG (Retrieval Augmented Generation) capabilities for local documents
 - [ ] Implement model switching/fallback mechanism for reliability
