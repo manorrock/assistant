@@ -59,6 +59,9 @@ public class DesktopAssistant extends CoreAssistant {
         
         // Register session command with UI integration
         getCommandRegistry().registerCommand("session", new DesktopSessionCommand(this));
+        
+        // Register theme command for toggling between light and dark modes
+        getCommandRegistry().registerCommand("theme", new DesktopThemeCommand(this));
     }
     
     /**
