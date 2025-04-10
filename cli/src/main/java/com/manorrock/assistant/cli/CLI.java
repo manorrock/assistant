@@ -81,6 +81,12 @@ public class CLI implements Callable<Integer> {
   private boolean debug = false;
 
   /**
+   * Stores the command line flag to disable markdown rendering.
+   */
+  @Option(names = { "--no-markdown" }, description = "Disable markdown rendering")
+  private boolean noMarkdown = false;
+
+  /**
    * Stores the message to send.
    */
   @Parameters(paramLabel = "MESSAGE", description = "Message to send", arity = "0..1")
@@ -125,8 +131,15 @@ public class CLI implements Callable<Integer> {
   public static void main(String[] args) {
     // Configure default logging to only show warnings and errors
     configureLogging(Level.WARNING);
+    
+    // Initialize ANSI support for colors
+    MarkdownRenderer.init();
 
     int exitCode = new CommandLine(new CLI()).execute(args);
+    
+    // Clean up ANSI support
+    MarkdownRenderer.shutdown();
+    
     System.exit(exitCode);
   }
 
@@ -202,7 +215,13 @@ public class CLI implements Callable<Integer> {
       if (!noPrefix) {
         System.out.print("Assistant: ");
       }
-      System.out.println(response.getContent());
+      
+      // Render markdown if not disabled
+      if (!noMarkdown) {
+        System.out.println(MarkdownRenderer.render(response.getContent()));
+      } else {
+        System.out.println(response.getContent());
+      }
     }
   }
 
