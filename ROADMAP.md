@@ -3,16 +3,7 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-- [x] Add conversation export functionality to text or JSON format (CLI)
-- [x] Implement token usage tracking and analytics (Core)
-- [x] Add dark mode support with theme toggle (Desktop)
-- [x] Add code completion suggestions based on context and selection (Eclipse)
-- [x] Add code completion suggestions based on selection context (IntelliJ)
-- [x] Add LICENSE to plugin (NetBeans)
-- [x] Refactor mobile directory to phone directory (Phone)
-- [x] Optimize extensin download size (VSCode)
-- [x] Implement markdown rendering in terminal output (CLI)
-- [x] Implement streaming response support for real-time token generation (Core)
+- [x] Implement proper markdown rendering for responses (Desktop)
 
 # Backlog
 
@@ -41,7 +32,6 @@
 - [ ] Implement agent framework with planning capabilities
 
 ## Desktop
-- [ ] Implement proper markdown rendering for responses
 - [ ] Add conversation export to PDF/HTML/text formats
 - [ ] Implement syntax highlighting for code snippets
 - [ ] Add file drag-and-drop support for document analysis

@@ -21,6 +21,18 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
 
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.ast.Document;
+import com.vladsch.flexmark.util.data.MutableDataSet;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
+import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
+import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension;
+
+import java.util.Arrays;
+
 import com.manorrock.assistant.api.AssistantMessage;
 import com.manorrock.assistant.core.CoreAssistantMessage;
 
@@ -50,6 +62,16 @@ public class MainWindowController {
      * Stores the message history.
      */
     private final List<String> messageHistory;
+    
+    /**
+     * Markdown parser.
+     */
+    private final Parser markdownParser;
+    
+    /**
+     * HTML renderer for markdown.
+     */
+    private final HtmlRenderer htmlRenderer;
 
     /**
      * HTML template.
@@ -65,6 +87,10 @@ public class MainWindowController {
                         --separator-color: #000000;
                         --user-header-color: #000000;
                         --assistant-header-color: rgb(0, 0, 0);
+                        --code-bg-color: #f5f5f5;
+                        --blockquote-border-color: #c8c8c8;
+                        --link-color: #0366d6;
+                        --table-border-color: #ddd;
                     }
                     
                     body { 
@@ -84,13 +110,61 @@ public class MainWindowController {
                         border-bottom: 1px solid var(--separator-color);
                         margin-bottom: 0.5em;
                     }
-                    .message pre { 
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                        margin: 0;
-                        font-family: monospace;
-                        color: var(--text-color);
+                    .message-content { 
+                        white-space: pre-wrap; 
                     }
+                    /* Markdown styling */
+                    .markdown pre, .markdown code {
+                        background-color: var(--code-bg-color);
+                        border-radius: 3px;
+                        padding: 0.2em 0.4em;
+                        font-family: monospace;
+                    }
+                    .markdown pre {
+                        padding: 1em;
+                        overflow: auto;
+                    }
+                    .markdown pre code {
+                        background-color: transparent;
+                        padding: 0;
+                    }
+                    .markdown blockquote {
+                        border-left: 4px solid var(--blockquote-border-color);
+                        padding-left: 1em;
+                        margin-left: 0;
+                        color: #666;
+                    }
+                    .markdown a {
+                        color: var(--link-color);
+                        text-decoration: none;
+                    }
+                    .markdown a:hover {
+                        text-decoration: underline;
+                    }
+                    .markdown table {
+                        border-collapse: collapse;
+                        margin: 1em 0;
+                    }
+                    .markdown table th, .markdown table td {
+                        border: 1px solid var(--table-border-color);
+                        padding: 6px 13px;
+                    }
+                    .markdown table th {
+                        background-color: var(--code-bg-color);
+                    }
+                    .markdown ul, .markdown ol {
+                        padding-left: 2em;
+                    }
+                    .markdown h1, .markdown h2, .markdown h3, 
+                    .markdown h4, .markdown h5, .markdown h6 {
+                        margin-top: 1em;
+                        margin-bottom: 0.5em;
+                    }
+                    .markdown h1 { font-size: 1.6em; }
+                    .markdown h2 { font-size: 1.4em; }
+                    .markdown h3 { font-size: 1.2em; }
+                    .markdown h4 { font-size: 1.1em; }
+                    .markdown p { margin: 0.5em 0; }
                     .user .message-header { color: var(--user-header-color); }
                     .assistant .message-header { color: var(--assistant-header-color); }
                 </style>
@@ -113,6 +187,24 @@ public class MainWindowController {
         
         // Set up bidirectional relationship between controller and assistant
         this.assistant.setController(this);
+        
+        // Initialize markdown parser with GitHub-like extensions
+        MutableDataSet options = new MutableDataSet();
+        options.set(Parser.EXTENSIONS, Arrays.asList(
+            TablesExtension.create(),
+            StrikethroughExtension.create(),
+            AutolinkExtension.create(),
+            AnchorLinkExtension.create(),
+            TaskListExtension.create()
+        ));
+        
+        // GitHub-like settings
+        options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
+        options.set(HtmlRenderer.GENERATE_HEADER_ID, true);
+        options.set(HtmlRenderer.RENDER_HEADER_ID, true);
+        
+        this.markdownParser = Parser.builder(options).build();
+        this.htmlRenderer = HtmlRenderer.builder(options).build();
     }
 
     /**
@@ -186,6 +278,10 @@ public class MainWindowController {
                     document.documentElement.style.setProperty('--separator-color', '#5a5a5a');
                     document.documentElement.style.setProperty('--user-header-color', '#81c995');
                     document.documentElement.style.setProperty('--assistant-header-color', '#7aa2f7');
+                    document.documentElement.style.setProperty('--code-bg-color', '#383838');
+                    document.documentElement.style.setProperty('--blockquote-border-color', '#555');
+                    document.documentElement.style.setProperty('--link-color', '#58a6ff');
+                    document.documentElement.style.setProperty('--table-border-color', '#444');
                 """;
             } else {
                 cssVars = """
@@ -194,6 +290,10 @@ public class MainWindowController {
                     document.documentElement.style.setProperty('--separator-color', '#000000');
                     document.documentElement.style.setProperty('--user-header-color', '#000000');
                     document.documentElement.style.setProperty('--assistant-header-color', '#000000');
+                    document.documentElement.style.setProperty('--code-bg-color', '#f5f5f5');
+                    document.documentElement.style.setProperty('--blockquote-border-color', '#c8c8c8');
+                    document.documentElement.style.setProperty('--link-color', '#0366d6');
+                    document.documentElement.style.setProperty('--table-border-color', '#ddd');
                 """;
             }
             
@@ -237,18 +337,20 @@ public class MainWindowController {
     }
 
     private void appendMessage(String content, String type) {
-        String escapedContent = StringEscapeUtils.escapeHtml4(content);
-        
         if (type.equals("user")) {
+            // For user messages, keep as plain text with HTML escaping
+            String escapedContent = StringEscapeUtils.escapeHtml4(content);
             String messageHtml = String.format(
                 "<div class='message %s'><div class='message-header'>%s</div><div class='message-separator'></div><pre>%s</pre></div>",
                 type, "You", escapedContent);
             messageHistory.add(messageHtml);
             renderContent();
         } else {
+            // For assistant messages, render markdown
+            String formattedContent = renderMarkdown(content);
             String messageHtml = String.format(
-                "<div class='message %s'><div class='message-header'>%s</div><div class='message-separator'></div><pre>%s</pre></div>",
-                type, "Assistant", escapedContent);
+                "<div class='message %s'><div class='message-header'>%s</div><div class='message-separator'></div><div class='message-content markdown'>%s</div></div>",
+                type, "Assistant", formattedContent);
             messageHistory.add(messageHtml);
             renderContent();
             
@@ -258,6 +360,22 @@ public class MainWindowController {
                 requestArea.requestFocus();
             });
         }
+    }
+    
+    /**
+     * Renders markdown content to HTML.
+     *
+     * @param markdown The markdown content to render
+     * @return The rendered HTML
+     */
+    private String renderMarkdown(String markdown) {
+        if (markdown == null || markdown.isEmpty()) {
+            return "";
+        }
+        
+        // Parse and render markdown to HTML
+        Document document = markdownParser.parse(markdown);
+        return htmlRenderer.render(document);
     }
 
     /**
