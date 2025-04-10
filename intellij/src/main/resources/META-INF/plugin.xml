@@ -29,5 +29,7 @@
                 factoryClass="com.manorrock.assistant.intellij.AssistantToolWindow"
                 secondary="false"
                 icon="AllIcons.General.Modified"/>
+    <completion.contributor language="any" 
+                         implementationClass="com.manorrock.assistant.intellij.AICompletionContributor"/>
   </extensions>
 </idea-plugin>

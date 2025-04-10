@@ -7,6 +7,7 @@
 - [x] Implement token usage tracking and analytics (Core)
 - [x] Add dark mode support with theme toggle (Desktop)
 - [x] Add code completion suggestions based on context and selection (Eclipse)
+- [ ] Add code completion suggestions based on selection context (IntelliJ)
 - [x] Add LICENSE to plugin (NetBeans)
 - [x] Refactor mobile directory to phone directory (Phone)
 - [x] Optimize extensin download size (VSCode)
@@ -65,7 +66,6 @@
 
 ## IntelliJ
 - [ ] Implement proper markdown rendering for chat responses
-- [ ] Add code completion suggestions based on selection context
 - [ ] Implement code generation for Kotlin and Java files
 - [ ] Add automatic bug detection and fix suggestions
 - [ ] Implement code refactoring capability with previews
