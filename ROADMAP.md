@@ -7,10 +7,11 @@
 - [x] Implement token usage tracking and analytics (Core)
 - [x] Add dark mode support with theme toggle (Desktop)
 - [x] Add code completion suggestions based on context and selection (Eclipse)
-- [ ] Add code completion suggestions based on selection context (IntelliJ)
+- [x] Add code completion suggestions based on selection context (IntelliJ)
 - [x] Add LICENSE to plugin (NetBeans)
 - [x] Refactor mobile directory to phone directory (Phone)
 - [x] Optimize extensin download size (VSCode)
+- [ ] Implement markdown rendering in terminal output (CLI)
 
 # Backlog
 
@@ -25,7 +26,6 @@
 - [ ] Support multiple personalities/profiles via command line flags
 - [ ] Implement plugin system for adding custom commands
 - [ ] Add chat session persistence between CLI invocations
-- [ ] Implement markdown rendering in terminal output
 
 ## Core
 - [ ] Implement streaming response support for real-time token generation
