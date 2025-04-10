@@ -14,6 +14,7 @@ import com.manorrock.assistant.api.AssistantMessage;
 import com.manorrock.assistant.api.Command;
 import com.manorrock.assistant.api.CommandRegistry;
 import com.manorrock.assistant.api.Llm;
+import com.manorrock.assistant.api.LlmStreamingResponseHandler;
 import com.manorrock.assistant.api.ToolManager;
 
 /**
@@ -125,6 +126,14 @@ public class CoreAssistantTest {
             public void setProperties(Properties properties) {
                 // No need to set properties in the mock
             }
+
+            @Override
+            public void processStreaming(String prompt, LlmStreamingResponseHandler handler) {
+                // Simple implementation that sends the full response at once
+                String response = "Processed: " + prompt;
+                handler.onToken(response);
+                handler.onComplete(response);
+            }
         };
         
         coreAssistant.getLlmManager().registerLlm(testLlmName, mockLlm);
@@ -203,6 +212,14 @@ public class CoreAssistantTest {
             @Override
             public void setProperties(Properties properties) {
                 // No need to set properties in the mock
+            }
+
+            @Override
+            public void processStreaming(String prompt, LlmStreamingResponseHandler handler) {
+                // Simple implementation that sends the full response at once
+                String response = "Processed: " + prompt;
+                handler.onToken(response);
+                handler.onComplete(response);
             }
         };
         
@@ -321,6 +338,12 @@ public class CoreAssistantTest {
             
             @Override
             public void setProperties(Properties properties) {}
+
+            @Override
+            public void processStreaming(String prompt, LlmStreamingResponseHandler handler) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'processStreaming'");
+            }
         };
         
         coreAssistant.getLlmManager().registerLlm(testLlmName, mockLlm);
@@ -357,18 +380,25 @@ public class CoreAssistantTest {
             
             @Override
             public void setProperties(Properties properties) {}
+            
+            @Override
+            public void processStreaming(String prompt, LlmStreamingResponseHandler handler) {
+                // Simple implementation that sends the full response at once
+                String response = "Test response";
+                handler.onToken(response);
+                handler.onComplete(response);
+            }
         };
         
         coreAssistant.getLlmManager().registerLlm(testLlmName, mockLlm);
-        
-        // First, make sure the active LLM is null or different
-        coreAssistant.setActiveLlm(null);
-        
-        // Now manually set the active LLM
         coreAssistant.setActiveLlm(testLlmName);
-        
-        // Verify it was set correctly
-        assertEquals(testLlmName, coreAssistant.getActiveLlm(), "Active LLM should be set correctly");
+
+        AssistantMessage inputMessage = new CoreAssistantMessage("Test message");
+        AssistantMessage response = coreAssistant.processMessage(inputMessage);
+
+        assertNotNull(response, "Response should not be null");
+        assertEquals("Test response", response.getContent(),
+            "Response content should match the processed message from the LLM");
     }
     
     @Test
@@ -569,6 +599,14 @@ public class CoreAssistantTest {
             @Override
             public void setProperties(Properties properties) {
                 this.props = properties;
+            }
+
+            @Override
+            public void processStreaming(String prompt, LlmStreamingResponseHandler handler) {
+                // Simple implementation that sends the full response at once
+                String response = "Test response";
+                handler.onToken(response);
+                handler.onComplete(response);
             }
         };
     }

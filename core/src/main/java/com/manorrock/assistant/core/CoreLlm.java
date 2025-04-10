@@ -6,9 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
+import com.manorrock.assistant.api.LlmStreamingResponseHandler;
 import com.manorrock.assistant.api.TokenUsageTracker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,12 +25,17 @@ import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.azure.AzureOpenAiChatModel;
+import dev.langchain4j.model.azure.AzureOpenAiStreamingChatModel;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.ollama.OllamaChatModel;
+import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 import static dev.langchain4j.data.message.UserMessage.userMessage;
 
@@ -62,6 +70,11 @@ public class CoreLlm implements Llm {
             .baseUrl("http://localhost:11434")
             .modelName("llama3.2")
             .build();
+            
+    /**
+     * Stores the streaming model used for real-time token generation.
+     */
+    StreamingChatLanguageModel streamingModel;
 
     /**
      * Stores the chat memory.
@@ -266,6 +279,7 @@ public class CoreLlm implements Llm {
         chatMemory = null;
         functionCallingEnabled = false;
         model = null;
+        streamingModel = null;
     }
 
     /**
@@ -286,6 +300,7 @@ public class CoreLlm implements Llm {
     public void init() {
         initializeDefaultProperties();
         initializeChatLanguageModel();
+        initializeStreamingChatLanguageModel();
         initializeChatMemory();
         initializeFunctionCalling();
     }
@@ -359,6 +374,54 @@ public class CoreLlm implements Llm {
             case "ollama":
             default:
                 model = OllamaChatModel.builder()
+                    .baseUrl(properties.getProperty("baseUrl"))
+                    .modelName(properties.getProperty("modelName"))
+                    .temperature(temperature)
+                    .timeout(timeout)
+                    .build();
+            break;
+        }
+    }
+
+    /**
+     * Initialize the streaming chat language model with properties.
+     */
+    private void initializeStreamingChatLanguageModel() {
+        Double temperature;
+        try {
+            temperature = Double.parseDouble(
+                    properties.getProperty("temperature"));
+        } catch (NumberFormatException e) {
+            temperature = 0.7;
+        }
+        Duration timeout;
+        try {
+            timeout = Duration.ofSeconds(
+                    Long.parseLong(properties.getProperty("timeout")));
+        } catch (NumberFormatException e) {
+            timeout = Duration.ofSeconds(30);
+        }
+        String vendor = properties.getProperty("vendor", "ollama");
+        switch(vendor.toLowerCase()) {
+            case "azure_openai":
+                streamingModel = AzureOpenAiStreamingChatModel.builder()
+                    .apiKey(properties.getProperty("apiKey"))
+                    .deploymentName(properties.getProperty("deploymentName"))
+                    .temperature(temperature)
+                    .timeout(timeout)
+                    .build();
+                break;
+            case "openai":
+                streamingModel = OpenAiStreamingChatModel.builder()
+                    .apiKey(properties.getProperty("apiKey"))
+                    .modelName(properties.getProperty("modelName"))
+                    .temperature(temperature)
+                    .timeout(timeout)
+                    .build();
+                break;
+            case "ollama":
+            default:
+                streamingModel = OllamaStreamingChatModel.builder()
                     .baseUrl(properties.getProperty("baseUrl"))
                     .modelName(properties.getProperty("modelName"))
                     .temperature(temperature)
@@ -467,5 +530,299 @@ public class CoreLlm implements Llm {
     @Override
     public void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    @Override
+    public void processStreaming(String prompt, LlmStreamingResponseHandler handler) {
+        // Handle empty prompts
+        if (prompt == null || prompt.trim().isEmpty()) {
+            handler.onToken("I need some input to provide a helpful response.");
+            handler.onComplete("I need some input to provide a helpful response.");
+            return;
+        }
+        
+        // Track prompt tokens
+        String modelName = properties.getProperty("modelName", "unknown");
+        int promptTokens = CoreTokenCounterUtil.countTokens(prompt, modelName);
+        
+        // Initialize a StringBuilder to accumulate the full response for token tracking
+        StringBuilder fullResponseBuilder = new StringBuilder();
+        
+        try {
+            // Process based on whether function calling is enabled
+            if (functionCallingEnabled) {
+                processWithToolsStreaming(prompt, new LlmStreamingResponseHandler() {
+                    @Override
+                    public void onToken(String token) {
+                        fullResponseBuilder.append(token);
+                        handler.onToken(token);
+                    }
+                    
+                    @Override
+                    public void onComplete(String fullResponse) {
+                        trackTokenUsage(promptTokens, fullResponse);
+                        handler.onComplete(fullResponse);
+                    }
+                    
+                    @Override
+                    public void onError(Throwable error) {
+                        handler.onError(error);
+                    }
+                });
+            } else {
+                processWithoutToolsStreaming(prompt, new LlmStreamingResponseHandler() {
+                    @Override
+                    public void onToken(String token) {
+                        fullResponseBuilder.append(token);
+                        handler.onToken(token);
+                    }
+                    
+                    @Override
+                    public void onComplete(String fullResponse) {
+                        trackTokenUsage(promptTokens, fullResponse);
+                        handler.onComplete(fullResponse);
+                    }
+                    
+                    @Override
+                    public void onError(Throwable error) {
+                        handler.onError(error);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            handler.onError(e);
+        }
+    }
+    
+    /**
+     * Track token usage for the given prompt and response.
+     * 
+     * @param promptTokens the number of tokens in the prompt
+     * @param response the full response text
+     */
+    private void trackTokenUsage(int promptTokens, String response) {
+        if (manager instanceof CoreLlmManager) {
+            String modelName = properties.getProperty("modelName", "unknown");
+            int completionTokens = CoreTokenCounterUtil.countTokens(response, modelName);
+            int totalTokens = promptTokens + completionTokens;
+            
+            TokenUsageTracker tracker = ((CoreLlmManager) manager).getTokenTracker();
+            if (tracker != null) {
+                Map<String, Integer> usageData = new HashMap<>();
+                usageData.put("promptTokens", promptTokens);
+                usageData.put("completionTokens", completionTokens);
+                usageData.put("totalTokens", totalTokens);
+                
+                tracker.recordUsage(modelName, usageData);
+            }
+        }
+    }
+    
+    /**
+     * Process a prompt without tool integration in streaming mode.
+     * 
+     * @param prompt the prompt to process
+     * @param handler the callback handler for streaming responses
+     */
+    private void processWithoutToolsStreaming(String prompt, LlmStreamingResponseHandler handler) {
+        // Only add system message if chat memory is empty
+        if (chatMemory.messages().isEmpty() && properties.getProperty("systemMessage") != null) {
+            chatMemory.add(SystemMessage.from(properties.getProperty("systemMessage")));
+        }
+
+        chatMemory.add(userMessage(prompt));
+        
+        // Create a request with chat memory
+        ChatRequest request = ChatRequest.builder()
+                .messages(chatMemory.messages())
+                .build();
+        
+        // Create an adapter from our handler to LangChain4j's StreamingChatResponseHandler
+        StreamingChatResponseHandler responseHandler = new StreamingChatResponseHandler() {
+            private final StringBuilder responseBuilder = new StringBuilder();
+            
+            @Override
+            public void onPartialResponse(String token) {
+                handler.onToken(token);
+                responseBuilder.append(token);
+            }
+            
+            @Override
+            public void onCompleteResponse(ChatResponse response) {
+                String fullResponse = responseBuilder.toString();
+                chatMemory.add(response.aiMessage());
+                handler.onComplete(fullResponse);
+            }
+            
+            @Override
+            public void onError(Throwable error) {
+                handler.onError(error);
+            }
+        };
+        
+        // Use the chat method with our StreamingChatResponseHandler adapter
+        streamingModel.chat(request, responseHandler);
+    }
+
+    /**
+     * Process a prompt with tool integration in streaming mode.
+     * 
+     * @param prompt the prompt to process
+     * @param handler the callback handler for streaming responses
+     */
+    private void processWithToolsStreaming(String prompt, LlmStreamingResponseHandler handler) {
+        StringBuilder resultBuilder = new StringBuilder();
+
+        // Only add system message if chat memory is empty
+        if (chatMemory.messages().isEmpty() && properties.getProperty("systemMessage") != null) {
+            chatMemory.add(SystemMessage.from(properties.getProperty("systemMessage")));
+        }
+
+        chatMemory.add(userMessage(prompt));
+
+        try {
+            // Build tool specifications from available tools
+            List<ToolSpecification> toolSpecifications = buildToolSpecifications();
+
+            // Create a request with chat memory and tool specifications
+            ChatRequest initialRequest = ChatRequest.builder()
+                    .toolSpecifications(toolSpecifications)
+                    .messages(chatMemory.messages())
+                    .build();
+
+            // Create a response handler for the initial response
+            final AiMessage[] initialAiMessage = {null};
+            final boolean[] hasToolRequests = {false};
+            
+            StreamingChatResponseHandler initialResponseHandler = new StreamingChatResponseHandler() {
+                @Override
+                public void onPartialResponse(String token) {
+                    resultBuilder.append(token);
+                    handler.onToken(token);
+                }
+                
+                @Override
+                public void onCompleteResponse(ChatResponse response) {
+                    AiMessage aiMessage = response.aiMessage();
+                    initialAiMessage[0] = aiMessage;
+                    hasToolRequests[0] = aiMessage.hasToolExecutionRequests();
+                    
+                    // If no tool requests, we're done
+                    if (!hasToolRequests[0]) {
+                        chatMemory.add(aiMessage);
+                        handler.onComplete(resultBuilder.toString());
+                    }
+                    // If there are tool requests, they'll be handled after this callback completes
+                }
+                
+                @Override
+                public void onError(Throwable error) {
+                    handler.onError(error);
+                }
+            };
+            
+            // Stream the initial response using the chat method with our StreamingChatResponseHandler
+            streamingModel.chat(initialRequest, initialResponseHandler);
+            
+            // Process tool requests if any
+            if (hasToolRequests[0] && initialAiMessage[0] != null) {
+                AiMessage aiMessage = initialAiMessage[0];
+                
+                // Add the AI message with tool requests to chat memory
+                chatMemory.add(aiMessage);
+                
+                // Process each tool execution request
+                for (var toolRequest : aiMessage.toolExecutionRequests()) {
+                    try {
+                        // Extract tool name and arguments
+                        String toolName = toolRequest.name();
+                        String arguments = toolRequest.arguments();
+                        
+                        // Notify handler that we're executing a tool
+                        handler.onToken("\n\n[Executing tool: " + toolName + "]");
+                        
+                        // Parse arguments as Map using Jackson
+                        var argsMap = MAPPER.readValue(arguments, new TypeReference<java.util.Map<String, Object>>() {});
+                        
+                        // Execute the tool
+                        var result = manager.getAssistant().getToolManager().executeTool(toolName, argsMap);
+                        
+                        // Create a JSON object containing both status and result data
+                        ObjectNode resultJson = MAPPER.createObjectNode();
+                        resultJson.put("status", result.success() ? "success" : "error");
+                        resultJson.put("message", result.getMessage());
+                        
+                        if (result.getData() != null) {
+                            // Convert result data to JsonNode
+                            resultJson.set("data", MAPPER.valueToTree(result.getData()));
+                        }
+                        
+                        // Create tool execution result message and add to chat memory
+                        ToolExecutionResultMessage resultMessage = ToolExecutionResultMessage.from(
+                                toolRequest,
+                                MAPPER.writeValueAsString(resultJson));
+                        chatMemory.add(resultMessage);
+                        
+                        // Notify handler about tool execution result
+                        handler.onToken("\n[Tool result: " + (result.success() ? "Success" : "Error") + "]");
+                    } catch (Exception e) {
+                        // Handle any errors during tool execution
+                        ObjectNode errorJson = MAPPER.createObjectNode();
+                        errorJson.put("status", "error");
+                        errorJson.put("message", e.getMessage());
+                        
+                        ToolExecutionResultMessage errorMessage = ToolExecutionResultMessage.from(
+                                toolRequest,
+                                MAPPER.writeValueAsString(errorJson));
+                        chatMemory.add(errorMessage);
+                        
+                        // Notify handler about tool execution error
+                        handler.onToken("\n[Tool error: " + e.getMessage() + "]");
+                    }
+                }
+                
+                // Notify handler that we're getting follow-up response
+                handler.onToken("\n\n[Getting final response]");
+                
+                // Create follow-up request with updated chat memory
+                ChatRequest followUpRequest = ChatRequest.builder()
+                        .messages(chatMemory.messages())
+                        .toolSpecifications(toolSpecifications)
+                        .build();
+                
+                // Get follow-up response with tool results included
+                StringBuilder followUpResponseBuilder = new StringBuilder();
+                
+                // Create a response handler for the follow-up response
+                StreamingChatResponseHandler followUpResponseHandler = new StreamingChatResponseHandler() {
+                    @Override
+                    public void onPartialResponse(String token) {
+                        followUpResponseBuilder.append(token);
+                        handler.onToken(token);
+                    }
+                    
+                    @Override
+                    public void onCompleteResponse(ChatResponse response) {
+                        AiMessage followUpMessage = response.aiMessage();
+                        // Add the final response to chat memory
+                        chatMemory.add(followUpMessage);
+                        
+                        // Notify handler that streaming is complete
+                        String fullResponse = resultBuilder.toString() + "\n\n" + followUpResponseBuilder.toString();
+                        handler.onComplete(fullResponse);
+                    }
+                    
+                    @Override
+                    public void onError(Throwable error) {
+                        handler.onError(error);
+                    }
+                };
+                
+                // Stream the follow-up response
+                streamingModel.chat(followUpRequest, followUpResponseHandler);
+            }
+        } catch (Exception e) {
+            handler.onError(e);
+        }
     }
 }

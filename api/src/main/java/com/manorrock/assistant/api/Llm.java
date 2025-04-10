@@ -28,6 +28,20 @@ public interface Llm {
      * @return the response
      */
     String process(String prompt);
+    
+    /**
+     * Process a prompt with streaming response.
+     * 
+     * <p>
+     * This method processes the prompt and returns the response tokens as they
+     * are generated through the provided handler. This enables real-time token
+     * delivery for more interactive user experiences.
+     * </p>
+     * 
+     * @param prompt the prompt to process
+     * @param handler the handler for streaming response tokens
+     */
+    void processStreaming(String prompt, LlmStreamingResponseHandler handler);
 
     /**
      * Set the LLM properties.
