@@ -1,13 +1,36 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: %Bundle-Name
+Bundle-Name: Manorrock Assistant Eclipse Plugin
 Bundle-SymbolicName: com.manorrock.assistant.eclipse;singleton:=true
-Bundle-Version: 25.3.0.qualifier
+Bundle-Version: 25.4.6.qualifier
 Bundle-Activator: com.manorrock.assistant.eclipse.Activator
-Bundle-Vendor: %Bundle-Vendor
-Bundle-RequiredExecutionEnvironment: JavaSE-21
-Automatic-Module-Name: com.manorrock.assistant.eclipse
+Bundle-Vendor: Manorrock
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jface.text,
+ org.eclipse.ui.console,
+ org.eclipse.ui.workbench.texteditor,
+ org.eclipse.jdt.ui,
+ org.eclipse.jdt.core,
+ org.eclipse.ui.editors,
+ org.eclipse.ui.workbench,
+ org.eclipse.text,
+ org.eclipse.core.resources,
+ org.eclipse.jdt.ui.source;resolution:=optional,
+ org.eclipse.jdt.core.manipulation
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
+Import-Package: org.eclipse.core.runtime,
+ org.eclipse.jdt.core,
+ org.eclipse.jdt.ui,
+ org.eclipse.jdt.ui.text.java,
+ org.eclipse.jface.text,
+ org.eclipse.jface.text.contentassist,
+ org.eclipse.ui,
+ org.eclipse.ui.texteditor,
+ org.eclipse.ui.part,
+ org.eclipse.ui.workbench,
+ org.eclipse.ui.plugin
 Bundle-ClassPath: .,
  lib/json-20250107.jar,
  lib/api-25.4.5-SNAPSHOT.jar,
@@ -64,7 +87,11 @@ Bundle-ClassPath: .,
  lib/reactor-netty-core-1.0.48.jar,
  lib/reactor-netty-http-1.0.48.jar,
  lib/slf4j-api-2.0.17.jar,
- lib/slf4j-nop-2.0.17.jar
+ lib/slf4j-nop-2.0.17.jar,
+ lib/api-25.4.6-SNAPSHOT.jar,
+ lib/core-25.4.6-SNAPSHOT.jar,
+ lib/jackson-dataformat-csv-2.18.3.jar,
+ lib/jtokkit-0.6.1.jar
 Export-Package: .,
  com.azure.ai.openai,
  com.azure.ai.openai.implementation,
@@ -167,11 +194,6 @@ Export-Package: .,
  com.fasterxml.jackson.datatype.jsr310.util,
  com.knuddels.jtokkit,
  com.knuddels.jtokkit.api,
- com.manorrock.assistant.command,
- com.manorrock.assistant.eclipse;uses:="org.osgi.framework,org.eclipse.ui.plugin",
- com.manorrock.assistant.impl,
- com.manorrock.assistant.llm,
- com.manorrock.assistant.tool,
  dev.langchain4j,
  dev.langchain4j.agent.tool,
  dev.langchain4j.chain,
@@ -395,13 +417,6 @@ Export-Package: .,
  opennlp.tools.util.model,
  opennlp.tools.util.normalizer,
  opennlp.tools.util.wordvector,
- org.jsoup,
- org.jsoup.helper,
- org.jsoup.internal;x-internal:=true,
- org.jsoup.nodes,
- org.jsoup.parser,
- org.jsoup.safety,
- org.jsoup.select,
  org.jspecify.annotations,
  org.reactivestreams,
  org.slf4j,
@@ -436,8 +451,7 @@ Export-Package: .,
  reactor.util.concurrent,
  reactor.util.context,
  reactor.util.function,
- reactor.util.retry,
- schemas
+ reactor.util.retry
 Import-Package: java.lang,
  java.lang.invoke,
  java.net,

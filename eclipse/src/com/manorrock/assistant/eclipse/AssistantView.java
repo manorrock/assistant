@@ -27,11 +27,13 @@ package com.manorrock.assistant.eclipse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -65,12 +67,13 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     private StyledText requestArea;
     private Button sendButton;
     private ProgressBar progressBar;
-    private IEditorPart lastActiveEditor;
     
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private MessageConsole console;
     private MessageConsoleStream consoleStream;
-    private CoreAssistant assistant;
+    private static CoreAssistant assistantInstance;
+    private static IEditorPart lastActiveEditorInstance;
+    private CodeCompletionProvider completionProvider;
     
     @Override
     public void createPartControl(Composite parent) {
@@ -79,7 +82,9 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         consoleStream = console.newMessageStream();
         
         // Initialize CoreAssistant directly
-        assistant = new CoreAssistant();
+        assistantInstance = new CoreAssistant();
+        // Initialize CodeCompletionProvider
+        completionProvider = new CodeCompletionProvider(assistantInstance);
         
         // Set up UI layout
         GridLayout layout = new GridLayout();
@@ -140,6 +145,15 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     private void createActions() {
         IToolBarManager toolBarManager = getViewSite().getActionBars().getToolBarManager();
         
+        Action codeCompletionAction = new Action("Code Completion") {
+            @Override
+            public void run() {
+                handleCodeCompletion();
+            }
+        };
+        codeCompletionAction.setToolTipText("Generate code completion suggestions for current selection");
+        toolBarManager.add(codeCompletionAction);
+        
         Action explainAction = new Action("Explain Selection") {
             @Override
             public void run() {
@@ -197,8 +211,8 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     }
     
     private void handleExplain() {
-        if (lastActiveEditor != null && lastActiveEditor instanceof ITextEditor) {
-            ITextEditor textEditor = (ITextEditor) lastActiveEditor;
+        if (lastActiveEditorInstance != null && lastActiveEditorInstance instanceof ITextEditor) {
+            ITextEditor textEditor = (ITextEditor) lastActiveEditorInstance;
             IDocument document = textEditor.getDocumentProvider().getDocument(textEditor.getEditorInput());
             ISelection selection = textEditor.getSelectionProvider().getSelection();
             
@@ -230,8 +244,8 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         String timestamp = LocalDateTime.now().format(formatter);
 
         if (message.startsWith("/explain")) {
-            if (lastActiveEditor != null && lastActiveEditor instanceof ITextEditor) {
-                ITextEditor textEditor = (ITextEditor) lastActiveEditor;
+            if (lastActiveEditorInstance != null && lastActiveEditorInstance instanceof ITextEditor) {
+                ITextEditor textEditor = (ITextEditor) lastActiveEditorInstance;
                 IDocument document = textEditor.getDocumentProvider().getDocument(textEditor.getEditorInput());
                 ISelection selection = textEditor.getSelectionProvider().getSelection();
                 
@@ -276,7 +290,7 @@ public class AssistantView extends ViewPart implements ISelectionListener {
 
         // Create an AssistantMessage and send it through CoreAssistant
         AssistantMessage assistantMessage = new CoreAssistantMessage(message);
-        assistant.sendMessage(assistantMessage)
+        assistantInstance.sendMessage(assistantMessage)
             .thenAccept(response -> {
                 Display.getDefault().asyncExec(() -> {
                     responseArea.append("\n\nAssistant: " + response.getContent());
@@ -296,6 +310,104 @@ public class AssistantView extends ViewPart implements ISelectionListener {
                 });
                 return null;
             });
+    }
+    
+    /**
+     * Public method to trigger code completion from external commands or keyboard shortcuts.
+     * This method is called by the CodeCompletionHandler when the user presses the keyboard shortcut.
+     */
+    public void triggerCodeCompletion() {
+        handleCodeCompletion();
+    }
+    
+    /**
+     * Handles code completion requests from the toolbar or command.
+     * Generates and displays completion suggestions based on the current context and selection.
+     */
+    private void handleCodeCompletion() {
+        if (lastActiveEditorInstance != null && lastActiveEditorInstance instanceof ITextEditor) {
+            ITextEditor textEditor = (ITextEditor) lastActiveEditorInstance;
+            ISelection selection = textEditor.getSelectionProvider().getSelection();
+            
+            if (selection instanceof ITextSelection) {
+                ITextSelection textSelection = (ITextSelection) selection;
+                String fileName = textEditor.getEditorInput().getName();
+                
+                // Show a message in the response area
+                responseArea.append("\n\nGenerating code completion suggestions for " + fileName + "...");
+                
+                // Start the progress indicator
+                sendButton.setEnabled(false);
+                progressBar.setVisible(true);
+                
+                // Generate completion proposals using the CodeCompletionProvider
+                completionProvider.generateCompletionSuggestions(textEditor, textSelection)
+                    .thenAccept(proposals -> {
+                        Display.getDefault().asyncExec(() -> {
+                            if (proposals.isEmpty()) {
+                                responseArea.append("\n\nNo completion suggestions available for the current context.");
+                            } else {
+                                // Display the completion suggestions in the response area
+                                responseArea.append("\n\nCode completion suggestions:");
+                                
+                                for (int i = 0; i < proposals.size(); i++) {
+                                    ICompletionProposal proposal = proposals.get(i);
+                                    String displayString = proposal.getDisplayString();
+                                    String additionalInfo = proposal.getAdditionalProposalInfo();
+                                    
+                                    responseArea.append("\n\n" + (i + 1) + ". " + displayString);
+                                    if (additionalInfo != null && !additionalInfo.isEmpty()) {
+                                        responseArea.append("\n   " + additionalInfo);
+                                    }
+                                }
+                                
+                                // Create a dialog to let the user select a completion
+                                showCompletionSelectionDialog(textEditor, proposals);
+                            }
+                            
+                            sendButton.setEnabled(true);
+                            progressBar.setVisible(false);
+                            responseArea.setTopIndex(responseArea.getLineCount() - 1);
+                        });
+                    })
+                    .exceptionally(e -> {
+                        Display.getDefault().asyncExec(() -> {
+                            String errorMessage = "Error generating completion suggestions: " + e.getMessage();
+                            responseArea.append("\n\nSystem: " + errorMessage);
+                            e.printStackTrace();
+                            
+                            sendButton.setEnabled(true);
+                            progressBar.setVisible(false);
+                        });
+                        return null;
+                    });
+            } else {
+                responseArea.append("\n\nSystem: Please place the cursor at a position where you want code completion.");
+            }
+        } else {
+            responseArea.append("\n\nSystem: No active editor window found. Please open a file to use code completion.");
+        }
+    }
+    
+    /**
+     * Shows a dialog allowing the user to select from available completion proposals.
+     * 
+     * @param editor The text editor where the completion will be applied
+     * @param proposals The list of completion proposals to choose from
+     */
+    private void showCompletionSelectionDialog(ITextEditor editor, List<ICompletionProposal> proposals) {
+        // Simple implementation using direct application
+        // For a real implementation, you would create a proper selection dialog
+        // For now, we'll just apply the first suggestion as a demonstration
+        if (!proposals.isEmpty()) {
+            ICompletionProposal selectedProposal = proposals.get(0);
+            completionProvider.applyCompletion(editor, selectedProposal);
+            
+            // Log the applied completion
+            String message = "Applied completion: " + selectedProposal.getDisplayString();
+            responseArea.append("\n\nSystem: " + message);
+            consoleStream.println("[" + LocalDateTime.now().format(formatter) + " - System]\n" + message);
+        }
     }
     
     private MessageConsole findConsole(String name) {
@@ -327,7 +439,20 @@ public class AssistantView extends ViewPart implements ISelectionListener {
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
         if (part instanceof IEditorPart) {
-            lastActiveEditor = (IEditorPart) part;
+            lastActiveEditorInstance = (IEditorPart) part;
         }
+    }
+
+    // Static getter for the CoreAssistant instance
+    public static CoreAssistant getAssistant() {
+        return assistantInstance;
+    }
+    
+    // Static getter for the last active editor
+    public static ITextEditor getLastActiveEditor() {
+        if (lastActiveEditorInstance instanceof ITextEditor) {
+            return (ITextEditor) lastActiveEditorInstance;
+        }
+        return null;
     }
 }

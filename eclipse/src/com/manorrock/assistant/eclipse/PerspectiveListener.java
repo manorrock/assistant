@@ -37,10 +37,7 @@ import org.eclipse.ui.PerspectiveAdapter;
  */
 public class PerspectiveListener extends PerspectiveAdapter {
     
-    private IWorkbenchWindow window;
-    
     public PerspectiveListener(IWorkbenchWindow window) {
-        this.window = window;
     }
     
     @Override

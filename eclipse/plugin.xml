@@ -37,4 +37,14 @@
          </command>
       </menuContribution>
    </extension>
+   <extension
+         id="com.manorrock.assistant.eclipse.assistantProposalComputer"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+      <javaCompletionProposalComputer
+            activate="true"
+            categoryId="org.eclipse.jdt.ui.defaultProposalCategory"
+            class="com.manorrock.assistant.eclipse.AssistantCompletionProposalComputer"
+            id="com.manorrock.assistant.eclipse.assistantProposalComputer">
+      </javaCompletionProposalComputer>
+   </extension>
 </plugin>

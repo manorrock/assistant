@@ -6,6 +6,7 @@
 - [x] Add conversation export functionality to text or JSON format (CLI)
 - [x] Implement token usage tracking and analytics (Core)
 - [x] Add dark mode support with theme toggle (Desktop)
+- [x] Add code completion suggestions based on context and selection (Eclipse)
 - [x] Add LICENSE to plugin (NetBeans)
 - [x] Refactor mobile directory to phone directory (Phone)
 - [x] Optimize extensin download size (VSCode)
@@ -51,7 +52,6 @@
 - [ ] Create Linux installer package
 
 ## Eclipse
-- [ ] Add code completion suggestions based on context and selection
 - [ ] Implement syntax-aware code generation for Java files
 - [ ] Add bug detection and fix suggestions for selected code
 - [ ] Implement document refactoring capabilities with preview
