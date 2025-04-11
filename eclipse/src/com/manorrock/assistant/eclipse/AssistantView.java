@@ -455,4 +455,43 @@ public class AssistantView extends ViewPart implements ISelectionListener {
         }
         return null;
     }
+    
+    /**
+     * Public method to explain compiler/build errors sent from the Problems view.
+     * 
+     * @param errorDetails Details of the error to explain
+     */
+    public void explainError(String errorDetails) {
+        // Display the error details in the response area
+        responseArea.append("\n\nExplaining compiler/build error...");
+        
+        String timestamp = LocalDateTime.now().format(formatter);
+        consoleStream.println("[" + timestamp + " - System]\nExplaining compiler/build error");
+        
+        sendButton.setEnabled(false);
+        progressBar.setVisible(true);
+
+        // Create an AssistantMessage and send it through CoreAssistant
+        AssistantMessage assistantMessage = new CoreAssistantMessage(errorDetails);
+        assistantInstance.sendMessage(assistantMessage)
+            .thenAccept(response -> {
+                Display.getDefault().asyncExec(() -> {
+                    responseArea.append("\n\nAssistant: " + response.getContent());
+                    consoleStream.println("[" + timestamp + " - Assistant]\n" + response.getContent());
+                    sendButton.setEnabled(true);
+                    progressBar.setVisible(false);
+                    responseArea.setTopIndex(responseArea.getLineCount() - 1);
+                });
+            })
+            .exceptionally(e -> {
+                Display.getDefault().asyncExec(() -> {
+                    String errorMessage = "Error: " + e.getMessage();
+                    responseArea.append("\n\nSystem: " + errorMessage);
+                    consoleStream.println("[" + timestamp + " - Error]\n" + errorMessage);
+                    sendButton.setEnabled(true);
+                    progressBar.setVisible(false);
+                });
+                return null;
+            });
+    }
 }

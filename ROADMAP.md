@@ -4,6 +4,7 @@
 
 # Next release
 - [x] Implement proper markdown rendering for responses (Desktop)
+- [x] Add support for explanation of compiler/build errors (Eclipse)
 
 # Backlog
 
@@ -52,7 +53,6 @@
 - [ ] Implement proper markdown rendering in response area
 - [ ] Add code snippet insertion directly into editor
 - [ ] Implement settings page for plugin configuration
-- [ ] Add support for explanation of compiler/build errors
 
 ## IntelliJ
 - [ ] Implement proper markdown rendering for chat responses
