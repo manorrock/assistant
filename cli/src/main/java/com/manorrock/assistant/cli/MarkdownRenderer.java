@@ -15,9 +15,10 @@ import java.util.regex.Pattern;
  */
 public class MarkdownRenderer {
 
-    private static final Parser PARSER;
+    @SuppressWarnings("unused")
     private static HtmlRenderer HTML_RENDERER;
-// ...existing code...
+
+    private static final Parser PARSER;
 
     static {
         // Initialize Flexmark parser with options
@@ -25,8 +26,8 @@ public class MarkdownRenderer {
         options.set(Parser.PARSE_INNER_HTML_COMMENTS, true);
         options.set(HtmlRenderer.SOFT_BREAK, "\n");
         
-    PARSER = Parser.builder(options).build();
-    HTML_RENDERER = HtmlRenderer.builder(options).build();
+        PARSER = Parser.builder(options).build();
+        HTML_RENDERER = HtmlRenderer.builder(options).build();
     }
 
     /**

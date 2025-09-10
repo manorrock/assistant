@@ -42,7 +42,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyledDocument;
@@ -124,8 +123,12 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
     
     // Static class to represent a message
     private static class MessageEntry {
+        
+        @SuppressWarnings("unused")
         final String sender;
+        @SuppressWarnings("unused")
         final String content;
+        @SuppressWarnings("unused")
         final String type;
 
         MessageEntry(String sender, String content, String type) {
