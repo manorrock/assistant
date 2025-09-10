@@ -277,7 +277,7 @@ jobs:
         run: |
           brew update
           brew upgrade
-          brew install graalvm-community-jdk24
+          brew install --cask graalvm-community-jdk24
           export PATH="/Library/Java/JavaVirtualMachines/graalvm-community-openjdk-24/Contents/Home/bin:$PATH"
       - name: Build CLI native binary (arm64)
         run: |
@@ -336,7 +336,7 @@ jobs:
         run: |
           brew update
           brew upgrade
-          brew install graalvm-community-jdk24
+          brew install --cask graalvm-community-jdk24
           export PATH="/Library/Java/JavaVirtualMachines/graalvm-community-openjdk-24/Contents/Home/bin:$PATH"
       - name: Build CLI native binary (amd64)
         run: |
