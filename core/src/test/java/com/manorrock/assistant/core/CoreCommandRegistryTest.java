@@ -54,10 +54,10 @@ class CoreCommandRegistryTest {
         registry.registerCommand("command1", mockCommand1);
         registry.registerCommand("command2", mockCommand2);
 
-        Set<String> commandNames = registry.getCommandNames();
-        assertEquals(11, commandNames.size());
-        assertTrue(commandNames.contains("command1"));
-        assertTrue(commandNames.contains("command2"));
+    Set<String> commandNames = registry.getCommandNames();
+    assertEquals(12, commandNames.size()); // Updated for new /agent command
+    assertTrue(commandNames.contains("command1"));
+    assertTrue(commandNames.contains("command2"));
     }
 
     @Test

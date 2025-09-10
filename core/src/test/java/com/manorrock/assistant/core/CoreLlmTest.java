@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.request.ChatRequest;
@@ -22,11 +22,11 @@ import com.manorrock.assistant.api.LlmManager;
 public class CoreLlmTest {
 
     private CoreLlm coreLlm;
-    private ChatLanguageModel mockModel;
+    private ChatModel mockModel;
 
     @BeforeEach
     public void setUp() {
-        mockModel = mock(ChatLanguageModel.class);
+    mockModel = mock(ChatModel.class);
         coreLlm = new CoreLlm(null);
         coreLlm.setFunctionCallingEnabled(false); // Disable tool integration for tests
         coreLlm.model = mockModel;
@@ -158,7 +158,7 @@ public class CoreLlmTest {
 
     @Test
     public void testGetChatLanguageModel() {
-        ChatLanguageModel model = coreLlm.getChatLanguageModel();
+    ChatModel model = (ChatModel) coreLlm.getChatLanguageModel();
         assertEquals(mockModel, model);
     }
 

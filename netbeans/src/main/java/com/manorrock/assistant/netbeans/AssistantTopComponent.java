@@ -111,9 +111,7 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
     private InputOutput io;
     private TopComponent lastFocusedEditor;
-    private Timer typewriterTimer;
-    private int currentCharIndex;
-    private String currentTypingText;
+// Removed unused fields
 
     // Text style attributes
     private SimpleAttributeSet userMessageStyle;
@@ -129,7 +127,7 @@ public final class AssistantTopComponent extends TopComponent implements ActionL
         final String sender;
         final String content;
         final String type;
-        
+
         MessageEntry(String sender, String content, String type) {
             this.sender = sender;
             this.content = content;

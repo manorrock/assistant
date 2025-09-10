@@ -16,7 +16,8 @@ import java.util.regex.Pattern;
 public class MarkdownRenderer {
 
     private static final Parser PARSER;
-    private static final HtmlRenderer HTML_RENDERER;
+    private static HtmlRenderer HTML_RENDERER;
+// ...existing code...
 
     static {
         // Initialize Flexmark parser with options
@@ -24,8 +25,8 @@ public class MarkdownRenderer {
         options.set(Parser.PARSE_INNER_HTML_COMMENTS, true);
         options.set(HtmlRenderer.SOFT_BREAK, "\n");
         
-        PARSER = Parser.builder(options).build();
-        HTML_RENDERER = HtmlRenderer.builder(options).build();
+    PARSER = Parser.builder(options).build();
+    HTML_RENDERER = HtmlRenderer.builder(options).build();
     }
 
     /**
@@ -71,7 +72,7 @@ public class MarkdownRenderer {
      */
     private static String processMarkdown(String markdown) {
         // Create a new Ansi builder
-        Ansi ansi = Ansi.ansi();
+    Ansi.ansi(); // ansi not used
         
         // Replace the content with processed version
         String result = markdown;
@@ -107,7 +108,7 @@ public class MarkdownRenderer {
         
         StringBuffer sb = new StringBuffer();
         while (matcher.find()) {
-            String headerMarker = matcher.group(1);
+            matcher.group(1); // headerMarker not used
             String headerContent = matcher.group(2);
             
             // Format based on header level

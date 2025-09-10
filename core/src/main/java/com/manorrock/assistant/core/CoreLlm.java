@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
@@ -26,8 +24,6 @@ import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.azure.AzureOpenAiChatModel;
 import dev.langchain4j.model.azure.AzureOpenAiStreamingChatModel;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -66,15 +62,15 @@ public class CoreLlm implements Llm {
      * Stores the model used to process the prompt (with default local Llama3.2
      * model).
      */
-    ChatLanguageModel model = OllamaChatModel.builder()
-            .baseUrl("http://localhost:11434")
-            .modelName("llama3.2")
-            .build();
-            
+    Object model = OllamaChatModel.builder()
+        .baseUrl("http://localhost:11434")
+        .modelName("llama3.2")
+        .build();
+
     /**
      * Stores the streaming model used for real-time token generation.
      */
-    StreamingChatLanguageModel streamingModel;
+    Object streamingModel;
 
     /**
      * Stores the chat memory.
@@ -133,7 +129,7 @@ public class CoreLlm implements Llm {
                     .build();
 
             // Get initial response from the model
-            ChatResponse initialResponse = model.chat(initialRequest);
+            ChatResponse initialResponse = ((dev.langchain4j.model.chat.ChatModel) model).chat(initialRequest);
             AiMessage aiMessage = initialResponse.aiMessage();
 
             // Add the initial response to our result if it has text content
@@ -195,7 +191,7 @@ public class CoreLlm implements Llm {
                         .build();
 
                 // Get follow-up response with tool results included
-                ChatResponse followUpResponse = model.chat(followUpRequest);
+                ChatResponse followUpResponse = ((dev.langchain4j.model.chat.ChatModel) model).chat(followUpRequest);
                 AiMessage followUpMessage = followUpResponse.aiMessage();
 
                 // Add the follow-up response to our result
@@ -287,7 +283,7 @@ public class CoreLlm implements Llm {
      * 
      * @return the chat language model.
      */
-    public ChatLanguageModel getChatLanguageModel() {
+    public Object getChatLanguageModel() {
         return model;
     }
 
@@ -513,7 +509,7 @@ public class CoreLlm implements Llm {
         }
 
         chatMemory.add(userMessage(prompt));
-        ChatResponse response = model.chat(chatMemory.messages());
+    ChatResponse response = ((dev.langchain4j.model.chat.ChatModel) model).chat(chatMemory.messages());
         chatMemory.add(response.aiMessage());
         return response.aiMessage().text();
     }
@@ -661,7 +657,7 @@ public class CoreLlm implements Llm {
         };
         
         // Use the chat method with our StreamingChatResponseHandler adapter
-        streamingModel.chat(request, responseHandler);
+    ((dev.langchain4j.model.chat.StreamingChatModel) streamingModel).chat(request, responseHandler);
     }
 
     /**
@@ -722,7 +718,7 @@ public class CoreLlm implements Llm {
             };
             
             // Stream the initial response using the chat method with our StreamingChatResponseHandler
-            streamingModel.chat(initialRequest, initialResponseHandler);
+            ((dev.langchain4j.model.chat.StreamingChatModel) streamingModel).chat(initialRequest, initialResponseHandler);
             
             // Process tool requests if any
             if (hasToolRequests[0] && initialAiMessage[0] != null) {
@@ -819,7 +815,7 @@ public class CoreLlm implements Llm {
                 };
                 
                 // Stream the follow-up response
-                streamingModel.chat(followUpRequest, followUpResponseHandler);
+                ((dev.langchain4j.model.chat.StreamingChatModel) streamingModel).chat(followUpRequest, followUpResponseHandler);
             }
         } catch (Exception e) {
             handler.onError(e);

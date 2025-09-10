@@ -5,11 +5,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doAnswer;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +18,7 @@ import org.mockito.stubbing.Answer;
 import com.manorrock.assistant.api.LlmStreamingResponseHandler;
 
 import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
@@ -32,11 +29,11 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 public class CoreLlmStreamingTest {
 
     private CoreLlm coreLlm;
-    private StreamingChatLanguageModel mockStreamingModel;
+    private StreamingChatModel mockStreamingModel;
 
     @BeforeEach
     public void setUp() {
-        mockStreamingModel = mock(StreamingChatLanguageModel.class);
+    mockStreamingModel = mock(StreamingChatModel.class);
         coreLlm = new CoreLlm(null);
         coreLlm.setFunctionCallingEnabled(false); // Disable tool integration for basic tests
         coreLlm.streamingModel = mockStreamingModel;

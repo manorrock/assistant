@@ -20,8 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
+// ...existing code...
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -83,7 +82,7 @@ public class MobileUIController {
             }
 
             // Get current timestamp
-            String timestamp = LocalDateTime.now().format(formatter);
+            LocalDateTime.now().format(formatter); // timestamp not used
             
             // Display the user's message in the response area
             responseTextArea.appendText("\n\nYou: " + userMessage);
@@ -148,7 +147,7 @@ public class MobileUIController {
     }
 
     private void processMessage(String message) {
-        String timestamp = LocalDateTime.now().format(formatter);
+    LocalDateTime.now().format(formatter); // timestamp not used
 
         try {
             Map<String, String> messageObject = new HashMap<>();

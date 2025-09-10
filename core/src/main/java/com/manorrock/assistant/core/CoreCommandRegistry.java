@@ -28,16 +28,17 @@ public class CoreCommandRegistry implements CommandRegistry {
      * @param assistant the core assistant instance.
      */
     public CoreCommandRegistry(CoreAssistant assistant) {
-        // Register the default commands.
-        registerCommand("llm", new CoreLlmCommand(assistant));
-        registerCommand("help", new CoreHelpCommand(assistant));
-        registerCommand("explain", new CoreExplainCommand(assistant));
-        registerCommand("source", new CoreSourceCommand(assistant));
-        registerCommand("ollama", new CoreOllamaCommand(assistant));
-        registerCommand("session", new CoreSessionCommand(assistant));
-        registerCommand("tool", new CoreToolCommand(assistant));
-        registerCommand("context", new CoreContextCommand(assistant));
-        registerCommand("token", new CoreTokenCommand(assistant));
+    // Register the default commands.
+    registerCommand("llm", new CoreLlmCommand(assistant));
+    registerCommand("help", new CoreHelpCommand(assistant));
+    registerCommand("explain", new CoreExplainCommand(assistant));
+    registerCommand("source", new CoreSourceCommand(assistant));
+    registerCommand("ollama", new CoreOllamaCommand(assistant));
+    registerCommand("session", new CoreSessionCommand(assistant));
+    registerCommand("tool", new CoreToolCommand(assistant));
+    registerCommand("context", new CoreContextCommand(assistant));
+    registerCommand("token", new CoreTokenCommand(assistant));
+    registerCommand("agent", new CoreAgentCommand());
     }
 
     /**

@@ -212,15 +212,6 @@ public class CoreAssistant implements Assistant {
     }
     
     /**
-     * Check if token usage display is enabled.
-     * 
-     * @return true if token usage display is enabled, false otherwise
-     */
-    private boolean isTokenUsageDisplayEnabled() {
-        return shouldShowTokenUsage();
-    }
-    
-    /**
      * Get the latest token usage statistics in a compact format.
      * 
      * @return a compact string with token usage statistics for the last interaction, or null if not available

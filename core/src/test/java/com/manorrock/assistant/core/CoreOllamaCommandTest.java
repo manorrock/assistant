@@ -6,7 +6,7 @@ import java.util.Properties;
 
 import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -217,12 +217,12 @@ class CoreOllamaCommandTest {
         // Setup mock CoreLlm with non-Ollama model
         String llmName = "coreLlmNonOllama";
         CoreLlm mockCoreLlm = mock(CoreLlm.class);
-        ChatLanguageModel nonOllamaModel = mock(ChatLanguageModel.class); // Using ChatLanguageModel instead of Object
+    ChatModel nonOllamaModel = mock(ChatModel.class); // Using ChatModel instead of ChatLanguageModel
         
         when(mockAssistant.getActiveLlm()).thenReturn(llmName);
         when(mockLlmManager.getLlm(llmName)).thenReturn(mockCoreLlm);
         when(mockCoreLlm.getProperties()).thenReturn(new Properties());
-        when(mockCoreLlm.getChatLanguageModel()).thenReturn(nonOllamaModel);
+    when(mockCoreLlm.getChatLanguageModel()).thenReturn(nonOllamaModel);
         
         // Should fall back to default endpoint
         String result = command.execute("endpoint");

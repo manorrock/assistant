@@ -38,8 +38,7 @@ class CoreLlmManagerTest {
     void testUnregisterLlm() {
         Llm mockLlm = mock(Llm.class);
         coreLlmManager.registerLlm("testLlm", mockLlm);
-
-        coreLlmManager.unregisterLLM("testLlm");
+        coreLlmManager.unregisterLlm("testLlm");
         assertNull(coreLlmManager.getLlm("testLlm"));
     }
 
