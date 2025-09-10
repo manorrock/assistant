@@ -275,6 +275,8 @@ jobs:
           distribution: 'temurin'
       - name: Install GraalVM Native Image
         run: |
+          brew update
+          brew upgrade
           brew install graalvm-community-jdk24
           export PATH="/Library/Java/JavaVirtualMachines/graalvm-community-openjdk-24/Contents/Home/bin:$PATH"
       - name: Build CLI native binary (arm64)
@@ -332,6 +334,8 @@ jobs:
           distribution: 'temurin'
       - name: Install GraalVM Native Image
         run: |
+          brew update
+          brew upgrade
           brew install graalvm-community-jdk24
           export PATH="/Library/Java/JavaVirtualMachines/graalvm-community-openjdk-24/Contents/Home/bin:$PATH"
       - name: Build CLI native binary (amd64)
