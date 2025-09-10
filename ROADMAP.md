@@ -5,11 +5,11 @@
 # Next release
 - [x] Implement proper markdown rendering for responses (Desktop)
 - [x] Add support for explanation of compiler/build errors (Eclipse)
+- [x] Add arm64 macOS CLI binary
 
 # Backlog
 
 ## CLI
-- [ ] Add arm64 macOS CLI binary
 - [ ] Add amd64 macOS CLI binary
 - [ ] Add amd64 Windows CLI binary
 - [ ] Add amd64 Linux CLI binary
