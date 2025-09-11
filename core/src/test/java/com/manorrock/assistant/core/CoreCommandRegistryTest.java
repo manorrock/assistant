@@ -47,17 +47,22 @@ class CoreCommandRegistryTest {
         assertFalse(registry.hasCommand("nonExistentCommand"));
     }
 
+    /**
+     * Test getting command names.
+     * 
+     * It should contain the default commands plus any registered ones.
+     * For a total of 11 commands including the defaults.
+     */
     @Test
     void testGetCommandNames() {
         Command mockCommand1 = mock(Command.class);
         Command mockCommand2 = mock(Command.class);
         registry.registerCommand("command1", mockCommand1);
         registry.registerCommand("command2", mockCommand2);
-
-    Set<String> commandNames = registry.getCommandNames();
-    assertEquals(12, commandNames.size()); // Updated for new /agent command
-    assertTrue(commandNames.contains("command1"));
-    assertTrue(commandNames.contains("command2"));
+        Set<String> commandNames = registry.getCommandNames();
+        assertEquals(11, commandNames.size());
+        assertTrue(commandNames.contains("command1"));
+        assertTrue(commandNames.contains("command2"));
     }
 
     @Test

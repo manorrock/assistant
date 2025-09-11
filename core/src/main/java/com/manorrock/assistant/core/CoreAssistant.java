@@ -68,7 +68,6 @@ public class CoreAssistant implements Assistant {
         llmManager.registerLlm("llama3.2", new CoreLlm(llmManager));
         commandRegistry = new CoreCommandRegistry(this);
         toolManager = new CoreToolManager(this);
-            agentManager = new CoreAgentManager(this);
     }
     
     /**
