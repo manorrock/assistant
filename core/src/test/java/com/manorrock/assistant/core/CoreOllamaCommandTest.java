@@ -11,6 +11,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class CoreOllamaCommandTest {
+    @Test
+    void testExecuteWithListSubcommand() {
+        // Arrange: Use a mock or stub for CoreAssistant if needed
+        CoreAssistant assistant = mock(CoreAssistant.class);
+        CoreOllamaCommand command = new CoreOllamaCommand(assistant);
+
+        // Act: Call the list command
+        String result = command.execute("list");
+
+        // Assert: Should not be null or empty (actual output depends on system)
+        assertNotNull(result);
+        assertFalse(result.isEmpty(), "Output should not be empty");
+        // Optionally, check for known error or success patterns
+        // assertTrue(result.contains("Error") || result.contains("NAME") || result.contains("MODEL"));
+    }
 
     private CoreAssistant mockAssistant;
     private CoreOllamaCommand command;

@@ -65,12 +65,12 @@ public class CoreOllamaCommand implements Command {
         if (input == null || input.trim().isEmpty()) {
             return "Endpoint URL: " + getEndpoint() + "\n" +
                    "Usage: /ollama <subcommand> [args]\n" +
-                   "Available subcommands: exec, endpoint";
+                   "Available subcommands: exec, endpoint, list";
         }
-        
+
         String[] parts = input.trim().split("\\s+", 2);
         String subCommand = parts[0].toLowerCase();
-        
+
         switch (subCommand) {
             case "exec":
                 if (parts.length < 2) {
@@ -85,10 +85,14 @@ public class CoreOllamaCommand implements Command {
                 }
                 endpoint = parts[1].trim();
                 return endpoint;
-                
+
+            case "list":
+                // Dispatch to ollama CLI with 'list'
+                return executeOllamaCommand("list");
+
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: exec, endpoint";
+                       "Available subcommands: exec, endpoint, list";
         }
     }
     
