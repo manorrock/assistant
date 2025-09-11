@@ -11,6 +11,7 @@ import com.manorrock.assistant.api.Llm;
 import com.manorrock.assistant.api.LlmManager;
 import com.manorrock.assistant.api.TokenUsageTracker;
 import com.manorrock.assistant.api.ToolManager;
+import com.manorrock.assistant.api.AgentManager;
 
 /**
  * The Core Assistant.
@@ -44,6 +45,11 @@ public class CoreAssistant implements Assistant {
     private ToolManager toolManager;
 
     /**
+     * Stores the agent manager.
+     */
+    private AgentManager agentManager;
+
+    /**
      * Stores the current context message
      */
     private String currentContext;
@@ -62,6 +68,7 @@ public class CoreAssistant implements Assistant {
         llmManager.registerLlm("llama3.2", new CoreLlm(llmManager));
         commandRegistry = new CoreCommandRegistry(this);
         toolManager = new CoreToolManager(this);
+            agentManager = new CoreAgentManager(this);
     }
     
     /**
@@ -100,6 +107,15 @@ public class CoreAssistant implements Assistant {
         return toolManager;
     }
 
+        /**
+         * Get the agent manager.
+         *
+         * @return the agent manager
+         */
+        public AgentManager getAgentManager() {
+            return agentManager;
+        }
+
     /**
      * Set the active LLM.
      * 
@@ -126,6 +142,15 @@ public class CoreAssistant implements Assistant {
     public void setToolManager(ToolManager toolManager) {
         this.toolManager = toolManager;
     }
+
+        /**
+         * Set the agent manager.
+         *
+         * @param agentManager the agent manager
+         */
+        public void setAgentManager(AgentManager agentManager) {
+            this.agentManager = agentManager;
+        }
 
     @Override
     public CompletableFuture<AssistantMessage> sendMessage(AssistantMessage message) {

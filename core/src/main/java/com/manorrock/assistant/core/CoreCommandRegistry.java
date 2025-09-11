@@ -38,7 +38,7 @@ public class CoreCommandRegistry implements CommandRegistry {
     registerCommand("tool", new CoreToolCommand(assistant));
     registerCommand("context", new CoreContextCommand(assistant));
     registerCommand("token", new CoreTokenCommand(assistant));
-    registerCommand("agent", new CoreAgentCommand());
+    registerCommand("agent", new CoreAgentCommand(assistant));
     }
 
     /**
