@@ -52,6 +52,7 @@ public class CoreOllamaCommand implements Command {
                Usage:
                  /ollama exec <command>  - Executes the given Ollama command
                  /ollama endpoint <url>  - Set Ollama server endpoint (default: http://localhost:11434)
+                 /ollama pull <model>    - Pull an Ollama model (e.g. llama3.2:latest)
                """;
     }
 
@@ -65,7 +66,7 @@ public class CoreOllamaCommand implements Command {
         if (input == null || input.trim().isEmpty()) {
             return "Endpoint URL: " + getEndpoint() + "\n" +
                    "Usage: /ollama <subcommand> [args]\n" +
-                   "Available subcommands: exec, endpoint, list";
+                   "Available subcommands: exec, endpoint, list, pull";
         }
 
         String[] parts = input.trim().split("\\s+", 2);
@@ -90,9 +91,15 @@ public class CoreOllamaCommand implements Command {
                 // Dispatch to ollama CLI with 'list'
                 return executeOllamaCommand("list");
 
+            case "pull":
+                if (parts.length < 2) {
+                    return "Usage: /ollama pull <model>";
+                }
+                return executeOllamaCommand("pull " + parts[1]);
+
             default:
                 return "Unknown subcommand: " + subCommand + "\n" +
-                       "Available subcommands: exec, endpoint, list";
+                       "Available subcommands: exec, endpoint, list, pull";
         }
     }
     

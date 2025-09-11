@@ -12,6 +12,21 @@ import static org.mockito.Mockito.*;
 
 class CoreOllamaCommandTest {
     @Test
+    void testExecuteWithPullSubcommand() {
+        // Arrange: Use a mock or stub for CoreAssistant if needed
+        CoreAssistant assistant = mock(CoreAssistant.class);
+        CoreOllamaCommand command = new CoreOllamaCommand(assistant);
+
+        // Act: Call the pull command
+        String result = command.execute("pull llama3.2:latest");
+
+        // Assert: Should not be null or empty (actual output depends on system)
+        assertNotNull(result);
+        assertFalse(result.isEmpty(), "Output should not be empty");
+        // Optionally, check for known error or success patterns
+        // assertTrue(result.contains("Error") || result.contains("Pulling") || result.contains("Success"));
+    }
+    @Test
     void testExecuteWithListSubcommand() {
         // Arrange: Use a mock or stub for CoreAssistant if needed
         CoreAssistant assistant = mock(CoreAssistant.class);
