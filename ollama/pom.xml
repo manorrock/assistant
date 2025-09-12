@@ -1,0 +1,26 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.manorrock.assistant</groupId>
+        <artifactId>project</artifactId>
+        <version>25.9.12-SNAPSHOT</version>
+    </parent>
+    <artifactId>ollama</artifactId>
+    <packaging>jar</packaging>
+    <name>Manorrock Assistant - Ollama</name>
+    <dependencies>
+        <dependency>
+            <groupId>com.manorrock.assistant</groupId>
+            <artifactId>api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
