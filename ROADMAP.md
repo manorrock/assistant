@@ -9,6 +9,8 @@
 - [x] Create lean Ollama specifc API integration
 - [x] Add memory support to OllamaLlm
 - [x] Support System Messages in OllamaLlm
+- [x] Implement Tool/Function Calling in OllamaLlm
+- [x] Implement Streaming Responses in OllamaLlm
 
 # Backlog
 

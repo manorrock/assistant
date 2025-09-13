@@ -9,6 +9,97 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OllamaLlmTest {
     @Test
+    void testStreamingWithToolCall() {
+        OllamaLlm llm = new OllamaLlm();
+        Properties props = new Properties();
+        props.setProperty("endpoint", getOllamaEndpoint());
+        props.setProperty("model", "llama3.2:latest");
+        llm.setProperties(props);
+
+        // Register a simple weather tool
+        com.manorrock.assistant.core.CoreToolManager toolManager = new com.manorrock.assistant.core.CoreToolManager(null);
+        com.manorrock.assistant.api.Tool weatherTool = new com.manorrock.assistant.api.Tool() {
+            @Override public String getName() { return "get_weather"; }
+            @Override public String getDescription() { return "Get the current weather in a given city"; }
+            @Override public java.util.List<com.manorrock.assistant.api.ToolParameter> getParameters() {
+                java.util.List<com.manorrock.assistant.api.ToolParameter> params = new java.util.ArrayList<>();
+                params.add(new com.manorrock.assistant.api.ToolParameter("city", "string", "The city to get the weather for", true));
+                return params;
+            }
+            @Override public boolean initialize() { return true; }
+            @Override public void cleanup() {}
+            @Override public com.manorrock.assistant.api.ToolResult execute(java.util.Map<String, Object> parameters) {
+                String city = parameters.get("city") != null ? parameters.get("city").toString() : "Unknown";
+                java.util.Map<String, Object> data = new java.util.HashMap<>();
+                data.put("result", "The weather in " + city + " is sunny.");
+                return com.manorrock.assistant.api.ToolResult.success(data);
+            }
+        };
+        toolManager.registerTool(weatherTool);
+        llm.setToolManager(toolManager);
+        llm.init();
+
+        String prompt = "What is the weather in Paris?";
+        StringBuilder streamed = new StringBuilder();
+        java.util.List<String> tokens = new java.util.ArrayList<>();
+        llm.processStreaming(prompt, new com.manorrock.assistant.api.LlmStreamingResponseHandler() {
+            @Override
+            public void onToken(String token) {
+                tokens.add(token);
+                streamed.append(token);
+            }
+            @Override
+            public void onComplete(String fullResponse) {
+                // Optionally assert here
+            }
+            @Override
+            public void onError(Throwable error) {
+                fail("Streaming error: " + error.getMessage());
+            }
+        });
+        // Basic assertions
+        assertFalse(tokens.isEmpty(), "Should receive at least one token");
+        assertTrue(streamed.length() > 0, "Streamed response should not be empty");
+        assertTrue(streamed.toString().contains("Paris"), "Streamed response should mention the city");
+        assertTrue(streamed.toString().toLowerCase().matches(".*(sunny|weather|forecast|temperature|rain|cloud|clear|wind).*"), "Streamed response should mention weather");
+        System.out.println("Streamed tool response: " + streamed);
+        llm.destroy();
+    }
+    @Test
+    void testStreamingResponse() {
+        OllamaLlm llm = new OllamaLlm();
+        Properties props = new Properties();
+        props.setProperty("endpoint", getOllamaEndpoint());
+        props.setProperty("model", "llama3.2:latest");
+        llm.setProperties(props);
+        llm.init();
+
+        String prompt = "Say hello in a short sentence.";
+        StringBuilder streamed = new StringBuilder();
+        java.util.List<String> tokens = new java.util.ArrayList<>();
+        llm.processStreaming(prompt, new com.manorrock.assistant.api.LlmStreamingResponseHandler() {
+            @Override
+            public void onToken(String token) {
+                tokens.add(token);
+                streamed.append(token);
+            }
+            @Override
+            public void onComplete(String fullResponse) {
+                // Optionally assert here
+            }
+            @Override
+            public void onError(Throwable error) {
+                fail("Streaming error: " + error.getMessage());
+            }
+        });
+        // Basic assertions
+    assertFalse(tokens.isEmpty(), "Should receive at least one token");
+    assertTrue(streamed.length() > 0, "Streamed response should not be empty");
+    assertTrue(streamed.toString().toLowerCase().contains("hello"), "Streamed response should contain 'hello'");
+    System.out.println("Streamed response: " + streamed);
+    llm.destroy();
+    }
+    @Test
     void testToolCalling() {
         OllamaLlm llm = new OllamaLlm();
         Properties props = new Properties();

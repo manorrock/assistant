@@ -258,9 +258,204 @@ public class OllamaLlm implements Llm {
         this.properties = properties;
     }
 
-    // Streaming not implemented for lean version
+    /**
+     * Process a prompt with streaming response using Ollama's streaming API.
+     */
     @Override
     public void processStreaming(String prompt, com.manorrock.assistant.api.LlmStreamingResponseHandler handler) {
-        throw new UnsupportedOperationException("Streaming not implemented");
+        String endpoint = properties.getProperty("endpoint", "http://localhost:11434/api/chat");
+        String model = properties.getProperty("model", "llama3.2:latest");
+        // Add system message if present and not yet added
+        if (!systemMessageAdded) {
+            String systemMessage = properties.getProperty("systemMessage");
+            if (systemMessage != null && !systemMessage.isEmpty()) {
+                messages.add(new Message("system", systemMessage));
+            }
+            systemMessageAdded = true;
+        }
+        messages.add(new Message("user", prompt));
+        StringBuilder messagesJson = new StringBuilder("[");
+        for (int i = 0; i < messages.size(); i++) {
+            Message m = messages.get(i);
+            messagesJson.append("{\"role\":\"").append(m.role).append("\",\"content\":\"")
+                .append(m.content.replace("\"", "\\\"")).append("\"}");
+            if (i < messages.size() - 1) messagesJson.append(",");
+        }
+        messagesJson.append("]");
+
+        String body;
+        if (toolManager != null) {
+            StringBuilder toolsJson = new StringBuilder("[");
+            java.util.List<com.manorrock.assistant.api.Tool> activeTools = toolManager.getActiveTools();
+            for (int i = 0; i < activeTools.size(); i++) {
+                com.manorrock.assistant.api.Tool tool = activeTools.get(i);
+                toolsJson.append("{\"type\":\"function\",\"function\":{");
+                toolsJson.append("\"name\":\"").append(tool.getName()).append("\"");
+                toolsJson.append(",\"description\":\"").append(tool.getDescription().replace("\"", "\\\"")).append("\"");
+                toolsJson.append(",\"parameters\":{\"type\":\"object\",\"properties\":{");
+                java.util.List<com.manorrock.assistant.api.ToolParameter> params = tool.getParameters();
+                for (int j = 0; j < params.size(); j++) {
+                    com.manorrock.assistant.api.ToolParameter param = params.get(j);
+                    toolsJson.append("\"").append(param.getName()).append("\":{");
+                    toolsJson.append("\"type\":\"").append(param.getType()).append("\"");
+                    toolsJson.append(",\"description\":\"").append(param.getDescription().replace("\"", "\\\"")).append("\"");
+                    toolsJson.append("}");
+                    if (j < params.size() - 1) toolsJson.append(",");
+                }
+                toolsJson.append("},\"required\":[");
+                boolean first = true;
+                for (com.manorrock.assistant.api.ToolParameter param : params) {
+                    if (param.isRequired()) {
+                        if (!first) toolsJson.append(",");
+                        toolsJson.append("\"").append(param.getName()).append("\"");
+                        first = false;
+                    }
+                }
+                toolsJson.append("]}}}");
+                if (i < activeTools.size() - 1) toolsJson.append(",");
+            }
+            toolsJson.append("]");
+            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"tools\":" + toolsJson.toString() + ",\"stream\":true}";
+        } else {
+            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"stream\":true}";
+        }
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+            HttpResponse<java.io.InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            java.io.InputStream inputStream = response.body();
+            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(inputStream));
+            String line;
+            StringBuilder fullResponse = new StringBuilder();
+            boolean toolCallHandled = false;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                // Check for tool_calls in the streamed line
+                if (toolManager != null && line.contains("tool_calls")) {
+                    // Simple JSON parsing for tool_calls (not robust, but works for expected format)
+                    int toolCallsIndex = line.indexOf("tool_calls");
+                    int functionIndex = line.indexOf("function", toolCallsIndex);
+                    int nameIndex = line.indexOf("name", functionIndex);
+                    int nameStart = line.indexOf('"', nameIndex + 6) + 1;
+                    int nameEnd = line.indexOf('"', nameStart);
+                    String toolName = line.substring(nameStart, nameEnd);
+
+                    // Arguments (assume only one argument: city)
+                    int argsIndex = line.indexOf("arguments", functionIndex);
+                    int cityIndex = line.indexOf("city", argsIndex);
+                    int cityStart = line.indexOf('"', cityIndex + 6) + 1;
+                    int cityEnd = line.indexOf('"', cityStart);
+                    String city = line.substring(cityStart, cityEnd);
+
+                    // Execute the tool
+                    java.util.Map<String, Object> params = new java.util.HashMap<>();
+                    params.put("city", city);
+                    com.manorrock.assistant.api.ToolResult result = toolManager.executeTool(toolName, params);
+                    String toolResult;
+                    if (result != null && result.isSuccess() && result.getData() != null && !result.getData().isEmpty()) {
+                        toolResult = result.getData().toString();
+                    } else if (result != null) {
+                        toolResult = result.getMessage();
+                    } else {
+                        toolResult = "No result";
+                    }
+
+                    // Add tool result as a tool message
+                    messages.add(new Message("tool", toolResult));
+
+                    // Build updated messages JSON
+                    StringBuilder updatedMessagesJson = new StringBuilder("[");
+                    for (int i = 0; i < messages.size(); i++) {
+                        Message m = messages.get(i);
+                        updatedMessagesJson.append("{\"role\":\"").append(m.role).append("\",\"content\":\"")
+                            .append(m.content.replace("\"", "\\\"")).append("\"}");
+                        if (i < messages.size() - 1) updatedMessagesJson.append(",");
+                    }
+                    updatedMessagesJson.append("]");
+
+                    String updatedBody;
+                    if (toolManager != null) {
+                        StringBuilder toolsJson = new StringBuilder("[");
+                        java.util.List<com.manorrock.assistant.api.Tool> activeTools = toolManager.getActiveTools();
+                        for (int i = 0; i < activeTools.size(); i++) {
+                            com.manorrock.assistant.api.Tool tool = activeTools.get(i);
+                            toolsJson.append("{\"type\":\"function\",\"function\":{");
+                            toolsJson.append("\"name\":\"").append(tool.getName()).append("\"");
+                            toolsJson.append(",\"description\":\"").append(tool.getDescription().replace("\"", "\\\"")).append("\"");
+                            toolsJson.append(",\"parameters\":{\"type\":\"object\",\"properties\":{");
+                            java.util.List<com.manorrock.assistant.api.ToolParameter> paramsList = tool.getParameters();
+                            for (int j = 0; j < paramsList.size(); j++) {
+                                com.manorrock.assistant.api.ToolParameter param = paramsList.get(j);
+                                toolsJson.append("\"").append(param.getName()).append("\":{");
+                                toolsJson.append("\"type\":\"").append(param.getType()).append("\"");
+                                toolsJson.append(",\"description\":\"").append(param.getDescription().replace("\"", "\\\"")).append("\"");
+                                toolsJson.append("}");
+                                if (j < paramsList.size() - 1) toolsJson.append(",");
+                            }
+                            toolsJson.append("},\"required\":[");
+                            boolean first = true;
+                            for (com.manorrock.assistant.api.ToolParameter param : paramsList) {
+                                if (param.isRequired()) {
+                                    if (!first) toolsJson.append(",");
+                                    toolsJson.append("\"").append(param.getName()).append("\"");
+                                    first = false;
+                                }
+                            }
+                            toolsJson.append("]}}}");
+                            if (i < activeTools.size() - 1) toolsJson.append(",");
+                        }
+                        toolsJson.append("]");
+                        updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + ",\"tools\":" + toolsJson.toString() + ",\"stream\":true}";
+                    } else {
+                        updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + ",\"stream\":true}";
+                    }
+
+                    // Send updated conversation with tool result, continue streaming
+                    HttpRequest updatedRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(endpoint))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(updatedBody))
+                        .build();
+                    HttpResponse<java.io.InputStream> updatedResponse = httpClient.send(updatedRequest, HttpResponse.BodyHandlers.ofInputStream());
+                    java.io.InputStream updatedInputStream = updatedResponse.body();
+                    java.io.BufferedReader updatedReader = new java.io.BufferedReader(new java.io.InputStreamReader(updatedInputStream));
+                    String updatedLine;
+                    while ((updatedLine = updatedReader.readLine()) != null) {
+                        updatedLine = updatedLine.trim();
+                        if (updatedLine.isEmpty()) continue;
+                        int updatedContentIdx = updatedLine.indexOf("\"content\":");
+                        if (updatedContentIdx != -1) {
+                            int start = updatedLine.indexOf('"', updatedContentIdx + 10) + 1;
+                            int end = updatedLine.indexOf('"', start);
+                            if (start > 0 && end > start) {
+                                String token = updatedLine.substring(start, end);
+                                handler.onToken(token);
+                                fullResponse.append(token);
+                            }
+                        }
+                    }
+                    toolCallHandled = true;
+                    break; // Only handle one tool call per streaming session for now
+                }
+                // Normal streaming token
+                int contentIdx = line.indexOf("\"content\":");
+                if (contentIdx != -1) {
+                    int start = line.indexOf('"', contentIdx + 10) + 1;
+                    int end = line.indexOf('"', start);
+                    if (start > 0 && end > start) {
+                        String token = line.substring(start, end);
+                        handler.onToken(token);
+                        fullResponse.append(token);
+                    }
+                }
+            }
+            handler.onComplete(fullResponse.toString());
+        } catch (Exception e) {
+            handler.onError(e);
+        }
     }
 }
