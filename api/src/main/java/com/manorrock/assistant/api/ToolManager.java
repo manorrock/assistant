@@ -9,6 +9,12 @@ import java.util.Optional;
  * Provides methods for registering, discovering, and executing tools.
  */
 public interface ToolManager {
+    /**
+     * Gets a list of all active (enabled) tools.
+     * 
+     * @return list of active tools
+     */
+    List<Tool> getActiveTools();
     
     /**
      * Registers a tool with the manager.

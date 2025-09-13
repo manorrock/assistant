@@ -3,6 +3,21 @@ package com.manorrock.assistant.api;
 import java.util.Properties;
 
 public interface Llm {
+    /**
+     * Set the ToolManager instance.
+     * @param toolManager the ToolManager
+     */
+    default void setToolManager(ToolManager toolManager) {
+        // Default implementation does nothing        
+    }
+
+    /**
+     * Get the ToolManager instance.
+     * @return the ToolManager
+     */
+    default ToolManager getToolManager() { 
+        return null;
+    }
 
     /**
      * Destroy the LLM.

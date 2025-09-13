@@ -8,6 +8,46 @@ import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OllamaLlmTest {
+    @Test
+    void testToolCalling() {
+        OllamaLlm llm = new OllamaLlm();
+        Properties props = new Properties();
+        props.setProperty("endpoint", getOllamaEndpoint());
+        props.setProperty("model", "llama3.2:latest");
+        llm.setProperties(props);
+
+        // Create a simple ToolManager with one enabled tool
+        com.manorrock.assistant.core.CoreToolManager toolManager = new com.manorrock.assistant.core.CoreToolManager(null);
+        com.manorrock.assistant.api.Tool weatherTool = new com.manorrock.assistant.api.Tool() {
+            @Override public String getName() { return "get_weather"; }
+            @Override public String getDescription() { return "Get the current weather in a given city"; }
+            @Override public java.util.List<com.manorrock.assistant.api.ToolParameter> getParameters() {
+                java.util.List<com.manorrock.assistant.api.ToolParameter> params = new java.util.ArrayList<>();
+                params.add(new com.manorrock.assistant.api.ToolParameter("city", "string", "The city to get the weather for", true));
+                return params;
+            }
+            @Override public boolean initialize() { return true; }
+            @Override public void cleanup() {}
+            @Override public com.manorrock.assistant.api.ToolResult execute(java.util.Map<String, Object> parameters) {
+                String city = parameters.get("city") != null ? parameters.get("city").toString() : "Unknown";
+                java.util.Map<String, Object> data = new java.util.HashMap<>();
+                data.put("result", "The weather in " + city + " is sunny.");
+                return com.manorrock.assistant.api.ToolResult.success(data);
+            }
+        };
+        toolManager.registerTool(weatherTool);
+        llm.setToolManager(toolManager);
+        llm.init();
+
+    String response = llm.process("What is the weather in Tokyo?");
+    assertNotNull(response);
+    // Print the full response for debugging
+    System.out.println("Tool calling final response: " + response);
+        // Check that the final response includes the city and a weather-related word
+        assertTrue(response.contains("Tokyo"), "Final response should mention the city");
+        assertTrue(response.toLowerCase().matches(".*\\b(sunny|weather|forecast|temperature|rain|cloud|clear|wind)\\b.*"), "Final response should mention weather");
+    llm.destroy();
+    }
     @BeforeAll
     static void checkOllamaHost() {
         String env = System.getenv("OLLAMA_HOST");

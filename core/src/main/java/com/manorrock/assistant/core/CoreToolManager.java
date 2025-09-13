@@ -21,6 +21,12 @@ import java.util.stream.Collectors;
  * </p>
  */
 public class CoreToolManager implements ToolManager {
+    @Override
+    public List<Tool> getActiveTools() {
+        return tools.stream()
+            .filter(tool -> !disabledTools.contains(tool.getName()))
+            .collect(Collectors.toList());
+    }
 
     /**
      * Stores the CoreAssistant instance.
