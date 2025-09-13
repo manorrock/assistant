@@ -3,13 +3,17 @@
 > **Disclaimer:** This roadmap was generated with assistance from an LLM model. The content is subject to change without notice and is provided "as is" without warranty of any kind, either expressed or implied, including fitness for a particular purpose. The roadmap represents potential development directions that may evolve based on project needs, technological advancements, and feedback from the community.
 
 # Next release
-- [x] Implement proper markdown rendering for responses (Desktop)
-- [x] Add support for explanation of compiler/build errors (Eclipse)
-- [x] Add arm64 macOS CLI binary
+- [x] Unarchive the project
+- [x] Add /ollama list command
+- [x] Add /ollama pull command
+- [x] Create lean Ollama specifc API integration
+- [x] Add memory support to OllamaLlm
+- [x] Support System Messages in OllamaLlm
 
 # Backlog
 
 ## CLI
+- [ ] Add arm64 macOS CLI binary
 - [ ] Add amd64 macOS CLI binary
 - [ ] Add amd64 Windows CLI binary
 - [ ] Add amd64 Linux CLI binary

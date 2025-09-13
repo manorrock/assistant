@@ -15,6 +15,7 @@ public class OllamaLlm implements Llm {
     private HttpClient httpClient;
     // Conversation memory: list of messages
     private java.util.List<Message> messages = new java.util.ArrayList<>();
+    private boolean systemMessageAdded = false;
 
     // Message class for conversation history
     private static class Message {
@@ -28,8 +29,9 @@ public class OllamaLlm implements Llm {
 
     @Override
     public void init() {
-           httpClient = HttpClient.newHttpClient();
-           messages.clear();
+    httpClient = HttpClient.newHttpClient();
+    messages.clear();
+    systemMessageAdded = false;
     }
 
     @Override
@@ -40,47 +42,55 @@ public class OllamaLlm implements Llm {
 
     @Override
     public String process(String prompt) {
-            String endpoint = properties.getProperty("endpoint", "http://localhost:11434/api/chat");
-            String model = properties.getProperty("model", "llama3.2:latest");
-            // Add user message to memory
-            messages.add(new Message("user", prompt));
-            // Build messages array JSON
-            StringBuilder messagesJson = new StringBuilder("[");
-            for (int i = 0; i < messages.size(); i++) {
-                Message m = messages.get(i);
-                messagesJson.append("{\"role\":\"").append(m.role).append("\",\"content\":\"")
-                    .append(m.content.replace("\"", "\\\"")).append("\"}");
-                if (i < messages.size() - 1) messagesJson.append(",");
+        String endpoint = properties.getProperty("endpoint", "http://localhost:11434/api/chat");
+        String model = properties.getProperty("model", "llama3.2:latest");
+        // Add system message if present and not yet added
+        if (!systemMessageAdded) {
+            String systemMessage = properties.getProperty("systemMessage");
+            if (systemMessage != null && !systemMessage.isEmpty()) {
+                messages.add(new Message("system", systemMessage));
             }
-            messagesJson.append("]");
-            String body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"stream\":false}";
-            try {
-                HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body))
-                    .build();
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                String responseBody = response.body();
-                // Extract the assistant's message content from the JSON response
-                int messageIndex = responseBody.indexOf("\"message\":");
-                if (messageIndex != -1) {
-                    int contentIndex = responseBody.indexOf("\"content\":", messageIndex);
-                    if (contentIndex != -1) {
-                        int start = responseBody.indexOf('"', contentIndex + 10) + 1;
-                        int end = responseBody.indexOf('"', start);
-                        if (start > 0 && end > start) {
-                            String assistantReply = responseBody.substring(start, end);
-                            // Add assistant reply to memory
-                            messages.add(new Message("assistant", assistantReply));
-                            return assistantReply;
-                        }
+            systemMessageAdded = true;
+        }
+        // Add user message to memory
+        messages.add(new Message("user", prompt));
+        // Build messages array JSON
+        StringBuilder messagesJson = new StringBuilder("[");
+        for (int i = 0; i < messages.size(); i++) {
+            Message m = messages.get(i);
+            messagesJson.append("{\"role\":\"").append(m.role).append("\",\"content\":\"")
+                .append(m.content.replace("\"", "\\\"")).append("\"}");
+            if (i < messages.size() - 1) messagesJson.append(",");
+        }
+        messagesJson.append("]");
+        String body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"stream\":false}";
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            String responseBody = response.body();
+            // Extract the assistant's message content from the JSON response
+            int messageIndex = responseBody.indexOf("\"message\":");
+            if (messageIndex != -1) {
+                int contentIndex = responseBody.indexOf("\"content\":", messageIndex);
+                if (contentIndex != -1) {
+                    int start = responseBody.indexOf('"', contentIndex + 10) + 1;
+                    int end = responseBody.indexOf('"', start);
+                    if (start > 0 && end > start) {
+                        String assistantReply = responseBody.substring(start, end);
+                        // Add assistant reply to memory
+                        messages.add(new Message("assistant", assistantReply));
+                        return assistantReply;
                     }
                 }
-                return responseBody;
-            } catch (Exception e) {
-                return "Error: " + e.getMessage();
             }
+            return responseBody;
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
     }
 
     @Override
