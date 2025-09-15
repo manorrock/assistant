@@ -52,8 +52,9 @@ public class OllamaLlm implements Llm {
 
     @Override
     public String process(String prompt) {
-        String endpoint = properties.getProperty("endpoint", "http://localhost:11434/api/chat");
-        String model = properties.getProperty("model", "llama3.2:latest");
+    String endpoint = properties.getProperty("endpoint", "http://localhost:11434/api/chat");
+    String model = properties.getProperty("model", "llama3.2:latest");
+    String temperature = properties.getProperty("temperature");
         // Add system message if present and not yet added
         if (!systemMessageAdded) {
             String systemMessage = properties.getProperty("systemMessage");
@@ -75,6 +76,7 @@ public class OllamaLlm implements Llm {
         messagesJson.append("]");
 
         String body;
+        String temperatureJson = (temperature != null && !temperature.isEmpty()) ? ",\"temperature\":" + temperature : "";
         if (toolManager != null) {
             // Build tools array JSON
             StringBuilder toolsJson = new StringBuilder("[");
@@ -108,9 +110,9 @@ public class OllamaLlm implements Llm {
                 if (i < activeTools.size() - 1) toolsJson.append(",");
             }
             toolsJson.append("]");
-            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"tools\":" + toolsJson.toString() + ",\"stream\":false}";
+            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"tools\":" + toolsJson.toString() + temperatureJson + ",\"stream\":false}";
         } else {
-            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"stream\":false}";
+            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + temperatureJson + ",\"stream\":false}";
         }
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -165,6 +167,7 @@ public class OllamaLlm implements Llm {
                 updatedMessagesJson.append("]");
 
                 String updatedBody;
+                // temperatureJson already declared above
                 if (toolManager != null) {
                     // Reuse toolsJson from above
                     StringBuilder toolsJson = new StringBuilder("[");
@@ -198,9 +201,9 @@ public class OllamaLlm implements Llm {
                         if (i < activeTools.size() - 1) toolsJson.append(",");
                     }
                     toolsJson.append("]");
-                    updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + ",\"tools\":" + toolsJson.toString() + ",\"stream\":false}";
+                    updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + ",\"tools\":" + toolsJson.toString() + temperatureJson + ",\"stream\":false}";
                 } else {
-                    updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + ",\"stream\":false}";
+                    updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + temperatureJson + ",\"stream\":false}";
                 }
 
                 // Send updated conversation with tool result
@@ -263,8 +266,9 @@ public class OllamaLlm implements Llm {
      */
     @Override
     public void processStreaming(String prompt, com.manorrock.assistant.api.LlmStreamingResponseHandler handler) {
-        String endpoint = properties.getProperty("endpoint", "http://localhost:11434/api/chat");
-        String model = properties.getProperty("model", "llama3.2:latest");
+    String endpoint = properties.getProperty("endpoint", "http://localhost:11434/api/chat");
+    String model = properties.getProperty("model", "llama3.2:latest");
+    String temperature = properties.getProperty("temperature");
         // Add system message if present and not yet added
         if (!systemMessageAdded) {
             String systemMessage = properties.getProperty("systemMessage");
@@ -284,6 +288,7 @@ public class OllamaLlm implements Llm {
         messagesJson.append("]");
 
         String body;
+        String temperatureJson = (temperature != null && !temperature.isEmpty()) ? ",\"temperature\":" + temperature : "";
         if (toolManager != null) {
             StringBuilder toolsJson = new StringBuilder("[");
             java.util.List<com.manorrock.assistant.api.Tool> activeTools = toolManager.getActiveTools();
@@ -315,9 +320,9 @@ public class OllamaLlm implements Llm {
                 if (i < activeTools.size() - 1) toolsJson.append(",");
             }
             toolsJson.append("]");
-            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"tools\":" + toolsJson.toString() + ",\"stream\":true}";
+            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"tools\":" + toolsJson.toString() + temperatureJson + ",\"stream\":true}";
         } else {
-            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + ",\"stream\":true}";
+            body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson.toString() + temperatureJson + ",\"stream\":true}";
         }
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -330,7 +335,6 @@ public class OllamaLlm implements Llm {
             java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(inputStream));
             String line;
             StringBuilder fullResponse = new StringBuilder();
-            boolean toolCallHandled = false;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
@@ -378,6 +382,7 @@ public class OllamaLlm implements Llm {
                     updatedMessagesJson.append("]");
 
                     String updatedBody;
+                    // temperatureJson already declared above
                     if (toolManager != null) {
                         StringBuilder toolsJson = new StringBuilder("[");
                         java.util.List<com.manorrock.assistant.api.Tool> activeTools = toolManager.getActiveTools();
@@ -409,9 +414,9 @@ public class OllamaLlm implements Llm {
                             if (i < activeTools.size() - 1) toolsJson.append(",");
                         }
                         toolsJson.append("]");
-                        updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + ",\"tools\":" + toolsJson.toString() + ",\"stream\":true}";
+                        updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + ",\"tools\":" + toolsJson.toString() + temperatureJson + ",\"stream\":true}";
                     } else {
-                        updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + ",\"stream\":true}";
+                        updatedBody = "{\"model\":\"" + model + "\",\"messages\":" + updatedMessagesJson.toString() + temperatureJson + ",\"stream\":true}";
                     }
 
                     // Send updated conversation with tool result, continue streaming
@@ -438,7 +443,6 @@ public class OllamaLlm implements Llm {
                             }
                         }
                     }
-                    toolCallHandled = true;
                     break; // Only handle one tool call per streaming session for now
                 }
                 // Normal streaming token

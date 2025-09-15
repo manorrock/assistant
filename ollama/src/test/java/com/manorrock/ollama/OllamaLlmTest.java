@@ -9,6 +9,52 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OllamaLlmTest {
     @Test
+    void testTemperatureNonStreaming() {
+        OllamaLlm llm = new OllamaLlm();
+        Properties props = new Properties();
+        props.setProperty("endpoint", getOllamaEndpoint());
+        props.setProperty("model", "llama3.2:latest");
+        props.setProperty("temperature", "0.1");
+        llm.setProperties(props);
+        llm.init();
+        String response = llm.process("Say something creative.");
+        assertNotNull(response);
+        assertFalse(response.isEmpty());
+        System.out.println("Non-streaming response with temperature: " + response);
+        llm.destroy();
+    }
+
+    @Test
+    void testTemperatureStreaming() {
+        OllamaLlm llm = new OllamaLlm();
+        Properties props = new Properties();
+        props.setProperty("endpoint", getOllamaEndpoint());
+        props.setProperty("model", "llama3.2:latest");
+        props.setProperty("temperature", "0.9");
+        llm.setProperties(props);
+        llm.init();
+        String prompt = "Tell me a joke.";
+        StringBuilder streamed = new StringBuilder();
+        java.util.List<String> tokens = new java.util.ArrayList<>();
+        llm.processStreaming(prompt, new com.manorrock.assistant.api.LlmStreamingResponseHandler() {
+            @Override
+            public void onToken(String token) {
+                tokens.add(token);
+                streamed.append(token);
+            }
+            @Override
+            public void onComplete(String fullResponse) {}
+            @Override
+            public void onError(Throwable error) {
+                fail("Streaming error: " + error.getMessage());
+            }
+        });
+        assertFalse(tokens.isEmpty(), "Should receive at least one token");
+        assertTrue(streamed.length() > 0, "Streamed response should not be empty");
+        System.out.println("Streaming response with temperature: " + streamed);
+        llm.destroy();
+    }
+    @Test
     void testStreamingWithToolCall() {
         OllamaLlm llm = new OllamaLlm();
         Properties props = new Properties();
