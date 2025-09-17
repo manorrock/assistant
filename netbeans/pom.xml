@@ -11,7 +11,7 @@
     <packaging>nbm</packaging>
     <name>Manorrock Assistant - NetBeans Plugin</name>
     <properties>
-        <netbeans.version>RELEASE250</netbeans.version>
+        <netbeans.version>RELEASE270</netbeans.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
