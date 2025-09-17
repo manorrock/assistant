@@ -13,7 +13,6 @@
     <module>eclipse</module>
     <module>intellij</module>
     <module>netbeans</module>
-    <module>ollama</module>
     <module>phone</module>
     <module>vscode</module>
   </modules>
