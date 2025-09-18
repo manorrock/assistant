@@ -9,8 +9,11 @@
     </parent>
     <groupId>com.manorrock.assistant.tool</groupId>
     <artifactId>project</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     <name>Manorrock Assistant - Tool - Project</name>
+    <modules>
+        <module>filesystem</module>
+    </modules>
     <dependencies>
         <!-- compile -->
         <dependency>

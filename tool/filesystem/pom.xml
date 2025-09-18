@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.manorrock.assistant.tool</groupId>
+        <artifactId>project</artifactId>
+        <version>25.9.12-SNAPSHOT</version>
+    </parent>
+    <groupId>com.manorrock.assistant.tool.filesystem</groupId>
+    <artifactId>filesystem</artifactId>
+    <version>25.9.12-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>Manorrock Assistant - Tool - Filesystem</name>
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.9.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.manorrock.assistant</groupId>
+            <artifactId>core</artifactId>
+            <version>25.9.12-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
