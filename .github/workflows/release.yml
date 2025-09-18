@@ -147,13 +147,13 @@ jobs:
           echo "$RELEASES" | while IFS="|" read -r RELEASE_ID RELEASE_TAG; do
             # Skip the current release
             if [ "$RELEASE_TAG" = "$CURRENT_TAG" ]; then
-              echo "Skipping current release: $RELEASE_TAG"
+              echo "Skipping current release: $RELEASE_TAG" >> $GITHUB_OUTPUT
               continue
             fi
             
             # Always preserve SNAPSHOT releases
             if [[ "$RELEASE_TAG" == *"SNAPSHOT"* ]]; then
-              echo "Preserving SNAPSHOT release: $RELEASE_TAG"
+              echo "Preserving SNAPSHOT release: $RELEASE_TAG" >> $GITHUB_OUTPUT
               continue
             fi
             
@@ -162,19 +162,19 @@ jobs:
             
             # Keep the 3 most recent releases (excluding current and SNAPSHOT)
             if [ $COUNT -le 3 ]; then
-              echo "Preserving recent release: $RELEASE_TAG"
+              echo "Preserving recent release: $RELEASE_TAG" >> $GITHUB_OUTPUT
               continue
             fi
             
             # For older releases, delete their assets
-            echo "Processing older release: $RELEASE_TAG (ID: $RELEASE_ID)"
+            echo "Processing older release: $RELEASE_TAG (ID: $RELEASE_ID)" >> $GITHUB_OUTPUT
             ASSETS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets" | \
               jq -r '.[] | .id')
             
             # Delete each asset
             for ASSET_ID in $ASSETS; do
-              echo "Deleting asset $ASSET_ID from release $RELEASE_ID"
+              echo "Deleting asset $ASSET_ID from release $RELEASE_ID" >> $GITHUB_OUTPUT
               curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 "https://api.github.com/repos/${{ github.repository }}/releases/assets/$ASSET_ID"
             done
