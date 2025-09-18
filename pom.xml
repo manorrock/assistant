@@ -14,6 +14,7 @@
     <module>intellij</module>
     <module>netbeans</module>
     <module>phone</module>
+    <module>tool</module>
     <module>vscode</module>
   </modules>
   <properties>
