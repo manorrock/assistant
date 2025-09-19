@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Tool to create a directory using the Tool API.

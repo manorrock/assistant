@@ -3,10 +3,10 @@ package com.manorrock.assistant.tool.filesystem;
 import com.manorrock.assistant.api.ToolResult;
 import org.junit.jupiter.api.Test;
 import java.io.File;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class CreateDirectoryToolTest {
+
     @Test
     void testCreateDirectory() {
         CreateDirectoryTool tool = new CreateDirectoryTool();
