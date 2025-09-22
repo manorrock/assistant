@@ -17,12 +17,12 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>17.0.8</version>
+            <version>26-ea+7</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>17.0.8</version>
+            <version>26-ea+7</version>
         </dependency>
         <!-- Jackson Dependencies with explicit compile scope -->
         <dependency>

@@ -9,7 +9,7 @@
     <artifactId>desktop</artifactId>
     <name>Manorrock Assistant - Desktop</name>
     <properties>
-        <javafx.version>17.0.8</javafx.version>
+        <javafx.version>26-ea+7</javafx.version>
     </properties>
     <dependencies>
         <dependency>
