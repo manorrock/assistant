@@ -23,7 +23,7 @@
     <!-- other -->
     <java.version>17</java.version>
     <!-- dependency versions -->
-    <jackson.version>2.18.3</jackson.version>
+    <jackson.version>2.20.0</jackson.version>
     <!-- plugin versions-->
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
   </properties>
